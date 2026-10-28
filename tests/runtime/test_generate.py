@@ -302,8 +302,8 @@ def test_sources_say_which_fact_each_sentence_gives(world):
             used = {(c.form["subject"], c.form["attribute"]): [c.form["value"]]}
         elif c.type == "change":
             used = {(c.form["subject"], c.form["attribute"]): [c.form["from"], c.form["to"]]}
-        elif c.type == "compare":
-            used = {p: [current(inv, *p)[0]] for p in pairs}
+        elif c.type == "compare":  # a compare holds over the pair's history: any trusted value backs it
+            used = {p: [current(inv, *p)[0]] + [e.value for e in inv.trusted(*p)] for p in pairs}
         else:
             used = None
         for s in c.meta["sources"]:
