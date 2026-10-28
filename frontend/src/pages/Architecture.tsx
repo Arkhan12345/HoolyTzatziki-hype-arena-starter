@@ -7,12 +7,14 @@ import { Panel } from '@/components/fx/Panel'
 import { PageHeader } from '@/components/States'
 import { Button } from '@/components/ui/button'
 import { fmtSeconds, stageHealth } from '@/lib/utils'
+import { DebugOnly, useDebug } from '@/state/debug'
 import { useRun } from '@/state/run'
 
 const pill = { initial: { opacity: 0, y: -4 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 4 }, transition: { duration: 0.18 } }
 
 export default function ArchitecturePage() {
   const { architecture, focus, replay, replayAgain, run, jobs } = useRun()
+  const { debug } = useDebug()
   const [selected, setSelected] = useState<string | null>(null)
   const pipe = usePipelineStatus(architecture.data, focus, replay)
   const node = architecture.data.nodes.find((n) => n.id === selected)
@@ -22,14 +24,14 @@ export default function ArchitecturePage() {
   return (
     <div className="space-y-5">
       <PageHeader
-        eyebrow="pipeline architecture"
+        eyebrow="pipeline"
         title="How a sentence becomes a verdict"
-        lead="Text becomes facts, facts go on a timeline, and each row is judged against the value in force on its date. New claims come only from what the timeline firmly supports. No LLM runs inside the system. Click a stage to see what it does."
+        lead="Text becomes facts, facts go on a timeline, and each sentence is judged against the value in force on its date. Select a stage for details."
         right={
           <div className="flex flex-wrap items-center gap-2">
-            <span className="num text-2xs uppercase tracking-wider text-ink-faint">graph: {architecture.source === 'api' ? 'GET /architecture' : 'bundled copy'}</span>
+            {debug && <span className="num text-2xs uppercase tracking-wider text-ink-faint">graph: {architecture.source === 'api' ? 'GET /architecture' : 'bundled copy'}</span>}
             <Button variant="primary" onClick={() => run({ kind: 'sample' })} disabled={jobs.run?.status === 'running'}>
-              <Play /> Run sample through it
+              <Play /> Run sample.csv
             </Button>
           </div>
         }
@@ -137,7 +139,9 @@ export default function ArchitecturePage() {
         </AnimatePresence>
       </Panel>
 
-      <TerminalLog job={focus} />
+      <DebugOnly>
+        <TerminalLog job={focus} />
+      </DebugOnly>
     </div>
   )
 }
