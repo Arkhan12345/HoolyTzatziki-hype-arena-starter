@@ -145,7 +145,8 @@ TEAMWORK RULES (non-negotiable)
  2. Stay current, read others' work: at the start of every task run
       git fetch origin && git merge origin/main && git log --oneline -15 origin/main && cat STATUS.md
     and adapt to what teammates merged (new interfaces, new data, requests addressed to you).
- 3. ALL WORK IS ON BRANCHES. One branch per task, named <name>/<topic> (x/contracts, ioan/dockerfile,
+ 3. ALL WORK IS ON BRANCHES. One branch per task, named <name>/<topic> (X/contracts, ioan/dockerfile,
+    X's branches always start with X/ (X/skeleton, X/contracts, X/pitch, X/neuro-<topic>).
     arckan/extractor, vald/run-page). Never commit directly to main.
     Commit small and often on your branch (every working step, at least every 30 min), message
     "<P#-role>: <what>" (e.g. "P3-ai: attribute classifier v1, 0.91 acc"), and push the branch after
@@ -189,7 +190,7 @@ guess, an integration check at every milestone, and a pitch that writes itself a
 
 TASKS, IN ORDER
 1. [T0, ≤45 min — push ASAP, in 2–3 small commits]
-   0. Work on branch x/skeleton; merge it to main via PR the moment it passes tests (teammates wait
+   0. Work on branch X/skeleton; merge it to main via PR the moment it passes tests (teammates wait
       on nothing, but the sooner it lands the better). Enable a light branch rule on main
       (no direct pushes; PRs may be self-merged) via repo settings or ask Arkhan12345 to.
    a. Skeleton dirs with __init__.py / .gitkeep: app/{io,kb,extract,classify,generate,validate,api,
@@ -240,7 +241,7 @@ TASKS, IN ORDER
    Video script (≤3 min): diagram → run sample.csv live → labels + confidence → claims → metrics.
 5b. [CONDITIONAL, parallel] NEURO COMPUTE OWNER - only after Arckan writes
    "@X from Arckan: neuro handoff, features_vN" in STATUS.md (docs/MODELS.md sections 5-6):
-   - Branch x/neuro-<topic>. pip install -r requirements-neuro.txt in a separate venv.
+   - Branch X/neuro-<topic>. pip install -r requirements-neuro.txt in a separate venv.
    - Before every run: fetch + merge origin/main, use the NEWEST train/features/features_vN.parquet +
      timelines_vN + SCHEMA.md fold ids (same folds as Arckan's zoo, so results are comparable).
    - Train CfC / LTC / GRU-control (as feature and as classifier), spiking MLP (rate vs latency),
