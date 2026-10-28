@@ -237,7 +237,7 @@ body {
 }
 .react-flow__edge-text {
   fill: rgb(var(--ink-muted));
-  font-size: 11px;
+  font-size: 13px;
   font-family: 'JetBrains Mono', monospace;
 }
 .react-flow__controls {
