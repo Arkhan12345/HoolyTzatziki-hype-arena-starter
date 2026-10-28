@@ -58,6 +58,21 @@ in about 4 seconds on 2 CPUs, and every decision can be explained.
 | R3 | 57 MB RSS | peak memory on the 20k run in Docker (limit 6 GiB) | `pitch/metrics.json` runtime.docker_synthetic_20k | Ioan | `{{runtime.docker_synthetic_20k.rss_mb}}` |
 | R4 | exit 0, no OOM | `scripts/check.sh` in Docker: offline, user 10001, read-only root | `pitch/metrics.json` runtime.docker_check_sh | Ioan | |
 
+## Figures (`pitch/figs/`, regenerate with `python3 pitch/figs/make_figs.py`, standard library only)
+
+Each chart has a light (`<name>.svg`) and a dark (`<name>-dark.svg`) file. Colours mean the same in every chart:
+blue = true, orange = false, aqua = unsure (validated categorical slots 1–3, both modes); red = a loss; grey = neutral.
+
+| File | Slide | Shows | Numbers |
+|---|---|---|---|
+| `label_mix` | 2 | 1,581 / 277 / 39 rows by label | D1, D2 |
+| `fake_strike` | 3 | Gemini's median reply on a timeline: 2.1 s → 1.4 s, the same sentence true then false | T6 |
+| `leaderboard` | 9 | macro-F1 per model, group CV | M1–M6 |
+| `ablation` | 9 | change in macro-F1 when one feature family is removed | M7 |
+
+The architecture slide uses Vald's live `/architecture`, not a static picture. The figures appear at `/pitch` once
+`sync-assets.mjs` copies `pitch/figs/` (Request to P4); until then they're for the PDF export.
+
 ## Numbers that are NOT final (say them carefully)
 
 - **Model scores M1–M10** are research CV numbers from X's bake-off, not the shipped classifier. Arckan's classifier
