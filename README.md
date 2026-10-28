@@ -56,6 +56,7 @@ A run that passes here can still fail ours on what the practice data does not ho
 
 *Added by Team Tzatziki. Everything above this line is the original starter text.*
 More detail: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md), [`docs/EDA.md`](docs/EDA.md), [`team/README.md`](team/README.md).
+Model research and measured results: [`eda/README.md`](eda/README.md) (research index) and [`tests/runtime/README.md`](tests/runtime/README.md) (leak-free evaluation protocol and results: realistic accuracy is 0.867 CV / 0.846 holdout against 0.834 / 0.802 all-true).
 
 ### Repository layout
 

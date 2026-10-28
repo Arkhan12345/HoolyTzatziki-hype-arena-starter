@@ -73,6 +73,8 @@ The KB features are rebuilt per fold from the training labels only.
 | TF-IDF + LogReg (text only) | 0.560 | 0.575 | 0.514 | 0.729 | 0.010 |
 | All true | 0.455 | 0.455 | 0.457 | 0.833 | 0.167 |
 
+> **Status 28 Oct (leak-free re-check, `tests/runtime/README.md`):** every score in this table uses the gold `form` facts for the test rows too, so it is an **oracle upper bound**. The arena input has no `form`. With facts extracted from the text (realistic), LightGBM L0 reaches **0.867** accuracy in fold_group CV against 0.834 all-true, and **0.846** on the holdout against 0.802.
+
 **Ablation** (LightGBM, group CV): removing the temporal KB family costs **−0.075**, page/genre −0.015 and value shape −0.006. Date, wording and label-free support add nothing on top of the KB.
 
 What this means:

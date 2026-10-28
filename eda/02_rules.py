@@ -2,7 +2,8 @@
 and keeps a rule as 'confirmed' only if it holds on >= 2 pages.
 
 Outputs (eda/out/): features.pkl, rules.csv, unsure_tree.txt, false_tree.txt, templates.csv,
-speakers.csv, genres.csv, relations.csv, figs/*.png
+speakers.csv, genres.csv, attributes.csv, subject_cooccurrence.csv, same_text_diff_date.csv, facts_features.pkl,
+figs/*.png
 """
 import re
 import sys

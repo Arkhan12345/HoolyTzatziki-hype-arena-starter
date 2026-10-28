@@ -109,3 +109,20 @@ time-forward CV no worse than −2 points vs grouped CV. The fallback is always 
 | T2 22:00 | full extractor, TD features, **stack** shipped, zoo started | — |
 | overnight | zoo + CV techniques + tuning, TD ablation, CfC/LTC/GRU feature | CfC/LTC classifier, SNN, LSM, NIR (if handed off) |
 | T3 08:30 | freeze the winner, leaderboard final | neuro rows final in the leaderboard |
+
+## 9. Measured status (28 Oct, leak-free)
+Protocol and full tables: [`tests/runtime/README.md`](../tests/runtime/README.md) ("Rezultate măsurate"). Research index: [`eda/README.md`](../eda/README.md).
+
+| Model (`eda/07_improve.py`, `09`, `11`) | CV gold facts (oracle) | CV extracted facts | Holdout extracted | 300 statements (gold / extracted) |
+|---|---|---|---|---|
+| all true | 0.836 | 0.834 | 0.802 | 0.333 / 0.385 |
+| **L0 (plain LightGBM)** | 0.873 | **0.867** | **0.846** | 0.530 / 0.476 |
+| L4 (improvement ladder) | 0.895 | 0.858 | 0.827 | 0.593 / 0.407 |
+
+- **Ship L0, not the ladder.** The ladder wins only with gold facts; with extracted facts and on the holdout it loses to L0.
+- **Overfit:** 100% train accuracy on every fold (gap 13–14 points); stronger regularisation does not raise validation.
+- **No gain:** learned word values (`eda/09_word_values.py`) and fact-chain features (`eda/11_fact_chains.py`) add ~0.
+- **Next levers:**
+  1. An extractor trained on `form` (train-time only: the arena input has no `form`). Extraction costs 3.7 points.
+  2. Ioan's ~10k synthetic dataset, through `eda/12_train_synth.py`: training only, scored on real rows.
+- **Always** validate on `data/hooly_statements_300.csv` with `eda/10_h300_validation.py`. Report extracted-facts numbers next to all-true; gold-`form` numbers are oracle only.
