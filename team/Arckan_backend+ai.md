@@ -16,6 +16,32 @@ pitch/metrics.json (keys "baseline","extraction","model","calibration","neuro") 
 ```
 Anything else → a Request line in STATUS.md to its owner.
 
+## RECOMMENDED CLAUDE CODE SETUP (skills, tools, harness) for this session
+Install or enable these before pasting the prompt. Anything marked *(if available)* depends on your account or plugins, so skip it if it's missing; nothing below is required to start.
+
+**Everyone (same baseline on all 4 laptops):**
+- **Model:** Opus via `/model`. Effort **high** for design/rules work, **medium** for routine edits.
+- **CLIs:** `gh` (logged in with `gh auth login`), `git`, Python 3.12, Docker Desktop. On Windows, run `scripts/check.sh` from Git Bash or WSL.
+- **Shared harness:** X commits `.claude/settings.json`, so every session gets the same setup. It holds:
+  - a **SessionStart hook** that runs `git pull --rebase --autostash && git log --oneline -10 && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
+  - a **permissions allowlist** for `git pull/add/commit/push`, `python -m pytest`, `npm run *`, `docker build/run`, `sh scripts/check.sh` (fewer prompts, faster parallel work). Afterwards, run `/fewer-permission-prompts` to add the rest.
+- **Context7 MCP** for up-to-date library docs: `claude mcp add context7 -- npx -y @upstash/context7-mcp`.
+- **Built-ins to use:**
+  - **Plan mode** (Shift+Tab) before any multi-file change.
+  - **Explore subagent** to read contracts/ and teammates' code without flooding context.
+  - **`run_in_background`** for long commands (training, docker build, check.sh).
+  - **`/code-review`** on your own diff before pushing big changes.
+  - **`/loop 60m`** to refresh your STATUS.md row and read new Requests.
+
+**For Arckan (backend + AI):**
+- **Built-in notebook editing** (NotebookEdit) if you like notebooks, but keep `eda/eda.py` as the source of truth.
+- **`dataviz` skill** *(if available)* for EDA plots and the calibration curve that goes into the pitch.
+- **Context7** for scikit-learn, LightGBM, (optional) ncps / snnTorch / torch-CPU.
+- **Long jobs:** run training and cross-validation with `run_in_background`, and use `/loop` to poll results and append metrics to `pitch/metrics.json`.
+- **Plan subagent** before the feature set and CV design. Grouped CV by page/date is easy to get wrong.
+- **Optional neuromorphic arm:** a separate venv (`requirements-train.txt` with torch-CPU + ncps). Have the Explore subagent read `neuromorphic-gestures/learn/_lib/` if that folder exists on your laptop.
+- **Hook (your own `.claude/settings.local.json`):** a PostToolUse hook that runs `python -m pytest -q tests/model` after edits in `app/extract/**` or `app/classify/**`.
+
 ## SHARED BRIEF (identical in all 4 files — read it fully before your role section)
 
 ~~~text

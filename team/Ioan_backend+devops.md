@@ -15,6 +15,31 @@ pitch/metrics.json (key "runtime" only) · pitch/JOURNAL.md (append) · STATUS.m
 ```
 Anything else → a Request line in STATUS.md to its owner.
 
+## RECOMMENDED CLAUDE CODE SETUP (skills, tools, harness) for this session
+Install or enable these before pasting the prompt. Anything marked *(if available)* depends on your account or plugins, so skip it if it's missing; nothing below is required to start.
+
+**Everyone (same baseline on all 4 laptops):**
+- **Model:** Opus via `/model`. Effort **high** for design/rules work, **medium** for routine edits.
+- **CLIs:** `gh` (logged in with `gh auth login`), `git`, Python 3.12, Docker Desktop. On Windows, run `scripts/check.sh` from Git Bash or WSL.
+- **Shared harness:** X commits `.claude/settings.json`, so every session gets the same setup. It holds:
+  - a **SessionStart hook** that runs `git pull --rebase --autostash && git log --oneline -10 && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
+  - a **permissions allowlist** for `git pull/add/commit/push`, `python -m pytest`, `npm run *`, `docker build/run`, `sh scripts/check.sh` (fewer prompts, faster parallel work). Afterwards, run `/fewer-permission-prompts` to add the rest.
+- **Context7 MCP** for up-to-date library docs: `claude mcp add context7 -- npx -y @upstash/context7-mcp`.
+- **Built-ins to use:**
+  - **Plan mode** (Shift+Tab) before any multi-file change.
+  - **Explore subagent** to read contracts/ and teammates' code without flooding context.
+  - **`run_in_background`** for long commands (training, docker build, check.sh).
+  - **`/code-review`** on your own diff before pushing big changes.
+  - **`/loop 60m`** to refresh your STATUS.md row and read new Requests.
+
+**For Ioan (backend + devops):**
+- **Docker Desktop running**, and permission for `docker build` / `docker run` / `docker image inspect`. Run `sh scripts/check.sh` in the background (`MINUTES=5` for quick runs).
+- **`/run` skill** to start and smoke-test the FastAPI app (`uvicorn app.api.main:app --reload`).
+- **Effort high** for the claim generator + validator. `contracts/claim-forms.md` and `value-forms.md` are strict, so have the agent turn every example table into a pytest case.
+- **Context7** for FastAPI, jsonschema, pandas.
+- **Hook (your own `.claude/settings.local.json`):** a PostToolUse hook on Edit/Write of `app/**` that runs `python -m pytest -q tests/runtime`, so a broken runtime never gets pushed.
+- **`/security-review`** once before T3 (Dockerfile: non-root user, nothing writable outside /tmp and /output, no secrets).
+
 ## SHARED BRIEF (identical in all 4 files — read it fully before your role section)
 
 ~~~text

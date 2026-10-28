@@ -15,6 +15,32 @@ pitch/JOURNAL.md (append) · STATUS.md (own row + requests)
 ```
 Anything else → a Request line in STATUS.md to its owner.
 
+## RECOMMENDED CLAUDE CODE SETUP (skills, tools, harness) for this session
+Install or enable these before pasting the prompt. Anything marked *(if available)* depends on your account or plugins, so skip it if it's missing; nothing below is required to start.
+
+**Everyone (same baseline on all 4 laptops):**
+- **Model:** Opus via `/model`. Effort **high** for design/rules work, **medium** for routine edits.
+- **CLIs:** `gh` (logged in with `gh auth login`), `git`, Python 3.12, Docker Desktop. On Windows, run `scripts/check.sh` from Git Bash or WSL.
+- **Shared harness:** X commits `.claude/settings.json`, so every session gets the same setup. It holds:
+  - a **SessionStart hook** that runs `git pull --rebase --autostash && git log --oneline -10 && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
+  - a **permissions allowlist** for `git pull/add/commit/push`, `python -m pytest`, `npm run *`, `docker build/run`, `sh scripts/check.sh` (fewer prompts, faster parallel work). Afterwards, run `/fewer-permission-prompts` to add the rest.
+- **Context7 MCP** for up-to-date library docs: `claude mcp add context7 -- npx -y @upstash/context7-mcp`.
+- **Built-ins to use:**
+  - **Plan mode** (Shift+Tab) before any multi-file change.
+  - **Explore subagent** to read contracts/ and teammates' code without flooding context.
+  - **`run_in_background`** for long commands (training, docker build, check.sh).
+  - **`/code-review`** on your own diff before pushing big changes.
+  - **`/loop 60m`** to refresh your STATUS.md row and read new Requests.
+
+**For Vald (fullstack + frontend):**
+- **shadcn MCP server** to browse and add registry components, including **Watermelon UI** and **Cult UI**: `npx shadcn@latest mcp init --client claude`. Then add components by their registry URLs.
+- **Playwright MCP** to screenshot and click through the UI and verify the demo flow: `claude mcp add playwright -- npx -y @playwright/mcp@latest`. Alternatively, use the **claude-in-chrome** skill *(if available)*.
+- **`/run` skill** to start `npm run dev` + the API and check pages actually render.
+- **frontend-design plugin** *(if available, from the official Claude Code plugins marketplace)* for layout and visual polish.
+- **`dataviz` skill** *(if available)* before building the metrics and calibration charts.
+- **Context7** for React Flow (@xyflow/react), Recharts, Tailwind, Vite.
+- **Hook (your own `.claude/settings.local.json`):** a PostToolUse hook that runs `npm run build --prefix frontend` after edits in `frontend/src/**`, so main never gets a broken build.
+
 ## SHARED BRIEF (identical in all 4 files — read it fully before your role section)
 
 ~~~text

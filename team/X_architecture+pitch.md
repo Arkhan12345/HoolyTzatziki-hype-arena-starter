@@ -9,12 +9,37 @@ You (Claude) may READ every file in the repo. You may only CREATE or MODIFY thes
 docs/REQUIREMENTS.md · docs/ARCHITECTURE.md · docs/EDA.md (keep current) · docs/DECISIONS.md (new)
 app/__init__.py · app/contracts.py · empty package skeleton: app/{io,kb,extract,classify,generate,validate,api,neuro}/__init__.py,
   models/.gitkeep, eda/.gitkeep, train/.gitkeep, tests/{runtime,model}/.gitkeep, frontend/.gitkeep
-CLAUDE.md · STATUS.md · README.md (team section only, keep upstream text) · team/README.md
+.claude/settings.json (shared hooks + permissions) · CLAUDE.md · STATUS.md · README.md (team section only, keep upstream text) · team/README.md
 pitch/PITCH.md · pitch/QA.md · pitch/VIDEO_SCRIPT.md · pitch/JOURNAL.md (append) · pitch/metrics.json (create as {})
 tests/test_contracts.py
 PR description (gh pr create) on 29 Oct
 ```
 Anything else → a Request line in STATUS.md to its owner.
+
+## RECOMMENDED CLAUDE CODE SETUP (skills, tools, harness) for this session
+Install or enable these before pasting the prompt. Anything marked *(if available)* depends on your account or plugins, so skip it if it's missing; nothing below is required to start.
+
+**Everyone (same baseline on all 4 laptops):**
+- **Model:** Opus via `/model`. Effort **high** for design/rules work, **medium** for routine edits.
+- **CLIs:** `gh` (logged in with `gh auth login`), `git`, Python 3.12, Docker Desktop. On Windows, run `scripts/check.sh` from Git Bash or WSL.
+- **Shared harness:** X commits `.claude/settings.json`, so every session gets the same setup. It holds:
+  - a **SessionStart hook** that runs `git pull --rebase --autostash && git log --oneline -10 && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
+  - a **permissions allowlist** for `git pull/add/commit/push`, `python -m pytest`, `npm run *`, `docker build/run`, `sh scripts/check.sh` (fewer prompts, faster parallel work). Afterwards, run `/fewer-permission-prompts` to add the rest.
+- **Context7 MCP** for up-to-date library docs: `claude mcp add context7 -- npx -y @upstash/context7-mcp`.
+- **Built-ins to use:**
+  - **Plan mode** (Shift+Tab) before any multi-file change.
+  - **Explore subagent** to read contracts/ and teammates' code without flooding context.
+  - **`run_in_background`** for long commands (training, docker build, check.sh).
+  - **`/code-review`** on your own diff before pushing big changes.
+  - **`/loop 60m`** to refresh your STATUS.md row and read new Requests.
+
+**For X (architecture + pitch):**
+- **Plan mode + the Plan subagent** for `app/contracts.py` and the interfaces. Get them right once, because 3 agents build on them.
+- **`/code-review`** on teammates' latest commits at each milestone (T1/T2/T3), using the "medium" level for speed. Report findings as STATUS Requests, not edits.
+- **`/loop 30m`:** pull, check Requests and build status, and update the milestone checklist.
+- **Docs/slides skills** *(if available)*: `anthropic-skills:pptx` / `pdf` to export an offline backup of the `/pitch` deck, and the claude.ai Slides artifact for a shareable deck link.
+- **`dataviz` skill** *(if available)* for the results and calibration slides.
+- **`gh` CLI** for `gh pr create` on 29 Oct, and for adding collaborators.
 
 ## SHARED BRIEF (identical in all 4 files — read it fully before your role section)
 
@@ -170,7 +195,9 @@ TASKS, IN ORDER
       QA.md (empty headings).
    f. docs/ already holds REQUIREMENTS.md, ARCHITECTURE.md, EDA.md (first commit) — keep them current
       and start docs/DECISIONS.md (one line per decision).
-   g. tests/test_contracts.py: imports contracts and checks the stubs return the right shapes.
+   g. .claude/settings.json: SessionStart hook (git pull --rebase --autostash; git log --oneline -10;
+      cat STATUS.md) + permissions allowlist (see RECOMMENDED SETUP above).
+   h. tests/test_contracts.py: imports contracts and checks the stubs return the right shapes.
 2. [T0→T1] Review teammates' first pushes against contracts.py; answer every "Requests" line
    addressed to you within one pull cycle. Interface changes: additive only, old signature kept.
 3. [T1 16:00, T2 22:00, T3 08:30] INTEGRATION CHECK: pull, run `python -m pytest -q`, run
