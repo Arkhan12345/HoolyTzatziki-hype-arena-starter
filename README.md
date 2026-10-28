@@ -59,7 +59,7 @@ More detail: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/REQUIREMENTS
 
 ### Repository layout
 
-`[S]` comes from the QA-DNA starter: don't edit it, because the arena reads it as is. `[T]` is ours and already on `main`. `[C]` is coming: it's on a team branch and not on `main` yet.
+`[S]` comes from the QA-DNA starter: don't edit it, because the arena reads it as is. `[T]` is ours and already on `main`. `[C]` is coming: it's on a team branch and not on `main` yet (none right now).
 
 ```
 hype-arena-starter/
@@ -82,13 +82,15 @@ hype-arena-starter/
 ├── docs/                    [T] design: ARCHITECTURE, REQUIREMENTS, EDA, EDA_v2, MODELS
 ├── team/                    [T] one prompt per member + team rules (branches, commits, merges)
 ├── frontend/                [T] Vite + React UI: architecture diagram, live run, metrics, pitch
-├── Dockerfile               [C] python:3.12-slim image the arena runs (origin/john)
-├── requirements.txt         [C] pinned runtime deps: numpy, pandas, scikit-learn, lightgbm, fastapi
-├── app/                     [C] the system: run.py, io/, kb/, generate/, validate/, api/
-├── tests/runtime/           [C] tests for run, generator, validator, API
-├── models/                  [C] trained model files shipped in the image
-├── pitch/                   [C] JOURNAL.md (one line per commit) + metrics.json for the UI
-├── STATUS.md                [C] who does what, plus requests between members
+├── Dockerfile               [T] python:3.12.16-slim-trixie image the arena runs, USER 10001
+├── requirements.txt         [T] direct runtime deps; constraints.txt pins every package; requirements-dev.txt = tests only
+├── DEPENDENCIES.md          [T] dependency contract: runtime limits, versions, where training deps go
+├── CLAUDE.md                [T] rules for every Claude Code agent working in the repo
+├── app/                     [T] the system: run.py, io/, kb/, generate/, validate/, api/
+├── tests/runtime/           [T] tests for run, generator, validator, API
+├── models/                  [T] trained model files shipped in the image
+├── pitch/                   [T] JOURNAL.md (one line per commit) + metrics.json for the UI
+├── STATUS.md                [T] who does what, plus requests between members
 ├── eda/                     [T] EDA scripts: rules, features, per-row model advice, bake-off (X/model-strategy-v2)
 └── sample/sample.csv        [S] 20 unlabelled rows added on 29 Oct at 09:00
 ```
@@ -104,12 +106,13 @@ hype-arena-starter/
 | `docs/` | team | X | Architecture, requirements, EDA, model strategy |
 | `team/` | team | X | Per-member prompts and team rules |
 | `frontend/` | team | Vald | The page the jury sees, started with `frontend/scripts/start.*` |
-| `Dockerfile`, `requirements.txt` | team (coming) | Ioan | The image the arena builds and runs |
-| `app/` | team (coming) | Ioan + Arckan | The pipeline: extract → KB → classify → generate → validate → write |
-| `tests/` | team (coming) | Ioan | Runtime tests |
-| `models/` | team (coming) | Arckan | Trained weights baked into the image |
-| `pitch/` | team (coming) | everyone / X | Journal and metrics for the pitch page |
-| `STATUS.md` | team (coming) | everyone | Status board and requests |
+| `Dockerfile`, `requirements.txt`, `constraints.txt` | team | Ioan | The image the arena builds and runs, with every version pinned |
+| `DEPENDENCIES.md`, `CLAUDE.md` | team | Ioan | Dependency rules and rules for the agents |
+| `app/` | team | Ioan + Arckan | The pipeline: extract → KB → classify → generate → validate → write |
+| `tests/` | team | Ioan | Runtime tests |
+| `models/` | team | Arckan | Trained weights baked into the image |
+| `pitch/` | team | everyone / X | Journal and metrics for the pitch page |
+| `STATUS.md` | team | everyone | Status board and requests |
 | `eda/` | team | X | EDA scripts and outputs (`eda/out/`: rules, relations, per-row advice, bake-off); dev-time only, not in the image |
 
 ### The pipeline
