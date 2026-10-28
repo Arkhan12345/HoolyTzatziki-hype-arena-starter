@@ -28,10 +28,14 @@ the runner imports them lazily and survives their absence or a crash.
 .venv/Scripts/python -m pytest -q tests/runtime          # ~20 s; must be green
 .venv/Scripts/python scripts/local_check.py --minutes 5   # check.sh without Docker + validator over every claim
 .venv/Scripts/python scripts/synth_universe.py "$TEMP/u20k" && .venv/Scripts/python scripts/local_check.py --universe "$TEMP/u20k"
-sh scripts/check.sh                                       # the real thing; needs Docker (not on Ioan's laptop yet)
+# the real thing, through Docker in WSL Ubuntu (check.sh is checked out with CRLF on Windows: strip it into a temp copy)
+tr -d '' < scripts/check.sh > scripts/.check_lf.sh
+MSYS_NO_PATHCONV=1 wsl.exe -d Ubuntu -- sh -c "cd /mnt/c/Users/john/Documents/GitHub/HoolyTzatziki-hype-arena-starter && MINUTES=5 sh scripts/.check_lf.sh"
+rm scripts/.check_lf.sh
 ```
 `local_check.py` cannot test user 10001, the read-only root, the memory cap or the missing network: only
-`check.sh` can. Run it before the T3 freeze on a machine with Docker.
+`check.sh` can. From Git Bash, prefix `wsl.exe` calls with `MSYS_NO_PATHCONV=1` or `/mnt/...` paths get mangled.
+Last green run: 2026-10-28, exit 0, no OOM, RSS 43 MB, image 689 MB.
 
 ## Rules when editing the generator
 - Truth comes from gold only. A `change` pairs two gold values at increasing dates (safest type). A `fact`

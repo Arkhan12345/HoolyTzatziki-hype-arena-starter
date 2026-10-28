@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.12-slim
+FROM python:3.12-slim
 
 # No home and a read-only root at run time: every cache points at /tmp.
 ENV HOME=/tmp \

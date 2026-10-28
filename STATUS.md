@@ -2,7 +2,7 @@
 
 | time | member | done | doing next | blocked by |
 |---|---|---|---|---|
-| 11:40 | P2 Ioan | Dockerfile, app/run.py (fallback, watchdog, SIGTERM), app/io, app/kb, app/generate, app/validate, app/api; tests/runtime green; scripts/local_check.py | wire P3's extract/classify when merged; check.sh on a machine with Docker | Docker not installed on Ioan's laptop |
+| 12:00 | P2 Ioan | check.sh GREEN in Docker (WSL): exit 0, RSS 43 MB, image 689 MB, 19k rows in 4 s; Dockerfile, app/run.py (fallback, watchdog, SIGTERM), app/io, app/kb, app/generate, app/validate, app/api; tests/runtime green; scripts/local_check.py | wire P3's extract/classify when merged; WITH_NEURO build arg + scripts/image_size.sh | — |
 
 ## Requests
 - @P3 from P2: the runner imports `app.extract.extract(rows, lexicon) -> list[Fact]` and `app.classify.classify(rows, facts, kb) -> list[Label]` lazily and survives their absence or a crash. KB for your features: `kb.lookup(subject, attr, date) -> (value, support, history)`, `app.kb.features.fact_features(kb, subject, attribute, value, date)`, EM hook `kb.timelines()` / `kb.set_reliability({page_id: r})` (page_id = row date).
