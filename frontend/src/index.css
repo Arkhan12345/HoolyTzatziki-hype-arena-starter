@@ -2,13 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Theme tokens as RGB triplets, so Tailwind can add alpha (`bg-cyan/20`) and SVG/charts can read them
+ * (src/lib/theme.tsx). Dark is the default; <html data-theme="light"> switches. See DESIGN.md.
+ */
 :root {
   color-scheme: dark;
+  --void: 5 7 13;
+  --surface-1: 10 15 28;
+  --surface-2: 14 21 38;
+  --surface-3: 20 32 54;
+  --line: 27 40 66;
+  --line-strong: 42 61 97;
+  --ink: 230 238 251;
+  --ink-muted: 154 171 200;
+  --ink-faint: 113 131 163;
+  --cyan: 34 211 238;
+  --cyan-ice: 165 243 252;
+  --cyan-deep: 14 116 144;
+  --on-accent: 5 7 13;
+  --v-true: 184 242 58;
+  --v-false: 239 107 115;
+  --v-unsure: 245 184 61;
+  --blob-2: 37 64 140;
+  --glow-a: 0.09;
+  --shadow: 0 0 0;
+
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
-  --dur-fast: 140ms;
-  --dur-base: 260ms;
-  --dur-slow: 520ms;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --void: 241 244 249;
+  --surface-1: 255 255 255;
+  --surface-2: 236 241 248;
+  --surface-3: 222 229 240;
+  --line: 211 220 234;
+  --line-strong: 176 190 212;
+  --ink: 11 18 32;
+  --ink-muted: 61 76 102;
+  --ink-faint: 90 104 128;
+  --cyan: 14 116 144;
+  --cyan-ice: 21 94 117;
+  --cyan-deep: 165 233 248;
+  --on-accent: 255 255 255;
+  --v-true: 77 124 15;
+  --v-false: 192 53 63;
+  --v-unsure: 180 83 9;
+  --blob-2: 147 197 253;
+  --glow-a: 0.16;
+  --shadow: 30 41 59;
 }
 
 html,
@@ -20,14 +64,15 @@ body,
 body {
   @apply bg-void font-sans text-ink antialiased;
   font-feature-settings: 'ss01', 'cv11';
+  transition: background-color 0.3s ease;
 }
 
 ::selection {
-  @apply bg-cyan text-void;
+  @apply bg-cyan text-on-accent;
 }
 
 :focus-visible {
-  outline: 2px solid #22d3ee;
+  outline: 2px solid rgb(var(--cyan));
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -36,8 +81,8 @@ body {
 
 .fx-grid {
   background-image:
-    linear-gradient(to right, rgba(34, 211, 238, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
+    linear-gradient(to right, rgb(var(--cyan) / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--cyan) / 0.07) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 30%, transparent 75%);
 }
@@ -49,7 +94,7 @@ body {
 }
 
 .fx-scanlines {
-  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+  background: repeating-linear-gradient(to bottom, rgb(var(--ink) / 0.018) 0 1px, transparent 1px 3px);
 }
 
 /* ---------- Surfaces ---------- */
@@ -59,8 +104,8 @@ body {
     @apply relative rounded-xl border border-line bg-surface-1/80 shadow-panel backdrop-blur-sm;
   }
   .panel-glow {
-    /* cursor-reactive light; --mx/--my set by GlowPanel */
-    background-image: radial-gradient(420px circle at var(--mx, 50%) var(--my, -20%), rgba(34, 211, 238, 0.09), transparent 60%);
+    /* cursor light: --mx/--my are set for every panel from one global pointer listener (useGlobalGlow) */
+    background-image: radial-gradient(420px circle at var(--mx, -9999px) var(--my, -9999px), rgb(var(--cyan) / var(--glow-a)), transparent 60%);
   }
   .eyebrow {
     @apply font-mono text-2xs uppercase tracking-[0.22em] text-ink-faint;
@@ -92,7 +137,7 @@ body {
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: conic-gradient(from var(--angle), transparent 0 70%, rgba(34, 211, 238, 0.9) 82%, rgba(184, 242, 58, 0.8) 90%, transparent 100%);
+  background: conic-gradient(from var(--angle), transparent 0 70%, rgb(var(--cyan) / 0.9) 82%, rgb(var(--v-true) / 0.8) 90%, transparent 100%);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -109,14 +154,14 @@ body {
 }
 
 .text-gradient {
-  background: linear-gradient(100deg, #e6eefb 10%, #a5f3fc 45%, #22d3ee 70%, #b8f23a 100%);
+  background: linear-gradient(100deg, rgb(var(--ink)) 10%, rgb(var(--cyan-ice)) 45%, rgb(var(--cyan)) 70%, rgb(var(--v-true)) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .skeleton {
-  background: linear-gradient(90deg, rgba(27, 40, 66, 0.5) 0%, rgba(42, 61, 97, 0.7) 50%, rgba(27, 40, 66, 0.5) 100%);
+  background: linear-gradient(90deg, rgb(var(--line) / 0.5) 0%, rgb(var(--line-strong) / 0.7) 50%, rgb(var(--line) / 0.5) 100%);
   background-size: 200% 100%;
   @apply animate-shimmer rounded;
 }
@@ -124,7 +169,7 @@ body {
 /* Thin scrollbars that match the theme */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #2a3d61 transparent;
+  scrollbar-color: rgb(var(--line-strong)) transparent;
 }
 
 /* ---------- React Flow ---------- */
@@ -132,10 +177,10 @@ body {
   display: none;
 }
 .react-flow__edge-textbg {
-  fill: #0a0f1c;
+  fill: rgb(var(--surface-1));
 }
 .react-flow__edge-text {
-  fill: #9aabc8;
+  fill: rgb(var(--ink-muted));
   font-size: 11px;
   font-family: 'JetBrains Mono', monospace;
 }
@@ -143,12 +188,12 @@ body {
   box-shadow: none !important;
 }
 .react-flow__controls-button {
-  background: #0e1526;
-  border-color: #1b2842;
-  fill: #e6eefb;
+  background: rgb(var(--surface-2));
+  border-color: rgb(var(--line));
+  fill: rgb(var(--ink));
 }
 .react-flow__controls-button:hover {
-  background: #142036;
+  background: rgb(var(--surface-3));
 }
 
 /* ---------- Pitch slides ---------- */
@@ -172,15 +217,15 @@ body {
   width: 0.4em;
   height: 0.4em;
   border-radius: 2px;
-  background: #22d3ee;
+  background: rgb(var(--cyan));
 }
 .slide-body strong {
-  color: #e6eefb;
+  color: rgb(var(--ink));
 }
 .slide-body code {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.85em;
-  color: #a5f3fc;
+  color: rgb(var(--cyan-ice));
 }
 .slide-body table {
   border-collapse: collapse;
@@ -188,7 +233,7 @@ body {
 }
 .slide-body th,
 .slide-body td {
-  border-bottom: 1px solid #1b2842;
+  border-bottom: 1px solid rgb(var(--line));
   padding: 0.3em 1em 0.3em 0;
   text-align: left;
 }
@@ -205,6 +250,6 @@ body {
   }
   .border-beam::before {
     animation: none;
-    background: linear-gradient(rgba(34, 211, 238, 0.4), rgba(34, 211, 238, 0.4));
+    background: linear-gradient(rgb(var(--cyan) / 0.4), rgb(var(--cyan) / 0.4));
   }
 }

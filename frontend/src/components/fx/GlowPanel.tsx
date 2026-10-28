@@ -1,22 +1,12 @@
-import { forwardRef, type HTMLAttributes, type PointerEvent } from 'react'
+import { forwardRef, type HTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
-/** A panel with a soft light that follows the cursor across its surface (CSS vars, no re-render). */
-export const GlowPanel = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement> & { beam?: boolean }>(
-  ({ className, beam, onPointerMove, children, ...props }, ref) => {
-    const move = (e: PointerEvent<HTMLDivElement>) => {
-      const r = e.currentTarget.getBoundingClientRect()
-      e.currentTarget.style.setProperty('--mx', `${e.clientX - r.left}px`)
-      e.currentTarget.style.setProperty('--my', `${e.clientY - r.top}px`)
-      onPointerMove?.(e)
-    }
-    return (
-      <div ref={ref} onPointerMove={move} className={cn('panel panel-glow', beam && 'border-beam', className)} {...props}>
-        {children}
-      </div>
-    )
-  },
-)
+/** A panel lit by the page-wide cursor light (see GlobalGlow); `beam` adds the animated conic border. */
+export const GlowPanel = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement> & { beam?: boolean }>(({ className, beam, children, ...props }, ref) => (
+  <div ref={ref} className={cn('panel panel-glow', beam && 'border-beam', className)} {...props}>
+    {children}
+  </div>
+))
 GlowPanel.displayName = 'GlowPanel'
 
 export function PanelHeader({ eyebrow, title, right, className }: { eyebrow?: string; title: React.ReactNode; right?: React.ReactNode; className?: string }) {

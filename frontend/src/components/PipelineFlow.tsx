@@ -19,6 +19,7 @@ import { AlertTriangle, Check, Database, FileInput, Loader2, Sparkles } from 'lu
 import type { ArchEdge, ArchNode, Architecture } from '@/api/types'
 import type { Job } from '@/state/run'
 import { cn, fmtSeconds, stageHealth } from '@/lib/utils'
+import { useTheme } from '@/lib/theme'
 
 /** idle · running (request in flight, stage unknown) · active (replay) · done · degraded (fallback/baseline). */
 export type NodeStatus = 'idle' | 'running' | 'active' | 'done' | 'degraded'
@@ -130,6 +131,7 @@ export function PipelineFlow({
   className?: string
 }) {
   const reduce = useReducedMotion()
+  const { theme, colors: c } = useTheme()
   const auto = useMemo(() => autoLayout(architecture.nodes, architecture.edges), [architecture])
 
   const built: PipeNode[] = useMemo(
@@ -164,7 +166,7 @@ export function PipelineFlow({
         const t = status[e.target]
         const lit = (s === 'done' || s === 'degraded') && t && t !== 'idle'
         const flowing = !reduce && (t === 'active' || t === 'running' || s === 'running')
-        const color = lit ? '#B8F23A' : flowing ? '#22D3EE' : '#2A3D61'
+        const color = lit ? c['v-true'] : flowing ? c.cyan : c['line-strong']
         return {
           id: `e${i}-${e.source}-${e.target}`,
           source: e.source,
@@ -179,7 +181,7 @@ export function PipelineFlow({
           labelBgBorderRadius: 4,
         }
       }),
-    [architecture, status, compact, reduce],
+    [architecture, status, compact, reduce, c],
   )
 
   return (
@@ -200,10 +202,10 @@ export function PipelineFlow({
         zoomOnScroll={false}
         preventScrolling={!compact}
         minZoom={0.3}
-        colorMode="dark"
+        colorMode={theme}
       >
         <FitOnResize padding={compact ? 0.06 : 0.12} />
-        <Background color="#1B2842" gap={22} size={1} />
+        <Background color={c.line} gap={22} size={1} />
         {!compact && <Controls showInteractive={false} position="bottom-right" />}
       </ReactFlow>
     </div>

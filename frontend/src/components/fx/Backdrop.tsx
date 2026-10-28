@@ -28,9 +28,9 @@ export function Backdrop() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-void">
       {/* ambient light fields */}
-      <div className="absolute -left-[10%] -top-[20%] h-[70vh] w-[60vw] animate-drift rounded-full bg-[radial-gradient(closest-side,rgba(34,211,238,0.16),transparent)] blur-2xl" />
-      <div className="absolute -right-[15%] top-[10%] h-[60vh] w-[50vw] animate-drift-slow rounded-full bg-[radial-gradient(closest-side,rgba(37,64,140,0.35),transparent)] blur-2xl" />
-      <div className="absolute bottom-[-25%] left-[30%] h-[55vh] w-[45vw] animate-drift rounded-full bg-[radial-gradient(closest-side,rgba(184,242,58,0.06),transparent)] blur-2xl [animation-delay:-9s]" />
+      <div className="absolute -left-[10%] -top-[20%] h-[70vh] w-[60vw] animate-drift rounded-full bg-[radial-gradient(closest-side,rgb(var(--cyan)/0.16),transparent)] blur-2xl" />
+      <div className="absolute -right-[15%] top-[10%] h-[60vh] w-[50vw] animate-drift-slow rounded-full bg-[radial-gradient(closest-side,rgb(var(--blob-2)/0.35),transparent)] blur-2xl" />
+      <div className="absolute bottom-[-25%] left-[30%] h-[55vh] w-[45vw] animate-drift rounded-full bg-[radial-gradient(closest-side,rgb(var(--v-true)/0.06),transparent)] blur-2xl [animation-delay:-9s]" />
 
       {/* flat grid near the top, perspective floor below */}
       <div className="fx-grid absolute inset-0" />
@@ -59,7 +59,7 @@ export function Backdrop() {
       {!reduce && (
         <div
           ref={light}
-          className="absolute left-0 top-0 h-[800px] w-[800px] rounded-full bg-[radial-gradient(closest-side,rgba(34,211,238,0.07),transparent)] transition-transform duration-300 ease-out"
+          className="absolute left-0 top-0 h-[800px] w-[800px] rounded-full bg-[radial-gradient(closest-side,rgb(var(--cyan)/0.07),transparent)] transition-transform duration-300 ease-out"
         />
       )}
 

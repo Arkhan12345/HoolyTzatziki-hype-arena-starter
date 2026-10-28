@@ -1,16 +1,18 @@
 /** @type {import('tailwindcss').Config} */
-// Hype Arena design tokens: see DESIGN.md. Components use these names, never raw hex.
+// Hype Arena design tokens: CSS variables per theme in src/index.css, see DESIGN.md. Components use these names, never raw hex.
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: ['selector', ':root:not([data-theme="light"])'],
   theme: {
     extend: {
       colors: {
-        void: '#05070D',
-        surface: { 1: '#0A0F1C', 2: '#0E1526', 3: '#142036' },
-        line: { DEFAULT: '#1B2842', strong: '#2A3D61' },
-        ink: { DEFAULT: '#E6EEFB', muted: '#9AABC8', faint: '#7183A3' },
-        cyan: { DEFAULT: '#22D3EE', ice: '#A5F3FC', deep: '#0E7490' },
-        verdict: { true: '#B8F23A', false: '#EF6B73', unsure: '#F5B83D' },
+        void: 'rgb(var(--void) / <alpha-value>)',
+        surface: { 1: 'rgb(var(--surface-1) / <alpha-value>)', 2: 'rgb(var(--surface-2) / <alpha-value>)', 3: 'rgb(var(--surface-3) / <alpha-value>)' },
+        line: { DEFAULT: 'rgb(var(--line) / <alpha-value>)', strong: 'rgb(var(--line-strong) / <alpha-value>)' },
+        ink: { DEFAULT: 'rgb(var(--ink) / <alpha-value>)', muted: 'rgb(var(--ink-muted) / <alpha-value>)', faint: 'rgb(var(--ink-faint) / <alpha-value>)' },
+        cyan: { DEFAULT: 'rgb(var(--cyan) / <alpha-value>)', ice: 'rgb(var(--cyan-ice) / <alpha-value>)', deep: 'rgb(var(--cyan-deep) / <alpha-value>)' },
+        'on-accent': 'rgb(var(--on-accent) / <alpha-value>)',
+        verdict: { true: 'rgb(var(--v-true) / <alpha-value>)', false: 'rgb(var(--v-false) / <alpha-value>)', unsure: 'rgb(var(--v-unsure) / <alpha-value>)' },
       },
       fontFamily: {
         display: ['Syncopate', 'IBM Plex Sans', 'sans-serif'],
@@ -21,9 +23,9 @@ export default {
         '2xs': ['0.6875rem', { lineHeight: '1rem' }],
       },
       boxShadow: {
-        glow: '0 0 0 1px rgba(34,211,238,0.35), 0 0 24px -4px rgba(34,211,238,0.45)',
-        'glow-true': '0 0 0 1px rgba(184,242,58,0.4), 0 0 28px -6px rgba(184,242,58,0.5)',
-        panel: '0 1px 0 0 rgba(165,243,252,0.04) inset, 0 24px 48px -24px rgba(0,0,0,0.8)',
+        glow: '0 0 0 1px rgb(var(--cyan) / 0.35), 0 0 24px -4px rgb(var(--cyan) / 0.45)',
+        'glow-true': '0 0 0 1px rgb(var(--v-true) / 0.4), 0 0 28px -6px rgb(var(--v-true) / 0.5)',
+        panel: '0 1px 0 0 rgb(var(--cyan-ice) / 0.04) inset, 0 24px 48px -24px rgb(var(--shadow) / 0.35)',
       },
       keyframes: {
         drift: { '0%,100%': { transform: 'translate3d(0,0,0) scale(1)' }, '50%': { transform: 'translate3d(4%,-3%,0) scale(1.08)' } },

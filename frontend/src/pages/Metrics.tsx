@@ -10,13 +10,21 @@ import { AnimatedNumber } from '@/components/fx/AnimatedNumber'
 import { GlowPanel, PanelHeader } from '@/components/fx/GlowPanel'
 import { EmptyState, ErrorState, PageHeader } from '@/components/States'
 import { CLAIM_TYPES, TYPE_COLORS, cn, fmtSeconds, pct } from '@/lib/utils'
+import { useColors } from '@/lib/theme'
 
-const AXIS = { stroke: '#7183A3', fontSize: 11, tickLine: false, axisLine: false, fontFamily: 'JetBrains Mono' } as const
-const TIP = {
-  contentStyle: { background: '#0E1526', border: '1px solid #2A3D61', borderRadius: 8, fontSize: 12, fontFamily: 'JetBrains Mono' },
-  labelStyle: { color: '#E6EEFB' },
-  itemStyle: { color: '#E6EEFB' },
-  cursor: { fill: 'rgba(34,211,238,0.05)' },
+/** Recharts takes colours as props, so they come resolved from the current theme. */
+function useChart() {
+  const c = useColors()
+  return {
+    c,
+    AXIS: { stroke: c['ink-faint'], fontSize: 11, tickLine: false, axisLine: false, fontFamily: 'JetBrains Mono' } as const,
+    TIP: {
+      contentStyle: { background: c['surface-2'], border: `1px solid ${c['line-strong']}`, borderRadius: 8, fontSize: 12, fontFamily: 'JetBrains Mono' },
+      labelStyle: { color: c.ink },
+      itemStyle: { color: c.ink },
+      cursor: { fill: c.alpha('cyan', 0.05) },
+    },
+  }
 }
 
 type RuntimeBlock = { rows?: number; hidden?: number; blank?: number; total_s?: number; wall_s?: number; claims?: number; claims_valid?: number; rss_mb?: number; [k: string]: unknown }
@@ -209,7 +217,7 @@ function Confusion({ labels, matrix }: { labels: string[]; matrix: number[][] })
                   key={`${i}-${j}`}
                   title={`practice ${labels[i]} → ours ${labels[j]}: ${v.toLocaleString()} (${pct(v / sum, 1)})`}
                   className={cn('flex h-16 flex-col items-center justify-center rounded', i === j && 'ring-1 ring-inset ring-cyan/60')}
-                  style={{ background: `rgba(34,211,238,${0.05 + (v / sum) * 0.55})` }}
+                  style={{ background: `rgb(var(--cyan) / ${0.05 + (v / sum) * 0.55})` }}
                 >
                   <span className="num text-lg text-ink">{v.toLocaleString()}</span>
                   <span className="num text-2xs text-ink-muted">{pct(v / sum)}</span>
@@ -224,18 +232,19 @@ function Confusion({ labels, matrix }: { labels: string[]; matrix: number[][] })
 }
 
 function Calibration({ points }: { points: { predicted: number; observed: number; count?: number }[] }) {
+  const { c, AXIS, TIP } = useChart()
   return (
     <GlowPanel>
       <PanelHeader eyebrow="calibration" title="Stated confidence vs share actually right" />
       <div className="h-[290px] p-5 pt-3">
         <ResponsiveContainer>
           <LineChart data={points} margin={{ top: 8, right: 12, bottom: 4, left: -8 }}>
-            <CartesianGrid stroke="#1B2842" vertical={false} />
+            <CartesianGrid stroke={c.line} vertical={false} />
             <XAxis dataKey="predicted" type="number" domain={[0.5, 1]} tickFormatter={(v) => v.toFixed(1)} {...AXIS} />
             <YAxis type="number" domain={[0.4, 1]} tickFormatter={(v) => v.toFixed(1)} {...AXIS} width={36} />
-            <ReferenceLine segment={[{ x: 0.5, y: 0.5 }, { x: 1, y: 1 }]} stroke="#7183A3" strokeDasharray="4 4" />
-            <Tooltip {...TIP} cursor={{ stroke: '#2A3D61' }} formatter={(v: number) => [v.toFixed(3), 'observed']} labelFormatter={(v: number) => `confidence ≈ ${v.toFixed(2)}`} />
-            <Line dataKey="observed" stroke="#22D3EE" strokeWidth={2} dot={{ r: 4, fill: '#22D3EE', stroke: '#0A0F1C', strokeWidth: 2 }} activeDot={{ r: 6 }} isAnimationActive={false} />
+            <ReferenceLine segment={[{ x: 0.5, y: 0.5 }, { x: 1, y: 1 }]} stroke={c['ink-faint']} strokeDasharray="4 4" />
+            <Tooltip {...TIP} cursor={{ stroke: c['line-strong'] }} formatter={(v: number) => [v.toFixed(3), 'observed']} labelFormatter={(v: number) => `confidence ≈ ${v.toFixed(2)}`} />
+            <Line dataKey="observed" stroke={c.cyan} strokeWidth={2} dot={{ r: 4, fill: c.cyan, stroke: c['surface-1'], strokeWidth: 2 }} activeDot={{ r: 6 }} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -244,6 +253,7 @@ function Calibration({ points }: { points: { predicted: number; observed: number
 }
 
 function ClaimsByType({ counts }: { counts: Record<string, number> }) {
+  const { c, AXIS, TIP } = useChart()
   const data = [...CLAIM_TYPES, ...Object.keys(counts).filter((k) => !CLAIM_TYPES.includes(k))].map((t) => ({ type: t, n: counts[t] ?? 0 }))
   return (
     <GlowPanel>
@@ -257,11 +267,11 @@ function ClaimsByType({ counts }: { counts: Record<string, number> }) {
         <ResponsiveContainer>
           <BarChart data={data} layout="vertical" margin={{ top: 0, right: 44, bottom: 0, left: 0 }} barCategoryGap={8}>
             <XAxis type="number" hide />
-            <YAxis type="category" dataKey="type" {...AXIS} stroke="#9AABC8" width={72} />
+            <YAxis type="category" dataKey="type" {...AXIS} stroke={c['ink-muted']} width={72} />
             <Tooltip {...TIP} formatter={(v: number) => [v.toLocaleString(), 'claims']} />
-            <Bar dataKey="n" radius={[0, 4, 4, 0]} label={{ position: 'right', fill: '#9AABC8', fontSize: 11, fontFamily: 'JetBrains Mono' }} isAnimationActive={false}>
+            <Bar dataKey="n" radius={[0, 4, 4, 0]} label={{ position: 'right', fill: c['ink-muted'], fontSize: 11, fontFamily: 'JetBrains Mono' }} isAnimationActive={false}>
               {data.map((d) => (
-                <Cell key={d.type} fill={TYPE_COLORS[d.type] ?? '#7183A3'} />
+                <Cell key={d.type} fill={TYPE_COLORS[d.type] ?? c['ink-faint']} />
               ))}
             </Bar>
           </BarChart>
@@ -272,6 +282,7 @@ function ClaimsByType({ counts }: { counts: Record<string, number> }) {
 }
 
 function Runtime({ stages, sub }: { stages: Record<string, number>; sub: string }) {
+  const { c, AXIS, TIP } = useChart()
   const data = Object.entries(stages).map(([stage, s]) => ({ stage, s }))
   return (
     <GlowPanel>
@@ -280,15 +291,15 @@ function Runtime({ stages, sub }: { stages: Record<string, number>; sub: string 
         <ResponsiveContainer>
           <BarChart data={data} layout="vertical" margin={{ top: 0, right: 64, bottom: 0, left: 0 }} barCategoryGap={6}>
             <XAxis type="number" hide />
-            <YAxis type="category" dataKey="stage" {...AXIS} stroke="#9AABC8" width={72} />
+            <YAxis type="category" dataKey="stage" {...AXIS} stroke={c['ink-muted']} width={72} />
             <Tooltip {...TIP} formatter={(v: number) => [fmtSeconds(v), 'time']} />
             <Bar
               dataKey="s"
-              fill="#22D3EE"
+              fill={c.cyan}
               radius={[0, 4, 4, 0]}
               isAnimationActive={false}
               label={({ x, y, width, height, value }: { x: number; y: number; width: number; height: number; value: number }) => (
-                <text x={x + width + 6} y={y + height / 2} dy={4} fill="#9AABC8" fontSize={11} fontFamily="JetBrains Mono">
+                <text x={x + width + 6} y={y + height / 2} dy={4} fill={c['ink-muted']} fontSize={11} fontFamily="JetBrains Mono">
                   {fmtSeconds(value)}
                 </text>
               )}

@@ -11,6 +11,7 @@ import { ConfidenceBar } from '@/components/data/ConfidenceBar'
 import { ConfidenceHistogram, VerdictDistribution, countVerdicts } from '@/components/data/Distribution'
 import { TerminalLog } from '@/components/data/TerminalLog'
 import { VerdictBadge } from '@/components/data/VerdictBadge'
+import { GoldCheck } from '@/components/data/GoldCheck'
 import { PipelineFlow, usePipelineStatus } from '@/components/PipelineFlow'
 import { EmptyState, ErrorState, HealthPill } from '@/components/States'
 import { Button } from '@/components/ui/button'
@@ -126,7 +127,19 @@ export default function Dashboard() {
           </EmptyState>
         </GlowPanel>
       )}
-      <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => e.target.files?.[0] && run({ kind: 'file', file: e.target.files[0] })} />
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".csv,text/csv"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0]
+          e.target.value = '' // so the same file can be chosen again
+          if (f) run({ kind: 'file', file: f })
+        }}
+      />
+
+      {(result || job?.status === 'running') && <RunBar input={job?.input ?? ''} running={job?.status === 'running'} onSample={() => run({ kind: 'sample' })} onPick={() => fileRef.current?.click()} onDrop={(f) => run({ kind: 'file', file: f })} />}
 
       {(result || job?.status === 'running') && (
         <>
@@ -194,6 +207,11 @@ export default function Dashboard() {
                 </Link>
               }
             />
+            {graded.length > 0 && (
+              <p className="mx-5 mt-2 text-2xs leading-relaxed text-ink-faint">
+                Rows from the practice data have a known answer. <span className="text-verdict-false">practice: false</span> next to a TRUE means the pipeline got that row wrong.
+              </p>
+            )}
             <ul className="mt-2 divide-y divide-line">
               {result
                 ? result.labels.slice(0, 8).map((l, i) => {
@@ -210,7 +228,7 @@ export default function Dashboard() {
                         <span className="min-w-0 truncate text-sm">{r?.text ?? <span className="text-ink-faint">text not returned</span>}</span>
                         <span className="col-start-2 flex items-center gap-3 sm:col-start-auto">
                           <VerdictBadge verdict={l.label} size="sm" />
-                          {l.gold && l.gold !== l.label && <span className="num text-2xs text-ink-faint">gold: {l.gold}</span>}
+                          <GoldCheck verdict={l.label} gold={l.gold} />
                         </span>
                         <ConfidenceBar value={l.confidence} verdict={l.label as Verdict} className="col-start-2 sm:col-start-auto" />
                       </motion.li>
@@ -297,5 +315,41 @@ function QuickLink({ to, icon, title, text }: { to: string; icon: React.ReactNod
         <p className="mt-3 text-sm text-ink-muted">{text}</p>
       </GlowPanel>
     </Link>
+  )
+}
+
+/** Stays above the results so a new run or a different CSV is always one click (or one drop) away. */
+function RunBar({ input, running, onSample, onPick, onDrop }: { input: string; running: boolean; onSample: () => void; onPick: () => void; onDrop: (f: File) => void }) {
+  const [over, setOver] = useState(false)
+  return (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault()
+        setOver(true)
+      }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(e) => {
+        e.preventDefault()
+        setOver(false)
+        const f = e.dataTransfer.files?.[0]
+        if (f && !running) onDrop(f)
+      }}
+      className={cn(
+        'panel panel-glow flex flex-wrap items-center gap-3 px-4 py-3 transition-colors',
+        over && 'border-cyan bg-cyan/[0.06]',
+      )}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="eyebrow">{running ? 'running' : 'current input'}</div>
+        <div className="num mt-0.5 truncate text-sm text-ink">{input || '—'}</div>
+      </div>
+      <span className="hidden text-xs text-ink-faint md:inline">{over ? 'Drop to run this CSV' : 'Drop a CSV here, or'}</span>
+      <Button size="sm" onClick={onPick} disabled={running}>
+        <FileUp /> Upload CSV
+      </Button>
+      <Button size="sm" variant="primary" onClick={onSample} disabled={running}>
+        <Play /> {running ? 'Running…' : 'Run sample.csv'}
+      </Button>
+    </div>
   )
 }

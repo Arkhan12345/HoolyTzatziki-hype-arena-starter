@@ -7,8 +7,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-cyan text-void shadow-glow hover:bg-cyan-ice',
-        verify: 'bg-verdict-true text-void shadow-glow-true hover:brightness-110',
+        primary: 'bg-cyan text-on-accent shadow-glow hover:bg-cyan-ice',
+        verify: 'bg-verdict-true text-on-accent shadow-glow-true hover:brightness-110',
         outline: 'border border-line-strong bg-surface-2/80 text-ink hover:border-cyan/60 hover:text-cyan-ice hover:shadow-glow',
         ghost: 'text-ink-muted hover:bg-surface-2 hover:text-ink',
         danger: 'border border-verdict-false/40 text-verdict-false hover:bg-verdict-false/10',

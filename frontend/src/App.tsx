@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Layout } from '@/components/Layout'
 import Dashboard from '@/pages/Dashboard'
 import { RunProvider } from '@/state/run'
+import { ThemeProvider } from '@/lib/theme'
 
 const VerifyPage = lazy(() => import('@/pages/Verify'))
 const ExplorerPage = lazy(() => import('@/pages/Explorer'))
@@ -22,23 +23,25 @@ function Loading() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <RunProvider>
-        <Suspense fallback={<Loading />}>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="verify" element={<VerifyPage />} />
-              <Route path="explorer" element={<ExplorerPage />} />
-              <Route path="generate" element={<GeneratePage />} />
-              <Route path="architecture" element={<ArchitecturePage />} />
-              <Route path="metrics" element={<MetricsPage />} />
-              <Route path="pitch" element={<PitchPage />} />
-              <Route path="*" element={<Dashboard />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </RunProvider>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <RunProvider>
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="verify" element={<VerifyPage />} />
+                <Route path="explorer" element={<ExplorerPage />} />
+                <Route path="generate" element={<GeneratePage />} />
+                <Route path="architecture" element={<ArchitecturePage />} />
+                <Route path="metrics" element={<MetricsPage />} />
+                <Route path="pitch" element={<PitchPage />} />
+                <Route path="*" element={<Dashboard />} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </RunProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }

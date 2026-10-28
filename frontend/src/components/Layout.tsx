@@ -5,6 +5,8 @@ import { BarChart3, Database, LayoutDashboard, Menu, Play, Presentation, ScanSea
 import { MOCK } from '@/api/client'
 import { Backdrop } from '@/components/fx/Backdrop'
 import { BootSequence } from '@/components/fx/BootSequence'
+import { GlobalGlow } from '@/components/fx/GlobalGlow'
+import { ThemeToggle } from '@/components/fx/ThemeToggle'
 import { Magnetic } from '@/components/fx/Magnetic'
 import { Wordmark } from '@/components/fx/Wordmark'
 import { HealthPill } from '@/components/States'
@@ -43,7 +45,7 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
                 {isActive && (
                   <motion.span
                     layoutId="nav-active"
-                    className="absolute inset-0 rounded-lg border border-cyan/30 bg-cyan/[0.08] shadow-[inset_2px_0_0_0_#22D3EE]"
+                    className="absolute inset-0 rounded-lg border border-cyan/30 bg-cyan/[0.08] shadow-[inset_2px_0_0_0_rgb(var(--cyan))]"
                     transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
                   />
                 )}
@@ -83,8 +85,9 @@ export function Layout() {
   return (
     <div className="min-h-dvh">
       <Backdrop />
+      <GlobalGlow />
       <BootSequence />
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-cyan focus:px-3 focus:py-1.5 focus:text-void">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-cyan focus:px-3 focus:py-1.5 focus:text-on-accent">
         Skip to content
       </a>
 
@@ -100,7 +103,10 @@ export function Layout() {
           <NavItems />
         </nav>
         <div className="space-y-3 border-t border-line p-4">
-          <HealthPill health={health} demo={MOCK} />
+          <div className="flex items-center justify-between gap-2">
+            <HealthPill health={health} demo={MOCK} />
+            <ThemeToggle />
+          </div>
           <Magnetic className="flex w-full">
             <Button variant="primary" className="w-full" onClick={demo} disabled={running}>
               <Play /> Demo run
@@ -118,8 +124,9 @@ export function Layout() {
         <NavLink to="/" aria-label="Hype Arena home">
           <Wordmark />
         </NavLink>
-        <span className="ml-auto">
+        <span className="ml-auto flex items-center gap-2">
           <HealthPill health={health} demo={MOCK} />
+          <ThemeToggle />
         </span>
       </div>
       <AnimatePresence>

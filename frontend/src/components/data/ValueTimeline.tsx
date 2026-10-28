@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { VerdictBadge } from './VerdictBadge'
 import type { GoldFact, PracticeRow } from '@/lib/world'
-import { formatValue } from '@/lib/utils'
+import { VERDICT_COLOR, formatValue } from '@/lib/utils'
 
 /**
  * What the practice data says about one subject + attribute over time: each gold row's value on its date,
@@ -24,7 +24,7 @@ export function ValueTimeline({ items, highlightDate }: { items: { row: Practice
           >
             <span
               className="absolute -left-[25px] top-1.5 size-2.5 rounded-full border-2 border-void"
-              style={{ background: row.label === 'true' ? '#B8F23A' : row.label === 'false' ? '#EF6B73' : '#F5B83D' }}
+              style={{ background: VERDICT_COLOR[row.label] }}
             />
             <div className="flex flex-wrap items-center gap-2">
               <span className="num text-xs text-ink-faint">{row.date}</span>

@@ -8,6 +8,7 @@ import { EvidenceGraph, type GraphNode } from '@/components/data/EvidenceGraph'
 import { TerminalLog } from '@/components/data/TerminalLog'
 import { ValueTimeline } from '@/components/data/ValueTimeline'
 import { VerdictBadge } from '@/components/data/VerdictBadge'
+import { GoldCheck } from '@/components/data/GoldCheck'
 import { GlowPanel, PanelHeader } from '@/components/fx/GlowPanel'
 import { Magnetic } from '@/components/fx/Magnetic'
 import { EmptyState, ErrorState, PageHeader } from '@/components/States'
@@ -283,11 +284,7 @@ function Result({ job, practice, lexicon }: { job: NonNullable<ReturnType<typeof
             <div className="eyebrow">verdict on {row?.date}</div>
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <VerdictBadge verdict={label.label} size="lg" pop />
-              {label.gold && (
-                <span className={cn('num rounded-md border px-2 py-1 text-xs', label.gold === label.label ? 'border-verdict-true/40 text-verdict-true' : 'border-verdict-false/40 text-verdict-false')}>
-                  practice label: {label.gold} · {label.gold === label.label ? 'agrees' : 'disagrees'}
-                </span>
-              )}
+              <GoldCheck verdict={label.label} gold={label.gold} long className="px-2 py-1 text-xs" />
             </div>
             <blockquote className="mt-4 border-l-2 border-cyan/50 pl-4 text-[1.05rem] leading-relaxed">{row?.text}</blockquote>
             <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">

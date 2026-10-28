@@ -36,7 +36,7 @@ export function Tabs<T extends string>({
             aria-selected={active}
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(it.value)}
-            className={cn('relative cursor-pointer rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors', active ? 'text-void' : 'text-ink-muted hover:text-ink')}
+            className={cn('relative cursor-pointer rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors', active ? 'text-on-accent' : 'text-ink-muted hover:text-ink')}
           >
             {active && (
               <motion.span layoutId={`tab-${id}`} className="absolute inset-0 rounded-md bg-cyan shadow-glow" transition={{ type: 'spring', bounce: 0.18, duration: 0.45 }} />

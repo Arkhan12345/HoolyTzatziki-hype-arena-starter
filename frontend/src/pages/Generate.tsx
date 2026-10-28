@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { checkClaims, downloadText, toOutputCsv } from '@/lib/contract'
 import { CLAIM_TYPES, TYPE_COLORS, cn } from '@/lib/utils'
 import { loadPractice } from '@/lib/world'
+import { useColors } from '@/lib/theme'
 import { useRun } from '@/state/run'
 
 const TARGET = 1000
@@ -280,20 +281,21 @@ function Stat({ label, value }: { label: string; value?: number }) {
 
 function ProgressRing({ value }: { value: number | null }) {
   const reduce = useReducedMotion()
+  const c = useColors()
   const R = 34
   const C = 2 * Math.PI * R
   return (
     <svg viewBox="0 0 80 80" className="size-20 shrink-0 -rotate-90" role="img" aria-label={value === null ? 'Generating' : `${Math.round(value * 100)} percent of 1,000`}>
-      <circle cx="40" cy="40" r={R} fill="none" stroke="#142036" strokeWidth="7" />
+      <circle cx="40" cy="40" r={R} fill="none" stroke={c['surface-3']} strokeWidth="7" />
       {value === null ? (
-        <circle cx="40" cy="40" r={R} fill="none" stroke="#22D3EE" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${C * 0.25} ${C}`} className={reduce ? '' : 'origin-center animate-spin'} />
+        <circle cx="40" cy="40" r={R} fill="none" stroke={c.cyan} strokeWidth="7" strokeLinecap="round" strokeDasharray={`${C * 0.25} ${C}`} className={reduce ? '' : 'origin-center animate-spin'} />
       ) : (
         <motion.circle
           cx="40"
           cy="40"
           r={R}
           fill="none"
-          stroke={value >= 1 ? '#B8F23A' : '#22D3EE'}
+          stroke={value >= 1 ? c['v-true'] : c.cyan}
           strokeWidth="7"
           strokeLinecap="round"
           strokeDasharray={C}

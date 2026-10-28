@@ -5,6 +5,7 @@ import { ArrowDownUp, ChevronDown, ChevronLeft, ChevronRight, Database, Search, 
 import type { Value, Verdict } from '@/api/types'
 import { ConfidenceBar } from '@/components/data/ConfidenceBar'
 import { VerdictBadge } from '@/components/data/VerdictBadge'
+import { GoldCheck } from '@/components/data/GoldCheck'
 import { FactChip } from '@/components/FactChip'
 import { GlowPanel } from '@/components/fx/GlowPanel'
 import { CopyButton, EmptyState, PageHeader } from '@/components/States'
@@ -264,6 +265,7 @@ export default function ExplorerPage() {
                         <span className="col-span-2 min-w-0 text-sm leading-snug sm:col-span-1">{r.text}</span>
                         <span className="flex items-center gap-2">
                           <VerdictBadge verdict={r.verdict} size="sm" />
+                          {source === 'run' && <GoldCheck verdict={r.verdict} gold={r.gold} />}
                         </span>
                         {source === 'run' ? <ConfidenceBar value={r.confidence} verdict={r.verdict} /> : <span className="num hidden text-2xs text-ink-faint sm:block">gold label</span>}
                         <ChevronDown className={cn('hidden size-4 text-ink-faint transition-transform sm:block', isOpen && 'rotate-180')} />

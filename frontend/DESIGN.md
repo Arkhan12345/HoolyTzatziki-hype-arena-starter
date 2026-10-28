@@ -2,7 +2,11 @@
 
 Chosen with the `ui-ux-pro-max` skill. Its `--design-system` query came back off-target (brutalism, a purple light palette), so we used its narrower, verified match: **Dark Mode (OLED)**, best for coding platforms and low-light use. That match calls for deep blacks and midnight-blue surfaces, neon accents used sparingly, minimal glow, text contrast of 7:1 or more, and visible focus. We tuned it to the brief: an intelligence terminal with an AI-lab feel, not a template SaaS page.
 
-## Tokens (`tailwind.config.js`)
+## Themes
+
+There are two themes, dark (the default) and light. The toggle sits in the sidebar and the mobile top bar. The choice is saved in localStorage; without one, the system preference decides. An inline script in index.html sets  before first paint, so the page never flashes the wrong theme. Every token is a CSS variable in , holding an RGB triplet, so Tailwind can add alpha. SVG and Recharts colours come from  (), which reads the same variables, so there is one source of truth. In light mode the verdict colours are darker (lime , red , amber ) to keep text contrast at 4.5:1 or more on white.
+
+## Tokens (, dark values shown)
 
 | Role | Token | Value | Use |
 | --- | --- | --- | --- |
@@ -32,7 +36,7 @@ framer-motion is the only animation library. GSAP is not needed. Easing is `cubi
 - **Atmosphere** (`fx/Backdrop`): drifting light fields, a perspective grid floor that pans, three wireframe shapes, a cursor light, noise and a slow scan line. All of it is fixed, `pointer-events: none`, and animated with transforms only.
 - **Entrance**: the wordmark letters spring in staggered. Page headers reveal eyebrow, title and lead in a short stagger. Routes cross-fade.
 - **Boot sequence**: shown once per session. Every line is a real check (API health, lexicon, practice data). Any key skips it.
-- **Interaction**: magnetic primary buttons, cursor-reactive panel light (`GlowPanel`), a conic border beam on key panels, spring tabs and expanders, and counting numbers.
+- **Interaction**: magnetic primary buttons, a page-wide cursor light (`GlobalGlow`: one listener lights every panel relative to the cursor, so it follows the cursor across panels and never sticks to the last one), a conic border beam on key panels, spring tabs and expanders, and counting numbers.
 - **Data**: the confidence dial sweeps in, distribution and histogram bars grow, terminal lines type in, and evidence-graph edges flow.
 - **Pipeline honesty**: the API does not report progress mid-run, so during a request every stage shows an indeterminate "running" state. When the answer lands, the measured stage timings replay in order, and each stage ends as done or degraded (amber), based on its `stage_details` status.
 

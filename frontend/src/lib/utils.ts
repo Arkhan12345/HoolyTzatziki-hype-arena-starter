@@ -51,7 +51,8 @@ export const TYPE_COLORS: Record<string, string> = {
 }
 export const CLAIM_TYPES = Object.keys(TYPE_COLORS)
 
-export const VERDICT_COLOR: Record<string, string> = { true: '#B8F23A', false: '#EF6B73', unsure: '#F5B83D' }
+/** Theme-aware verdict colours for inline styles (CSS variables; SVG attributes use useColors() instead). */
+export const VERDICT_COLOR: Record<string, string> = { true: 'rgb(var(--v-true))', false: 'rgb(var(--v-false))', unsure: 'rgb(var(--v-unsure))' }
 
 /** Stage statuses from the API's stage_details: "ok", "fallback: …", "not available yet (P3): …", counts. */
 export function stageHealth(status: string | undefined): 'ok' | 'degraded' | 'unknown' {

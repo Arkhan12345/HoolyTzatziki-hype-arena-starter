@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion'
+import { useColors, type Colors } from '@/lib/theme'
 
 export interface GraphNode {
   id: string
@@ -7,13 +8,13 @@ export interface GraphNode {
   tone: 'claim' | 'subject' | 'attribute' | 'event' | 'fact'
 }
 
-const TONE = {
-  claim: { fill: '#0E1526', stroke: '#22D3EE', text: '#A5F3FC' },
-  subject: { fill: '#0E1526', stroke: '#3C8DE0', text: '#E6EEFB' },
-  attribute: { fill: '#0A0F1C', stroke: '#2A3D61', text: '#9AABC8' },
-  event: { fill: '#0A0F1C', stroke: '#8E6FE0', text: '#E6EEFB' },
-  fact: { fill: '#0A0F1C', stroke: '#B8F23A', text: '#E6EEFB' },
-}
+const tones = (c: Colors) => ({
+  claim: { fill: c['surface-2'], stroke: c.cyan, text: c['cyan-ice'] },
+  subject: { fill: c['surface-2'], stroke: '#3C8DE0', text: c.ink },
+  attribute: { fill: c['surface-1'], stroke: c['line-strong'], text: c['ink-muted'] },
+  event: { fill: c['surface-1'], stroke: '#8E6FE0', text: c.ink },
+  fact: { fill: c['surface-1'], stroke: c['v-true'], text: c.ink },
+})
 
 /**
  * Three columns linked by animated curves: the claim, the lexicon entities and events it names, and for each
@@ -21,6 +22,8 @@ const TONE = {
  */
 export function EvidenceGraph({ claim, entities, attributes }: { claim: string; entities: GraphNode[]; attributes: { from: string; node: GraphNode }[] }) {
   const reduce = useReducedMotion()
+  const c = useColors()
+  const TONE = tones(c)
   const W = 720
   const rowH = 46
   const rightN = Math.max(1, attributes.length)
@@ -43,7 +46,7 @@ export function EvidenceGraph({ claim, entities, attributes }: { claim: string; 
           {n.label.length > 26 ? n.label.slice(0, 25) + '…' : n.label}
         </text>
         {n.sub && (
-          <text x={x + 10} y={y + 11} fill="#7183A3" fontSize={9.5} fontFamily="JetBrains Mono">
+          <text x={x + 10} y={y + 11} fill={c['ink-faint']} fontSize={9.5} fontFamily="JetBrains Mono">
             {n.sub}
           </text>
         )}
@@ -54,7 +57,7 @@ export function EvidenceGraph({ claim, entities, attributes }: { claim: string; 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`Claim linked to ${entities.length} lexicon entities and ${attributes.length} attributes with gold history`}>
       {entities.map((e, i) => (
-        <path key={`c-${e.id}`} d={curve(x0 + 220, cy, x1, ey(i))} fill="none" stroke="#22D3EE" strokeOpacity={0.5} strokeWidth={1.2} strokeDasharray="4 8" className={reduce ? '' : 'animate-flow'} />
+        <path key={`c-${e.id}`} d={curve(x0 + 220, cy, x1, ey(i))} fill="none" stroke={c.cyan} strokeOpacity={0.5} strokeWidth={1.2} strokeDasharray="4 8" className={reduce ? '' : 'animate-flow'} />
       ))}
       {attributes.map((a, i) => {
         const ei = entities.findIndex((e) => e.id === a.from)
