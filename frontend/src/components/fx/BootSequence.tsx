@@ -29,16 +29,18 @@ export function BootSequence() {
     { label: 'pipeline api' },
     { label: 'lexicon' },
     { label: 'practice data' },
+    { label: 'model' },
     { label: 'llm at runtime' },
   ])
 
   useEffect(() => {
     if (!open) return
     const set = (i: number, result: string, ok: boolean) => setChecks((c) => c.map((x, j) => (j === i ? { ...x, result, ok } : x)))
-    getHealth().then((ok) => set(0, MOCK ? 'demo mode (VITE_MOCK=1)' : ok ? `online · ${API_URL}` : `offline · ${API_URL}`, ok))
+    getHealth().then((h) => set(0, MOCK ? 'demo mode (VITE_MOCK=1)' : h?.ok ? `online · v${h.version ?? '?'} · ${API_URL}` : `offline · ${API_URL}`, !!h?.ok))
     loadLexicon().then((l) => set(1, l ? `${l.subjects.length} entities · ${l.events.length} events` : 'not found', !!l))
     loadPractice().then((p) => set(2, p ? `${p.length.toLocaleString()} gold rows` : 'not found', !!p))
-    const t = setTimeout(() => set(3, 'none, by design: rules + classic ML', true), 500)
+    getHealth().then((h) => set(3, !h ? 'unknown (API offline)' : h.classifier_available ? 'classifier + extractor loaded' : "baseline: waiting for Arckan's model", !!h?.classifier_available))
+    const t = setTimeout(() => set(4, 'none, by design: rules + classic ML', true), 500)
     return () => clearTimeout(t)
   }, [open])
 

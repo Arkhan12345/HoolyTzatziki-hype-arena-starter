@@ -33,14 +33,15 @@ A verdict is never shown by colour alone. `VerdictBadge` always carries an icon 
 
 framer-motion is the only animation library. GSAP is not needed. Easing is `cubic-bezier(.16,1,.3,1)` on arrival. Exits run at about 60% of the enter time.
 
-- **Atmosphere** (`fx/Backdrop`): drifting light fields, a perspective grid floor that pans, three wireframe shapes, a cursor light, noise and a slow scan line. All of it is fixed, `pointer-events: none`, and animated with transforms only.
+- **Atmosphere** (`fx/Backdrop`): drifting light fields, a perspective grid floor that pans, three wireframe shapes, noise and a slow scan line. All of it is fixed, `pointer-events: none`, and animated with transforms only. Panels and the page do not react to the mouse.
 - **Entrance**: the wordmark letters spring in staggered. Page headers reveal eyebrow, title and lead in a short stagger. Routes cross-fade.
-- **Boot sequence**: shown once per session. Every line is a real check (API health, lexicon, practice data). Any key skips it.
-- **Interaction**: magnetic primary buttons, a page-wide cursor light (`GlobalGlow`: one listener lights every panel relative to the cursor, so it follows the cursor across panels and never sticks to the last one), a conic border beam on key panels, spring tabs and expanders, and counting numbers.
+- **Boot sequence**: shown once per session. Every line is a real check (API health and version, lexicon, practice data, whether P3's model is loaded). Any key skips it.
+- **Buttons**: every button except the small ghost ones is a [React Bits Specular Button](https://reactbits.dev/components/specular-button) (`ui/SpecularButton.tsx`, ported to TypeScript). It has a glass body whose edge catches a WebGL light that slides toward the nearby cursor. Its colours come from the theme: the body is filled cyan or lime for primary and verify, and glass for outline. Without WebGL 2 it stays a plain button.
+- **Interaction**: a conic border beam on the leading panel, spring tabs and expanders, and counting numbers.
 - **Data**: the confidence dial sweeps in, distribution and histogram bars grow, terminal lines type in, and evidence-graph edges flow.
-- **Pipeline honesty**: the API does not report progress mid-run, so during a request every stage shows an indeterminate "running" state. When the answer lands, the measured stage timings replay in order, and each stage ends as done or degraded (amber), based on its `stage_details` status.
+- **Pipeline honesty**: during an async run, every stage shows an indeterminate "running" state until the API answers. Then the measured stage timings replay in order, and each stage ends in the status the API reported: ok (green), fallback (amber), not_available (grey, "waiting for Arckan's model"), skipped (muted) or failed (red).
 
-`prefers-reduced-motion` turns off the backdrop movement, cursor light, scan line, boot sequence and replay, and every element renders in its final state.
+`prefers-reduced-motion` turns off the backdrop movement, scan line, boot sequence, replay and the Specular light's idle animation, and every element renders in its final state.
 
 ## Confidence semantics
 

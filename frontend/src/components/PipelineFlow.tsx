@@ -15,16 +15,21 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useReducedMotion } from 'framer-motion'
-import { AlertTriangle, Check, Database, FileInput, Loader2, Sparkles } from 'lucide-react'
+import { AlertTriangle, Check, CircleMinus, CircleX, Database, FileInput, Hourglass, Loader2, Sparkles } from 'lucide-react'
 import type { ArchEdge, ArchNode, Architecture } from '@/api/types'
 import type { Job } from '@/state/run'
-import { cn, fmtSeconds, stageHealth } from '@/lib/utils'
+import { cn, fmtSeconds, stageHealth, stageLabel, type StageTone } from '@/lib/utils'
 import { useTheme } from '@/lib/theme'
 
-/** idle · running (request in flight, stage unknown) · active (replay) · done · degraded (fallback/baseline). */
-export type NodeStatus = 'idle' | 'running' | 'active' | 'done' | 'degraded'
+/**
+ * idle · running (request in flight, stage unknown) · active (replay) · and the API's final status per stage:
+ * done (ok, green) · degraded (fallback, amber) · unavailable (not_available, grey) · skipped (muted) · failed (red).
+ */
+export type NodeStatus = 'idle' | 'running' | 'active' | 'done' | 'degraded' | 'unavailable' | 'skipped' | 'failed'
 
-type PipeNodeData = ArchNode & { status: NodeStatus; timing?: number; note?: string; selected?: boolean; compact?: boolean } & Record<string, unknown>
+const FINAL: Record<StageTone, NodeStatus> = { ok: 'done', degraded: 'degraded', unavailable: 'unavailable', skipped: 'skipped', failed: 'failed', unknown: 'idle' }
+
+type PipeNodeData = ArchNode & { status: NodeStatus; timing?: number | null; note?: string; selected?: boolean; compact?: boolean } & Record<string, unknown>
 type PipeNode = Node<PipeNodeData, 'pipe'>
 
 const OWNER_TINT: Record<string, string> = { P2: 'text-[#3C8DE0]', P3: 'text-verdict-true' }
@@ -44,6 +49,9 @@ const PipeNodeView = memo(function PipeNodeView({ data }: NodeProps<PipeNode>) {
         status === 'active' && 'border-cyan bg-cyan/[0.12] shadow-glow',
         status === 'done' && 'border-verdict-true/60',
         status === 'degraded' && 'border-verdict-unsure/70 bg-verdict-unsure/[0.06]',
+        status === 'unavailable' && 'border-dashed border-ink-faint/60 opacity-75',
+        status === 'skipped' && 'border-line opacity-55',
+        status === 'failed' && 'border-verdict-false/70 bg-verdict-false/[0.06]',
         data.selected && 'ring-2 ring-cyan ring-offset-2 ring-offset-void',
       )}
     >
@@ -55,6 +63,12 @@ const PipeNodeView = memo(function PipeNodeView({ data }: NodeProps<PipeNode>) {
           <Check className="size-3.5 shrink-0 text-verdict-true" />
         ) : status === 'degraded' ? (
           <AlertTriangle className="size-3.5 shrink-0 text-verdict-unsure" />
+        ) : status === 'unavailable' ? (
+          <Hourglass className="size-3.5 shrink-0 text-ink-faint" />
+        ) : status === 'skipped' ? (
+          <CircleMinus className="size-3.5 shrink-0 text-ink-faint" />
+        ) : status === 'failed' ? (
+          <CircleX className="size-3.5 shrink-0 text-verdict-false" />
         ) : Icon ? (
           <Icon className="size-3.5 shrink-0 text-ink-faint" />
         ) : (
@@ -68,10 +82,17 @@ const PipeNodeView = memo(function PipeNodeView({ data }: NodeProps<PipeNode>) {
             {data.owner ?? ''}
             {kind === 'optional' ? ' · optional' : ''}
           </span>
-          {data.timing !== undefined && <span className="num text-ink-muted">{fmtSeconds(data.timing)}</span>}
+          {data.timing !== undefined && data.timing !== null && <span className="num text-ink-muted">{fmtSeconds(data.timing)}</span>}
         </div>
       )}
-      {!compact && data.note && status === 'degraded' && <div className="num mt-1 truncate text-[10px] text-verdict-unsure" title={data.note}>{data.note}</div>}
+      {!compact && data.note && ['degraded', 'unavailable', 'failed', 'skipped'].includes(status) && (
+        <div
+          className={cn('num mt-1 truncate text-[10px]', status === 'degraded' ? 'text-verdict-unsure' : status === 'failed' ? 'text-verdict-false' : 'text-ink-faint')}
+          title={data.note}
+        >
+          {data.note}
+        </div>
+      )}
       <Handle type="source" position={Position.Right} className="!h-1.5 !w-1.5 !border-0 !bg-line-strong" />
       <Handle id="loop-out" type="source" position={Position.Bottom} className="!opacity-0" />
       <Handle id="loop-in" type="target" position={Position.Bottom} className="!opacity-0" />
@@ -108,7 +129,7 @@ function autoLayout(nodes: ArchNode[], allEdges: ArchEdge[]) {
 }
 
 const NO_STATUS: Record<string, NodeStatus> = {}
-const NO_TIMINGS: Record<string, number> = {}
+const NO_TIMINGS: Record<string, number | null> = {}
 const NO_NOTES: Record<string, string> = {}
 
 export function PipelineFlow({
@@ -123,7 +144,7 @@ export function PipelineFlow({
 }: {
   architecture: Architecture
   status?: Record<string, NodeStatus>
-  timings?: Record<string, number>
+  timings?: Record<string, number | null>
   notes?: Record<string, string>
   selectedId?: string | null
   onSelect?: (id: string | null) => void
@@ -164,7 +185,7 @@ export function PipelineFlow({
       architecture.edges.map((e, i) => {
         const s = status[e.source]
         const t = status[e.target]
-        const lit = (s === 'done' || s === 'degraded') && t && t !== 'idle'
+        const lit = (s === 'done' || s === 'degraded') && !!t && !['idle', 'unavailable', 'skipped'].includes(t)
         const flowing = !reduce && (t === 'active' || t === 'running' || s === 'running')
         const color = lit ? c['v-true'] : flowing ? c.cyan : c['line-strong']
         return {
@@ -229,9 +250,10 @@ function FitOnResize({ padding }: { padding: number }) {
 }
 
 /**
- * Node statuses for the diagram, from a job. While the request is in flight the API cannot say which stage runs,
- * so every stage shows "running". When it answers, the measured stages replay in order, each for a time
- * proportional to its measured seconds, and end as done or degraded (fallback / baseline / not available).
+ * Node statuses for the diagram. While a request is in flight the API cannot say which stage runs, so every stage
+ * shows "running". When it answers, the measured stages replay in order (each for a time proportional to its
+ * seconds) and end in the status the API reported. With no run in this session, the statuses of the API's latest
+ * run come from GET /architecture.
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function usePipelineStatus(architecture: Architecture, job: Job | null, replayKey: number) {
@@ -267,19 +289,22 @@ export function usePipelineStatus(architecture: Architecture, job: Job | null, r
   return useMemo(() => {
     const status: Record<string, NodeStatus> = {}
     const notes: Record<string, string> = {}
-    const detail = new Map((result?.stage_details ?? []).map((d) => [d.id, d.status]))
-    for (const [k, v] of detail) notes[k] = v
+    const details = result?.stage_details ?? (job ? [] : Object.entries(architecture.stage_status ?? {}).map(([id, st]) => ({ id, status: st, seconds: null, note: undefined as string | undefined })))
+    const detail = new Map(details.map((d) => [d.id, d]))
+    for (const d of details) notes[d.id] = stageLabel(d.status, d.note)
     for (const n of architecture.nodes) {
       if (!n.stage) continue
-      if (job?.status === 'running') status[n.id] = n.kind === 'optional' ? 'idle' : 'running'
+      if (n.kind === 'optional') status[n.id] = 'idle'
+      else if (job?.status === 'running') status[n.id] = 'running'
       else if (result) {
         const idx = stages.indexOf(n.stage)
-        if (idx < 0 || n.kind === 'optional') status[n.id] = 'idle'
-        else if (idx < step) status[n.id] = stageHealth(detail.get(n.stage)) === 'degraded' ? 'degraded' : 'done'
+        if (idx < 0) status[n.id] = 'idle'
+        else if (idx < step) status[n.id] = FINAL[stageHealth(detail.get(n.stage)?.status)]
         else if (idx === step) status[n.id] = 'active'
         else status[n.id] = 'idle'
-      }
+      } else if (!job && architecture.run_id) status[n.id] = FINAL[stageHealth(n.status ?? detail.get(n.stage)?.status)]
     }
-    return { status, notes, timings: result?.timings ?? NO_TIMINGS, replaying: !!result && step < stages.length }
-  }, [architecture, job?.status, result, stages, step])
+    const timings = result?.timings ?? (job ? NO_TIMINGS : (architecture.timings ?? NO_TIMINGS))
+    return { status, notes, timings, replaying: !!result && step < stages.length }
+  }, [architecture, job, result, stages, step])
 }

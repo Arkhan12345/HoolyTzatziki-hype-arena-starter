@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import type { Job } from '@/state/run'
 import { API_URL } from '@/api/client'
-import { cn, fmtSeconds, stageHealth } from '@/lib/utils'
+import { cn, fmtSeconds, stageHealth, stageLabel } from '@/lib/utils'
 
 interface Line {
   t: string
@@ -11,15 +11,21 @@ interface Line {
 
 function linesFor(job: Job, elapsed: number): Line[] {
   const head: Line[] = [{ t: `$ POST ${API_URL}/run  ·  ${job.input}`, tone: 'cmd' }]
-  if (job.status === 'running') return [...head, { t: `waiting for the pipeline… ${elapsed.toFixed(1)} s`, tone: 'dim' }]
+  if (job.status === 'running') return [...head, { t: `${job.runId ? `run ${job.runId} · ` : ''}waiting for the pipeline… ${elapsed.toFixed(1)} s`, tone: 'dim' }]
   if (job.status === 'error') return [...head, { t: `✗ ${job.error}`, tone: 'err' }]
   const r = job.result!
   const details = r.stage_details ?? r.stages.map((id) => ({ id, seconds: r.timings[id] ?? 0, status: '' }))
-  const out: Line[] = [...head, { t: `← 200  ${job.source === 'demo' ? '(demo data, not the API)' : `in ${fmtSeconds(((job.finishedAt ?? 0) - job.startedAt) / 1000)}`}`, tone: 'dim' }]
+  const out: Line[] = [
+    ...head,
+    { t: `← ${r.status ?? 'ok'}  ${job.source === 'demo' ? '(demo data, not the API)' : `in ${fmtSeconds(((job.finishedAt ?? 0) - job.startedAt) / 1000)}${r.run_id ? ` · run ${r.run_id}` : ''}`}`, tone: r.status === 'partial' ? 'warn' : 'dim' },
+  ]
   for (const d of details) {
     const h = stageHealth(d.status)
-    out.push({ t: `${h === 'degraded' ? '!' : '✓'} ${d.id.padEnd(9)} ${fmtSeconds(d.seconds).padStart(7)}  ${d.status}`, tone: h === 'degraded' ? 'warn' : 'ok' })
+    const mark = h === 'ok' ? '✓' : h === 'failed' ? '✗' : h === 'degraded' ? '!' : '·'
+    const tone: Line['tone'] = h === 'ok' ? 'ok' : h === 'failed' ? 'err' : h === 'degraded' ? 'warn' : 'dim'
+    out.push({ t: `${mark} ${String(d.id).padEnd(9)} ${fmtSeconds(d.seconds).padStart(7)}  ${stageLabel(d.status, 'note' in d ? d.note : undefined)}`, tone })
   }
+  for (const e of r.errors ?? []) out.push({ t: `! ${e.stage}: ${e.message}`, tone: 'warn' })
   out.push({ t: `= ${r.labels.length} labels · ${r.facts.length} facts · ${(r.claims_total ?? r.claims.length).toLocaleString()} claims`, tone: 'cmd' })
   return out
 }

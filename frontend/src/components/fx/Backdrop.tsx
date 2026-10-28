@@ -1,30 +1,11 @@
-import { useEffect, useRef } from 'react'
 import { useReducedMotion } from 'framer-motion'
 
 /**
  * The page atmosphere, behind everything and never interactive: ambient light fields, a perspective grid,
- * a few floating wireframe shapes, film noise, faint scan lines and a light that follows the cursor.
+ * a few floating wireframe shapes, film noise and faint scan lines. Nothing here reacts to the mouse.
  */
 export function Backdrop() {
   const reduce = useReducedMotion()
-  const light = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (reduce) return
-    let raf = 0
-    const onMove = (e: PointerEvent) => {
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(() => {
-        light.current?.style.setProperty('transform', `translate3d(${e.clientX - 400}px, ${e.clientY - 400}px, 0)`)
-      })
-    }
-    window.addEventListener('pointermove', onMove, { passive: true })
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('pointermove', onMove)
-    }
-  }, [reduce])
-
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-void">
       {/* ambient light fields */}
@@ -54,14 +35,6 @@ export function Backdrop() {
       <svg className="absolute bottom-[14%] right-[22%] h-16 w-16 animate-float text-verdict-true/15 [animation-delay:-5s]" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2">
         <polygon points="50,8 92,80 8,80" />
       </svg>
-
-      {/* cursor light */}
-      {!reduce && (
-        <div
-          ref={light}
-          className="absolute left-0 top-0 h-[800px] w-[800px] rounded-full bg-[radial-gradient(closest-side,rgb(var(--cyan)/0.07),transparent)] transition-transform duration-300 ease-out"
-        />
-      )}
 
       <div className="fx-noise absolute inset-0" />
       <div className="fx-scanlines absolute inset-0" />

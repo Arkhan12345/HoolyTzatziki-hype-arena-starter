@@ -14,7 +14,7 @@ function initialTheme(): Theme {
   return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
 }
 
-const TOKENS = ['void', 'surface-1', 'surface-2', 'surface-3', 'line', 'line-strong', 'ink', 'ink-muted', 'ink-faint', 'cyan', 'cyan-ice', 'cyan-deep', 'v-true', 'v-false', 'v-unsure'] as const
+const TOKENS = ['void', 'surface-1', 'surface-2', 'surface-3', 'line', 'line-strong', 'ink', 'ink-muted', 'ink-faint', 'cyan', 'cyan-ice', 'cyan-deep', 'v-true', 'v-false', 'v-unsure', 'on-accent'] as const
 export type Token = (typeof TOKENS)[number]
 /** Resolved `rgb(r, g, b)` strings for places CSS variables cannot reach (SVG attributes, Recharts props). */
 export type Colors = Record<Token, string> & { alpha: (t: Token, a: number) => string }

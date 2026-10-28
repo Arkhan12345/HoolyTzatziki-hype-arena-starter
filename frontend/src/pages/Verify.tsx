@@ -2,21 +2,20 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useLocation } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { BookOpenCheck, CalendarDays, CircleSlash, Dices, Info, Layers, ScanSearch, ShieldQuestion, Sparkle } from 'lucide-react'
-import type { Fact, Label, Verdict } from '@/api/types'
+import type { Evidence, Fact, Prediction, Verdict } from '@/api/types'
 import { ConfidenceGauge } from '@/components/data/ConfidenceGauge'
 import { EvidenceGraph, type GraphNode } from '@/components/data/EvidenceGraph'
 import { TerminalLog } from '@/components/data/TerminalLog'
 import { ValueTimeline } from '@/components/data/ValueTimeline'
 import { VerdictBadge } from '@/components/data/VerdictBadge'
 import { GoldCheck } from '@/components/data/GoldCheck'
-import { GlowPanel, PanelHeader } from '@/components/fx/GlowPanel'
-import { Magnetic } from '@/components/fx/Magnetic'
-import { EmptyState, ErrorState, PageHeader } from '@/components/States'
+import { Panel, PanelHeader } from '@/components/fx/Panel'
+import { EmptyState, ErrorState, NotComputed, PageHeader } from '@/components/States'
 import { Button } from '@/components/ui/button'
 import { Tabs } from '@/components/ui/tabs'
-import { cn, formatValue, stageHealth } from '@/lib/utils'
+import { cn, formatValue, stageHealth, stageLabel } from '@/lib/utils'
 import { goldHistory, loadLexicon, loadPractice, matchEntities, matchEvents, type Lexicon, type PracticeRow } from '@/lib/world'
-import { useRun } from '@/state/run'
+import { jobPredictions, useRun } from '@/state/run'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -70,7 +69,7 @@ export default function VerifyPage() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         {/* input column */}
         <div className="space-y-5">
-          <GlowPanel beam>
+          <Panel beam>
             <form onSubmit={submit} className="space-y-4 p-5">
               <div>
                 <label htmlFor="claim" className="eyebrow">
@@ -110,11 +109,9 @@ export default function VerifyPage() {
                 </p>
               )}
               <div className="flex flex-wrap gap-2">
-                <Magnetic>
-                  <Button type="submit" variant="verify" size="lg" disabled={!text.trim() || running}>
-                    <ScanSearch /> {running ? 'Analyzing…' : 'Analyze claim'}
-                  </Button>
-                </Magnetic>
+                <Button type="submit" variant="verify" size="lg" disabled={!text.trim() || running}>
+                  <ScanSearch /> {running ? 'Analyzing…' : 'Analyze claim'}
+                </Button>
                 {job && !running && (
                   <Button variant="ghost" size="lg" onClick={() => clear('verify')}>
                     Clear result
@@ -122,10 +119,10 @@ export default function VerifyPage() {
                 )}
               </div>
             </form>
-          </GlowPanel>
+          </Panel>
 
           {/* entity panel */}
-          <GlowPanel>
+          <Panel>
             <PanelHeader eyebrow="lexicon lookup (in the browser)" title="Entities and attributes named" />
             <div className="p-5 pt-3">
               {!lexicon ? (
@@ -160,10 +157,10 @@ export default function VerifyPage() {
               )}
               <p className="mt-4 text-2xs leading-relaxed text-ink-faint">A name lookup for orientation only. The pipeline's own extractor decides which facts the sentence states.</p>
             </div>
-          </GlowPanel>
+          </Panel>
 
           {examples.length > 0 && (
-            <GlowPanel>
+            <Panel>
               <PanelHeader eyebrow="practice examples" title="Try a labelled row" right={<Dices className="size-4 text-ink-faint" />} />
               <ul className="space-y-1 p-3">
                 {examples.map((r) => (
@@ -179,7 +176,7 @@ export default function VerifyPage() {
                   </li>
                 ))}
               </ul>
-            </GlowPanel>
+            </Panel>
           )}
         </div>
 
@@ -188,11 +185,11 @@ export default function VerifyPage() {
           <AnimatePresence mode="wait">
             {!job ? (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <GlowPanel>
+                <Panel>
                   <EmptyState icon={<ShieldQuestion />} title="Awaiting a claim">
                     The verdict, the confidence gauge, the extracted facts and the value history appear here. Confidence is how sure the model is, not proof that a claim is true.
                   </EmptyState>
-                </GlowPanel>
+                </Panel>
               </motion.div>
             ) : job.status === 'running' ? (
               <motion.div key="run" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
@@ -218,7 +215,7 @@ export default function VerifyPage() {
 function Scanning({ text }: { text: string }) {
   const reduce = useReducedMotion()
   return (
-    <GlowPanel className="overflow-hidden p-6">
+    <Panel className="overflow-hidden p-6">
       <div className="eyebrow flex items-center gap-2">
         <span className="size-1.5 animate-pulse rounded-full bg-cyan" /> sending to the pipeline
       </div>
@@ -237,47 +234,37 @@ function Scanning({ text }: { text: string }) {
       <p className="mt-4 text-xs text-ink-muted">
         The API runs the whole pipeline (extract, knowledge base, classify) on this one row. It does not report progress mid-run, so this view waits for the answer and does not invent stages.
       </p>
-    </GlowPanel>
+    </Panel>
   )
 }
 
-function explain(label: Label, facts: Fact[], classify?: string, extract?: string): string[] {
+/** The API's own explanation first; then only what the UI can say for sure from the stage statuses. */
+function reasonsFor(p: Prediction, classify?: string, extract?: string): string[] {
   const out: string[] = []
-  if (label.label === 'unsure') out.push('The pipeline returned unsure: it could not decide either way. By contract an unsure label carries no confidence, and it is not a weak "false".')
-  if (classify && /baseline/i.test(classify))
-    out.push(
-      `The trained classifier is not merged yet (stage status: "${classify}"). Every row gets the all-true baseline at ${label.confidence?.toFixed(2) ?? 'n/a'}, which is the share of true rows in the practice data. This number is a prior over the dataset. It says nothing about this sentence.`,
-    )
-  if (!facts.length)
-    out.push(
-      extract && stageStatusDegraded(extract)
-        ? `No facts were extracted: the extractor is not available yet ("${extract}"). Without facts the system cannot compare the sentence with the value in force on its date.`
-        : 'The extractor found no subject · attribute · value in this sentence, so there was nothing to compare with the timeline.',
-    )
-  else
-    out.push(
-      `${facts.length} fact${facts.length > 1 ? 's were' : ' was'} extracted and passed to the classifier. The API does not yet return which timeline values supported or contradicted ${facts.length > 1 ? 'them' : 'it'}.`,
-    )
+  if (p.explanation) out.push(p.explanation)
+  if (p.label === 'unsure') out.push('Unsure is its own verdict: the pipeline could not decide. By contract it carries no confidence, and it is not a weak "false".')
+  if (stageHealth(classify) === 'unavailable')
+    out.push(`Classify: ${stageLabel(classify)}. Until it lands, the confidence is a prior over the dataset and says nothing about this sentence.`)
+  if (!p.facts.length && stageHealth(extract) === 'unavailable') out.push(`Extract: ${stageLabel(extract)}, so no facts could be compared with the value in force on ${p.date}.`)
   return out
 }
-const stageStatusDegraded = (s: string) => stageHealth(s) === 'degraded'
 
 function Result({ job, practice, lexicon }: { job: NonNullable<ReturnType<typeof useRun>['jobs']['verify']>; practice: PracticeRow[] | null; lexicon: Lexicon | null }) {
-  const r = job.result!
-  const label = r.labels[0]
+  const p = jobPredictions(job)[0]
   const row = job.rows[0]
-  const facts = r.facts.filter((f) => f.row_id === label?.id)
-  const details = new Map((r.stage_details ?? []).map((d) => [d.id, d.status]))
+  const details = new Map((job.result?.stage_details ?? []).map((d) => [d.id, d.status]))
   const classify = details.get('classify')
-  const baseline = !!classify && /baseline/i.test(classify)
-  const reasons = label ? explain(label, facts, classify, details.get('extract')) : []
+  const baseline = job.result?.metrics?.classification?.classifier === 'baseline' || stageHealth(classify) === 'unavailable'
 
-  if (!label) return <ErrorState message="The API answered without a label for this row." />
+  if (!p) return <ErrorState message="The API answered without a prediction for this row." />
 
+  const label = p
+  const facts = p.facts
+  const reasons = reasonsFor(p, classify, details.get('extract'))
   const evidence = facts.length === 0 ? 'none' : facts.length === 1 ? 'weak' : 'some'
   return (
     <>
-      <GlowPanel beam className="overflow-hidden">
+      <Panel beam className="overflow-hidden">
         <div className="grid items-center gap-6 p-6 md:grid-cols-[auto_1fr]">
           <ConfidenceGauge verdict={label.label} confidence={label.confidence} size={210} className="mx-auto" />
           <div className="min-w-0">
@@ -294,9 +281,9 @@ function Result({ job, practice, lexicon }: { job: NonNullable<ReturnType<typeof
             </dl>
           </div>
         </div>
-      </GlowPanel>
+      </Panel>
 
-      <GlowPanel>
+      <Panel>
         <PanelHeader eyebrow="why this verdict" title="Explanation" right={<Info className="size-4 text-ink-faint" />} />
         <ul className="space-y-2.5 p-5 pt-3">
           {reasons.map((t, i) => (
@@ -306,9 +293,9 @@ function Result({ job, practice, lexicon }: { job: NonNullable<ReturnType<typeof
             </motion.li>
           ))}
         </ul>
-      </GlowPanel>
+      </Panel>
 
-      <GlowPanel>
+      <Panel>
         <PanelHeader eyebrow="pipeline extraction" title="Extracted claim form" right={<Layers className="size-4 text-ink-faint" />} />
         <div className="p-5 pt-3">
           {facts.length ? (
@@ -347,16 +334,66 @@ function Result({ job, practice, lexicon }: { job: NonNullable<ReturnType<typeof
             <div className="flex items-start gap-3 text-sm text-ink-muted">
               <CircleSlash className="mt-0.5 size-4 shrink-0 text-verdict-unsure" />
               <span>
-                Nothing extracted. Status from the API: <span className="num text-verdict-unsure">{details.get('extract') ?? 'unknown'}</span>
+                Nothing extracted: <span className="num text-verdict-unsure">{stageLabel(details.get('extract'))}</span>
               </span>
             </div>
           )}
         </div>
-      </GlowPanel>
+      </Panel>
+
+      {p.evidence && p.evidence.length > 0 && <EvidenceTable evidence={p.evidence} />}
 
       <Context facts={facts} text={row?.text ?? ''} date={row?.date} practice={practice} lexicon={lexicon} />
       <TerminalLog job={job} />
     </>
+  )
+}
+
+/** What the knowledge base said about each extracted fact on the row's date (API `evidence`, one per fact). */
+function EvidenceTable({ evidence }: { evidence: Evidence[] }) {
+  const v = (x: unknown) => (x && typeof x === 'object' && 'kind' in x ? formatValue(x as Fact['value']) : x === null || x === undefined ? '—' : JSON.stringify(x))
+  return (
+    <Panel>
+      <PanelHeader eyebrow="knowledge base" title="Supporting facts and contradictions" />
+      <div className="overflow-x-auto p-5 pt-3">
+        <table className="w-full text-sm">
+          <thead className="eyebrow text-left">
+            <tr>
+              <th className="pb-2 pr-4 font-normal">fact</th>
+              <th className="pb-2 pr-4 font-normal">stated</th>
+              <th className="pb-2 pr-4 font-normal">value in force</th>
+              <th className="pb-2 pr-4 font-normal">verdict</th>
+              <th className="pb-2 font-normal">support</th>
+            </tr>
+          </thead>
+          <tbody>
+            {evidence.map((e, i) => (
+              <tr key={i} className="border-t border-line align-top">
+                <td className="py-2 pr-4">
+                  <span className="font-medium">{e.subject}</span> <span className="num text-xs text-ink-muted">{e.attribute}</span>
+                </td>
+                <td className="num py-2 pr-4 text-cyan-ice">{v(e.stated)}</td>
+                <td className="num py-2 pr-4">{e.value_in_force === null ? <NotComputed /> : v(e.value_in_force)}</td>
+                <td className="py-2 pr-4">
+                  {e.agrees === null ? (
+                    <span className="text-xs text-ink-faint">no value in force</span>
+                  ) : e.agrees ? (
+                    <span className="text-xs text-verdict-true">supports</span>
+                  ) : (
+                    <span className="text-xs text-verdict-false">contradicts</span>
+                  )}
+                  {e.changed_later && <span className="block text-2xs text-ink-faint">changed later</span>}
+                  {e.known_wrong_value && <span className="block text-2xs text-verdict-false">a known wrong value</span>}
+                </td>
+                <td className="num py-2 text-xs text-ink-muted" title={e.gold_rows.join(', ')}>
+                  {e.support} · {e.gold_rows.length} gold row{e.gold_rows.length === 1 ? '' : 's'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Panel>
   )
 }
 
@@ -401,7 +438,7 @@ function Context({ facts, text, date, practice, lexicon }: { facts: Fact[]; text
   const attributes = pairs.map((p) => ({ from: p.subject, node: { id: `${p.subject}:${p.attribute}`, label: p.attribute, sub: `${p.n} gold row${p.n > 1 ? 's' : ''}`, tone: 'fact' as const } }))
 
   return (
-    <GlowPanel>
+    <Panel>
       <PanelHeader eyebrow="context from the practice data" title="Evidence map and value history" />
       <div className="p-5 pt-3">
         <EvidenceGraph claim={text} entities={entities} attributes={attributes} />
@@ -420,6 +457,6 @@ function Context({ facts, text, date, practice, lexicon }: { facts: Fact[]; text
           Gold rows from data/practice.csv for orientation. The knowledge base the classifier uses also counts votes from the whole universe and page trust, which the API does not return yet.
         </p>
       </div>
-    </GlowPanel>
+    </Panel>
   )
 }

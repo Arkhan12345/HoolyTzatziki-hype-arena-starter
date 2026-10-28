@@ -1,708 +1,1907 @@
 {
-  "source": "demo data: first 20 practice rows, gold forms as facts",
-  "labels": [
-    {
-      "id": "p-1",
-      "label": "true",
-      "confidence": 0.62,
-      "gold": "true"
+ "run_id": "20261028-140013-0ba95f",
+ "status": "ok",
+ "source": "demo data: a captured API run on 20 practice rows",
+ "created_at": "2026-10-28T14:00:30+0200",
+ "rows": [
+  {
+   "id": "p-855",
+   "text": "Hooly AI Free allows 50 requests per day at no charge.",
+   "date": "2025-10-07"
+  },
+  {
+   "id": "p-293",
+   "text": "Hooly Maps lists 120,000,000 places",
+   "date": "2026-04-16"
+  },
+  {
+   "id": "p-345",
+   "text": "A 1.6 GB update",
+   "date": "2026-09-22"
+  },
+  {
+   "id": "p-170",
+   "text": "Gemini now speaks 12 languages, answers with a median response time of 1.4 s, and holds 200,000 tokens of context.",
+   "date": "2026-03-24"
+  },
+  {
+   "id": "p-120",
+   "text": "The beta of Hooly Android 17 now has 480,000 testers.",
+   "date": "2026-07-02"
+  },
+  {
+   "id": "p-935",
+   "text": "The package weighs 1.9 GB, and satellite messaging is not included.",
+   "date": "2026-10-12"
+  },
+  {
+   "id": "p-1503",
+   "text": "100 MB uploads",
+   "date": "2026-08-18"
+  },
+  {
+   "id": "p-927",
+   "text": "Families of 5 members share one plan in Hooly Photos.",
+   "date": "2026-10-16"
+  },
+  {
+   "id": "p-158",
+   "text": "It stores 128 GB and a 4,700 mAh battery keeps the Pixel 9 going.",
+   "date": "2025-12-02"
+  },
+  {
+   "id": "p-1067",
+   "text": "Gavin Bellson hosts, and the devices keynote belongs to Jack Barkor.",
+   "date": "2026-04-20"
+  },
+  {
+   "id": "p-1555",
+   "text": "Hooly Gemini replies in 1.4 s at the median.",
+   "date": "2026-10-07"
+  },
+  {
+   "id": "p-722",
+   "text": "Spam caught: 99.7%",
+   "date": "2026-06-10"
+  },
+  {
+   "id": "p-804",
+   "text": "Hooly Workspace at €199 a month covers my whole studio.",
+   "date": "2026-05-05"
+  },
+  {
+   "id": "p-811",
+   "text": "Hooly Gemini answers in 1.4 s.",
+   "date": "2026-03-24"
+  },
+  {
+   "id": "p-1506",
+   "text": "Hooly Vault starts with 5 nodes",
+   "date": "2026-10-12"
+  },
+  {
+   "id": "p-1858",
+   "text": "Hooly Pixel 9 and Hooly Pixel Watch run Hooly Android 16.1.",
+   "date": "2026-03-05"
+  },
+  {
+   "id": "p-865",
+   "text": "We aim for 99.5% monthly uptime on the AI Pro and Workspace plans.",
+   "date": "2026-04-01"
+  },
+  {
+   "id": "p-769",
+   "text": "35 languages offline",
+   "date": "2026-07-15"
+  },
+  {
+   "id": "p-715",
+   "text": "Customers on Hooly Cloud: 140 customers",
+   "date": "2025-12-15"
+  },
+  {
+   "id": "p-1132",
+   "text": "The operating margin is 31.4%, which my accountants call a typo.",
+   "date": "2026-01-29"
+  }
+ ],
+ "labels": [
+  {
+   "id": "p-855",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-293",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-345",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "false"
+  },
+  {
+   "id": "p-170",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-120",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-935",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "false"
+  },
+  {
+   "id": "p-1503",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-927",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-158",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-1067",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-1555",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-722",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-804",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-811",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-1506",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-1858",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-865",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-769",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-715",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true"
+  },
+  {
+   "id": "p-1132",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "false"
+  }
+ ],
+ "predictions": [
+  {
+   "id": "p-855",
+   "text": "Hooly AI Free allows 50 requests per day at no charge.",
+   "date": "2025-10-07",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-293",
+   "text": "Hooly Maps lists 120,000,000 places",
+   "date": "2026-04-16",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-345",
+   "text": "A 1.6 GB update",
+   "date": "2026-09-22",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "false",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-170",
+   "text": "Gemini now speaks 12 languages, answers with a median response time of 1.4 s, and holds 200,000 tokens of context.",
+   "date": "2026-03-24",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-120",
+   "text": "The beta of Hooly Android 17 now has 480,000 testers.",
+   "date": "2026-07-02",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-935",
+   "text": "The package weighs 1.9 GB, and satellite messaging is not included.",
+   "date": "2026-10-12",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "false",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-1503",
+   "text": "100 MB uploads",
+   "date": "2026-08-18",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-927",
+   "text": "Families of 5 members share one plan in Hooly Photos.",
+   "date": "2026-10-16",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-158",
+   "text": "It stores 128 GB and a 4,700 mAh battery keeps the Pixel 9 going.",
+   "date": "2025-12-02",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-1067",
+   "text": "Gavin Bellson hosts, and the devices keynote belongs to Jack Barkor.",
+   "date": "2026-04-20",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-1555",
+   "text": "Hooly Gemini replies in 1.4 s at the median.",
+   "date": "2026-10-07",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-722",
+   "text": "Spam caught: 99.7%",
+   "date": "2026-06-10",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-804",
+   "text": "Hooly Workspace at €199 a month covers my whole studio.",
+   "date": "2026-05-05",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-811",
+   "text": "Hooly Gemini answers in 1.4 s.",
+   "date": "2026-03-24",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-1506",
+   "text": "Hooly Vault starts with 5 nodes",
+   "date": "2026-10-12",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-1858",
+   "text": "Hooly Pixel 9 and Hooly Pixel Watch run Hooly Android 16.1.",
+   "date": "2026-03-05",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-865",
+   "text": "We aim for 99.5% monthly uptime on the AI Pro and Workspace plans.",
+   "date": "2026-04-01",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-769",
+   "text": "35 languages offline",
+   "date": "2026-07-15",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-715",
+   "text": "Customers on Hooly Cloud: 140 customers",
+   "date": "2025-12-15",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "true",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  },
+  {
+   "id": "p-1132",
+   "text": "The operating margin is 31.4%, which my accountants call a typo.",
+   "date": "2026-01-29",
+   "label": "true",
+   "confidence": 0.83,
+   "gold": "false",
+   "facts": [],
+   "evidence": null,
+   "explanation": "No classifier yet (P3): the label is the all-true baseline (83% of practice rows are true)."
+  }
+ ],
+ "facts": [],
+ "claims": [
+  {
+   "id": "tz-0001",
+   "type": "change",
+   "text": "The active devices of Hooly Android went from 2,900,000,000 devices to 3,100,000,000 devices.",
+   "form": {
+    "subject": "Hooly Android",
+    "attribute": "active_devices",
+    "from": {
+     "kind": "quantity",
+     "value": 2900000000,
+     "unit": "device"
     },
-    {
-      "id": "p-2",
-      "label": "true",
-      "confidence": 0.75,
-      "gold": "true"
-    },
-    {
-      "id": "p-3",
-      "label": "true",
-      "confidence": 0.88,
-      "gold": "true"
-    },
-    {
-      "id": "p-4",
-      "label": "true",
-      "confidence": 0.64,
-      "gold": "true"
-    },
-    {
-      "id": "p-5",
-      "label": "true",
-      "confidence": 0.77,
-      "gold": "true"
-    },
-    {
-      "id": "p-6",
-      "label": "true",
-      "confidence": 0.9,
-      "gold": "true"
-    },
-    {
-      "id": "p-7",
-      "label": "unsure",
-      "confidence": null,
-      "gold": "true"
-    },
-    {
-      "id": "p-8",
-      "label": "true",
-      "confidence": 0.79,
-      "gold": "true"
-    },
-    {
-      "id": "p-9",
-      "label": "true",
-      "confidence": 0.92,
-      "gold": "true"
-    },
-    {
-      "id": "p-10",
-      "label": "true",
-      "confidence": 0.68,
-      "gold": "true"
-    },
-    {
-      "id": "p-11",
-      "label": "true",
-      "confidence": 0.81,
-      "gold": "true"
-    },
-    {
-      "id": "p-12",
-      "label": "true",
-      "confidence": 0.94,
-      "gold": "true"
-    },
-    {
-      "id": "p-13",
-      "label": "true",
-      "confidence": 0.7,
-      "gold": "true"
-    },
-    {
-      "id": "p-14",
-      "label": "false",
-      "confidence": 0.83,
-      "gold": "false"
-    },
-    {
-      "id": "p-15",
-      "label": "false",
-      "confidence": 0.96,
-      "gold": "false"
-    },
-    {
-      "id": "p-16",
-      "label": "true",
-      "confidence": 0.72,
-      "gold": "true"
-    },
-    {
-      "id": "p-17",
-      "label": "true",
-      "confidence": 0.85,
-      "gold": "true"
-    },
-    {
-      "id": "p-18",
-      "label": "true",
-      "confidence": 0.98,
-      "gold": "true"
-    },
-    {
-      "id": "p-19",
-      "label": "true",
-      "confidence": 0.74,
-      "gold": "true"
-    },
-    {
-      "id": "p-20",
-      "label": "true",
-      "confidence": 0.87,
-      "gold": "true"
+    "to": {
+     "kind": "quantity",
+     "value": 3100000000,
+     "unit": "device"
     }
-  ],
-  "claims": [
+   },
+   "confidence": 0.98,
+   "sources": [
     {
-      "id": "c-1",
-      "type": "at_event",
-      "text": "Hooly Gemini spoke 12 languages at Hooly I/O 2026.",
-      "form": {
-        "subject": "Hooly Gemini",
-        "attribute": "languages",
-        "event": "Hooly I/O 2026",
-        "value": {
-          "kind": "quantity",
-          "value": 12,
-          "unit": "language"
-        }
-      },
-      "confidence": 0.9
+     "row_id": "p-936",
+     "date": "2026-10-12",
+     "text": "Hooly Android reaches 3,100,000,000 devices, and it stays open source.",
+     "label": "true",
+     "origin": "practice"
     },
     {
-      "id": "c-2",
-      "type": "change",
-      "text": "Hooly AI Pro went from €49 per month to €59 per month.",
-      "form": {
-        "subject": "Hooly AI Pro",
-        "attribute": "price",
-        "from": {
-          "kind": "money",
-          "value": 49,
-          "currency": "EUR",
-          "per": "month"
-        },
-        "to": {
-          "kind": "money",
-          "value": 59,
-          "currency": "EUR",
-          "per": "month"
-        }
-      },
-      "confidence": 0.9
-    },
-    {
-      "id": "c-3",
-      "type": "compare",
-      "text": "Hooly I/O 2026 took place before the May 2026 outage.",
-      "form": {
-        "left": {
-          "subject": "Hooly I/O 2026",
-          "attribute": "date"
-        },
-        "right": {
-          "subject": "The May 2026 outage",
-          "attribute": "date"
-        },
-        "op": "lt"
-      },
-      "confidence": 0.9
-    },
-    {
-      "id": "c-4",
-      "type": "compare",
-      "text": "Hooly Workspace costs more than Hooly AI Pro.",
-      "form": {
-        "left": {
-          "subject": "Hooly Workspace",
-          "attribute": "price"
-        },
-        "right": {
-          "subject": "Hooly AI Pro",
-          "attribute": "price"
-        },
-        "op": "gt"
-      },
-      "confidence": 0.9
-    },
-    {
-      "id": "c-5",
-      "type": "fact",
-      "text": "Bertram Gilfoil is the CTO of Hooly.",
-      "form": {
-        "subject": "Hooly",
-        "attribute": "cto",
-        "value": {
-          "kind": "name",
-          "value": "Bertram Gilfoil"
-        }
-      },
-      "confidence": 0.9
-    },
-    {
-      "id": "c-6",
-      "type": "fact",
-      "text": "Hooly AI Pro costs €59 per month.",
-      "form": {
-        "subject": "Hooly AI Pro",
-        "attribute": "price",
-        "value": {
-          "kind": "money",
-          "value": 59,
-          "currency": "EUR",
-          "per": "month"
-        }
-      },
-      "confidence": 0.9
-    },
-    {
-      "id": "c-7",
-      "type": "relation",
-      "text": "The CTO of Hooly joined on 1 July 2026.",
-      "form": {
-        "subject": "Hooly",
-        "link": "cto",
-        "target": "Bertram Gilfoil",
-        "attribute": "joined",
-        "value": {
-          "kind": "date",
-          "value": "2026-07-01"
-        }
-      },
-      "confidence": 0.9
+     "row_id": "p-351",
+     "date": "2026-03-20",
+     "text": "Hooly Android reaches 2,900,000,000 devices",
+     "label": "true",
+     "origin": "practice"
     }
-  ],
-  "facts": [
-    {
-      "row_id": "p-1",
-      "subject": "Holdan",
-      "attribute": "joined",
-      "value": {
-        "kind": "date",
-        "value": "2026-01-12"
-      },
-      "span": "Holdan started at Hooly on 12 January 2026.",
-      "conf": 0.8
+   ]
+  },
+  {
+   "id": "tz-0002",
+   "type": "change",
+   "text": "The active users of Hooly Docs went from 2,100 users to 8,800 users.",
+   "form": {
+    "subject": "Hooly Docs",
+    "attribute": "active_users",
+    "from": {
+     "kind": "quantity",
+     "value": 2100,
+     "unit": "user"
     },
-    {
-      "row_id": "p-2",
-      "subject": "Hooly Cloud",
-      "attribute": "reliability_lead",
-      "value": {
-        "kind": "name",
-        "value": "Holdan"
-      },
-      "span": "From today, Hooly Cloud's reliability team answers to Holdan.",
-      "conf": 0.87
-    },
-    {
-      "row_id": "p-3",
-      "subject": "Holdan",
-      "attribute": "previous_employer",
-      "value": {
-        "kind": "name",
-        "value": "Nimbus Cloud"
-      },
-      "span": "Before Hooly, Holdan ran incident response at Nimbus Cloud, the provider Gemini still runs on.",
-      "conf": 0.94
-    },
-    {
-      "row_id": "p-4",
-      "subject": "Holdan",
-      "attribute": "team_size",
-      "value": {
-        "kind": "quantity",
-        "value": 4,
-        "unit": "engineer"
-      },
-      "span": "He begins with a small crew of 4 engineers, and he is hiring.",
-      "conf": 0.81
-    },
-    {
-      "row_id": "p-5",
-      "subject": "Hooly Cloud",
-      "attribute": "launched",
-      "value": {
-        "kind": "date",
-        "value": "2025-11"
-      },
-      "span": "Hooly Cloud has been open since November 2025 and covers 3 regions so far.",
-      "conf": 0.88
-    },
-    {
-      "row_id": "p-5",
-      "subject": "Hooly Cloud",
-      "attribute": "regions",
-      "value": {
-        "kind": "quantity",
-        "value": 3,
-        "unit": "region"
-      },
-      "span": "Hooly Cloud has been open since November 2025 and covers 3 regions so far.",
-      "conf": 0.88
-    },
-    {
-      "row_id": "p-6",
-      "subject": "Hooly Cloud",
-      "attribute": "uptime_sla",
-      "value": {
-        "kind": "percent",
-        "value": 99.9
-      },
-      "span": "Its paid accounts carry a 99.9% uptime promise, which Holdan now owns.",
-      "conf": 0.95
-    },
-    {
-      "row_id": "p-7",
-      "subject": "Hooly Cloud",
-      "attribute": "customers",
-      "value": {
-        "kind": "quantity",
-        "value": 100,
-        "unit": "customer",
-        "op": "gt"
-      },
-      "span": "The platform already serves over 100 customers, most of them small software firms.",
-      "conf": 0.82
-    },
-    {
-      "row_id": "p-8",
-      "subject": "Hooly Cloud",
-      "attribute": "uptime_last_quarter",
-      "value": {
-        "kind": "percent",
-        "value": 99.82
-      },
-      "span": "Last quarter Hooly Cloud was up 99.82% of the time.",
-      "conf": 0.89
-    },
-    {
-      "row_id": "p-9",
-      "subject": "Hooly Cloud",
-      "attribute": "median_time_to_recover",
-      "value": {
-        "kind": "duration",
-        "value": 52,
-        "unit": "min"
-      },
-      "span": "When something broke, the median time to recover was 52 min.",
-      "conf": 0.96
-    },
-    {
-      "row_id": "p-10",
-      "subject": "Hooly Cloud",
-      "attribute": "cli_version",
-      "value": {
-        "kind": "version",
-        "value": "1.4"
-      },
-      "span": "His first project is the Hooly Cloud CLI 1.4, whose deploy command hides too many failures.",
-      "conf": 0.83
-    },
-    {
-      "row_id": "p-11",
-      "subject": "Hooly Cloud Next 2026",
-      "attribute": "length",
-      "value": {
-        "kind": "duration",
-        "value": 3,
-        "unit": "day"
-      },
-      "span": "Hooly Cloud Next closed after 3 days at Ringsend Forum.",
-      "conf": 0.9
-    },
-    {
-      "row_id": "p-11",
-      "subject": "Hooly Cloud Next 2026",
-      "attribute": "venue",
-      "value": {
-        "kind": "name",
-        "value": "Ringsend Forum"
-      },
-      "span": "Hooly Cloud Next closed after 3 days at Ringsend Forum.",
-      "conf": 0.9
-    },
-    {
-      "row_id": "p-12",
-      "subject": "Hooly Cloud Next 2026",
-      "attribute": "attendees",
-      "value": {
-        "kind": "quantity",
-        "value": 2600,
-        "unit": "attendee"
-      },
-      "span": "In total, 2,600 attendees made the trip to Dublin.",
-      "conf": 0.97
-    },
-    {
-      "row_id": "p-12",
-      "subject": "Hooly Cloud Next 2026",
-      "attribute": "city",
-      "value": {
-        "kind": "name",
-        "value": "Dublin"
-      },
-      "span": "In total, 2,600 attendees made the trip to Dublin.",
-      "conf": 0.97
-    },
-    {
-      "row_id": "p-13",
-      "subject": "Hooly Cloud Next 2026",
-      "attribute": "registrations",
-      "value": {
-        "kind": "quantity",
-        "value": 3100,
-        "unit": "registration"
-      },
-      "span": "They came out of 3,100 registrations, a turnout we are proud of.",
-      "conf": 0.84
-    },
-    {
-      "row_id": "p-14",
-      "subject": "Hooly Cloud Next 2026",
-      "attribute": "sessions",
-      "value": {
-        "kind": "quantity",
-        "value": 40,
-        "unit": "session"
-      },
-      "span": "The programme packed 40 sessions into the schedule.",
-      "conf": 0.91
-    },
-    {
-      "row_id": "p-15",
-      "subject": "Hooly Cloud Next 2026",
-      "attribute": "speakers",
-      "value": {
-        "kind": "quantity",
-        "value": 120,
-        "unit": "speaker"
-      },
-      "span": "120 speakers shared the stage, many of them customers.",
-      "conf": 0.98
-    },
-    {
-      "row_id": "p-16",
-      "subject": "Hooly Cloud Next 2026",
-      "attribute": "opening_keynote",
-      "value": {
-        "kind": "name",
-        "value": "Gavin Bellson"
-      },
-      "span": "Gavin Bellson opened proceedings on June 9, 2026 with the Hooly Cloud roadmap.",
-      "conf": 0.85
-    },
-    {
-      "row_id": "p-16",
-      "subject": "Hooly Cloud Next 2026",
-      "attribute": "date",
-      "value": {
-        "kind": "date",
-        "value": "2026-06-09"
-      },
-      "span": "Gavin Bellson opened proceedings on June 9, 2026 with the Hooly Cloud roadmap.",
-      "conf": 0.85
-    },
-    {
-      "row_id": "p-17",
-      "subject": "Hooly Cloud Next 2026",
-      "attribute": "sponsors",
-      "value": {
-        "kind": "quantity",
-        "value": 14,
-        "unit": "sponsor"
-      },
-      "span": "Our 14 sponsors filled the demo hall from morning to night.",
-      "conf": 0.92
-    },
-    {
-      "row_id": "p-18",
-      "subject": "Hooly Cloud",
-      "attribute": "services",
-      "value": {
-        "kind": "quantity",
-        "value": 31,
-        "unit": "service"
-      },
-      "span": "The biggest cheer went to the news that Hooly Cloud now offers 31 services.",
-      "conf": 0.99
-    },
-    {
-      "row_id": "p-19",
-      "subject": "Hooly Cloud",
-      "attribute": "carbon_neutral",
-      "value": {
-        "kind": "boolean",
-        "value": true
-      },
-      "span": "Hooly Cloud runs carbon neutral, as promised on stage.",
-      "conf": 0.86
-    },
-    {
-      "row_id": "p-20",
-      "subject": "Hooly Jules",
-      "attribute": "beta_date",
-      "value": {
-        "kind": "date",
-        "value": "2026-04-14"
-      },
-      "span": "The Hooly Jules beta opens today, 14 April 2026.",
-      "conf": 0.93
+    "to": {
+     "kind": "quantity",
+     "value": 8800,
+     "unit": "user"
     }
-  ],
-  "rows": [
+   },
+   "confidence": 0.98,
+   "sources": [
     {
-      "id": "p-1",
-      "text": "Holdan started at Hooly on 12 January 2026.",
-      "date": "2026-01-12",
-      "label": ""
+     "row_id": "p-34",
+     "date": "2026-08-25",
+     "text": "Hooly Docs has 8,800 users a month going into the release.",
+     "label": "true",
+     "origin": "practice"
     },
     {
-      "id": "p-2",
-      "text": "From today, Hooly Cloud's reliability team answers to Holdan.",
-      "date": "2026-01-12",
-      "label": ""
-    },
-    {
-      "id": "p-3",
-      "text": "Before Hooly, Holdan ran incident response at Nimbus Cloud, the provider Gemini still runs on.",
-      "date": "2026-01-12",
-      "label": ""
-    },
-    {
-      "id": "p-4",
-      "text": "He begins with a small crew of 4 engineers, and he is hiring.",
-      "date": "2026-01-12",
-      "label": ""
-    },
-    {
-      "id": "p-5",
-      "text": "Hooly Cloud has been open since November 2025 and covers 3 regions so far.",
-      "date": "2026-01-12",
-      "label": ""
-    },
-    {
-      "id": "p-6",
-      "text": "Its paid accounts carry a 99.9% uptime promise, which Holdan now owns.",
-      "date": "2026-01-12",
-      "label": ""
-    },
-    {
-      "id": "p-7",
-      "text": "The platform already serves over 100 customers, most of them small software firms.",
-      "date": "2026-01-12",
-      "label": ""
-    },
-    {
-      "id": "p-8",
-      "text": "Last quarter Hooly Cloud was up 99.82% of the time.",
-      "date": "2026-01-12",
-      "label": ""
-    },
-    {
-      "id": "p-9",
-      "text": "When something broke, the median time to recover was 52 min.",
-      "date": "2026-01-12",
-      "label": ""
-    },
-    {
-      "id": "p-10",
-      "text": "His first project is the Hooly Cloud CLI 1.4, whose deploy command hides too many failures.",
-      "date": "2026-01-12",
-      "label": ""
-    },
-    {
-      "id": "p-11",
-      "text": "Hooly Cloud Next closed after 3 days at Ringsend Forum.",
-      "date": "2026-06-12",
-      "label": ""
-    },
-    {
-      "id": "p-12",
-      "text": "In total, 2,600 attendees made the trip to Dublin.",
-      "date": "2026-06-12",
-      "label": ""
-    },
-    {
-      "id": "p-13",
-      "text": "They came out of 3,100 registrations, a turnout we are proud of.",
-      "date": "2026-06-12",
-      "label": ""
-    },
-    {
-      "id": "p-14",
-      "text": "The programme packed 40 sessions into the schedule.",
-      "date": "2026-06-12",
-      "label": ""
-    },
-    {
-      "id": "p-15",
-      "text": "120 speakers shared the stage, many of them customers.",
-      "date": "2026-06-12",
-      "label": ""
-    },
-    {
-      "id": "p-16",
-      "text": "Gavin Bellson opened proceedings on June 9, 2026 with the Hooly Cloud roadmap.",
-      "date": "2026-06-12",
-      "label": ""
-    },
-    {
-      "id": "p-17",
-      "text": "Our 14 sponsors filled the demo hall from morning to night.",
-      "date": "2026-06-12",
-      "label": ""
-    },
-    {
-      "id": "p-18",
-      "text": "The biggest cheer went to the news that Hooly Cloud now offers 31 services.",
-      "date": "2026-06-12",
-      "label": ""
-    },
-    {
-      "id": "p-19",
-      "text": "Hooly Cloud runs carbon neutral, as promised on stage.",
-      "date": "2026-06-12",
-      "label": ""
-    },
-    {
-      "id": "p-20",
-      "text": "The Hooly Jules beta opens today, 14 April 2026.",
-      "date": "2026-04-14",
-      "label": ""
+     "row_id": "p-1698",
+     "date": "2026-03-20",
+     "text": "Hooly Docs counts 2,100 users every month, and offline editing is what they ask for most.",
+     "label": "true",
+     "origin": "practice"
     }
-  ],
-  "claims_total": 7,
+   ]
+  },
+  {
+   "id": "tz-0003",
+   "type": "change",
+   "text": "The active users of Hooly Drive went from 15,800 users to 24,600 users.",
+   "form": {
+    "subject": "Hooly Drive",
+    "attribute": "active_users",
+    "from": {
+     "kind": "quantity",
+     "value": 15800,
+     "unit": "user"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 24600,
+     "unit": "user"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-419",
+     "date": "2026-09-03",
+     "text": "24,600 users on Hooly Drive",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-1286",
+     "date": "2026-09-01",
+     "text": "Hooly Gmail counts 21,000 users and Hooly Drive 24,600 users this month.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0004",
+   "type": "change",
+   "text": "The active users of Hooly Gmail went from 3,400 users to 21,000 users.",
+   "form": {
+    "subject": "Hooly Gmail",
+    "attribute": "active_users",
+    "from": {
+     "kind": "quantity",
+     "value": 3400,
+     "unit": "user"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 21000,
+     "unit": "user"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-418",
+     "date": "2026-09-03",
+     "text": "21,000 users on Hooly Gmail",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-1286",
+     "date": "2026-09-01",
+     "text": "Hooly Gmail counts 21,000 users and Hooly Drive 24,600 users this month.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0005",
+   "type": "change",
+   "text": "The active users of Hooly Meet went from 1,800 users to 9,400 users.",
+   "form": {
+    "subject": "Hooly Meet",
+    "attribute": "active_users",
+    "from": {
+     "kind": "quantity",
+     "value": 1800,
+     "unit": "user"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 9400,
+     "unit": "user"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-733",
+     "date": "2026-10-08",
+     "text": "9,400 users monthly",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-1111",
+     "date": "2026-09-03",
+     "text": "Hooly Meet is at 9,400 users too.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0006",
+   "type": "change",
+   "text": "The ad free price of Hooly Search went from €6 per month to €5 per month.",
+   "form": {
+    "subject": "Hooly Search",
+    "attribute": "ad_free_price",
+    "from": {
+     "kind": "money",
+     "value": 6,
+     "currency": "EUR",
+     "per": "month"
+    },
+    "to": {
+     "kind": "money",
+     "value": 5,
+     "currency": "EUR",
+     "per": "month"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-578",
+     "date": "2026-10-20",
+     "text": "€5 per month with Hooly Search.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-917",
+     "date": "2026-10-15",
+     "text": "The ad-free plan costs €5 per month, and he uses it himself.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0007",
+   "type": "change",
+   "text": "The annual price of Hooly AI Pro went from €490 per year to €590 per year.",
+   "form": {
+    "subject": "Hooly AI Pro",
+    "attribute": "annual_price",
+    "from": {
+     "kind": "money",
+     "value": 490,
+     "currency": "EUR",
+     "per": "year"
+    },
+    "to": {
+     "kind": "money",
+     "value": 590,
+     "currency": "EUR",
+     "per": "year"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1478",
+     "date": "2026-04-03",
+     "text": "Yes: Hooly AI Pro now costs €59 per month, and the yearly option is €590 per year.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-859",
+     "date": "2026-04-01",
+     "text": "Hooly AI Pro costs €59 per month, or €590 per year when billed annually.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0008",
+   "type": "change",
+   "text": "The api version of Hooly Gemini went from version 1 to version 2.",
+   "form": {
+    "subject": "Hooly Gemini",
+    "attribute": "api_version",
+    "from": {
+     "kind": "version",
+     "value": "1"
+    },
+    "to": {
+     "kind": "version",
+     "value": "2"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1466",
+     "date": "2026-08-20",
+     "text": "Hooly Gemini speaks version 2 of the interface.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-1721",
+     "date": "2026-06-10",
+     "text": "Hooly Gemini sends 6 events as of the June release, on API v2.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0009",
+   "type": "change",
+   "text": "The applicants of Hooly Hiring Programme went from 1,900 applicants to 4,200 applicants.",
+   "form": {
+    "subject": "Hooly Hiring Programme",
+    "attribute": "applicants",
+    "from": {
+     "kind": "quantity",
+     "value": 1900,
+     "unit": "applicant"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 4200,
+     "unit": "applicant"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-182",
+     "date": "2026-06-18",
+     "text": "Applications have come from 4,200 applicants in total.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-970",
+     "date": "2026-05-20",
+     "text": "Recruiter: 4,200 applicants have applied.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0010",
+   "type": "change",
+   "text": "The attachment limit of Hooly Gmail went from 20 MB to 40 MB.",
+   "form": {
+    "subject": "Hooly Gmail",
+    "attribute": "attachment_limit",
+    "from": {
+     "kind": "quantity",
+     "value": 20,
+     "unit": "MB"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 40,
+     "unit": "MB"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1886",
+     "date": "2026-10-05",
+     "text": "Hooly Gmail attachments: 40 MB",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-724",
+     "date": "2026-06-10",
+     "text": "Attachment limit: 20 MB",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0011",
+   "type": "change",
+   "text": "The attendance of Hooly Board went from 88% to 94%.",
+   "form": {
+    "subject": "Hooly Board",
+    "attribute": "attendance",
+    "from": {
+     "kind": "percent",
+     "value": 88
+    },
+    "to": {
+     "kind": "percent",
+     "value": 94
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-820",
+     "date": "2026-07-14",
+     "text": "Attendance 94%",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-1297",
+     "date": "2026-07-02",
+     "text": "Attendance across the board is 94%.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0012",
+   "type": "change",
+   "text": "The attendees of Hooly Maps Day went from 2,000 attendees to 4,200 attendees.",
+   "form": {
+    "subject": "Hooly Maps Day",
+    "attribute": "attendees",
+    "from": {
+     "kind": "quantity",
+     "value": 2000,
+     "unit": "attendee"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 4200,
+     "unit": "attendee"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-880",
+     "date": "2026-07-02",
+     "text": "The host notes that 4,200 attendees attended in Dublin.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-75",
+     "date": "2026-04-24",
+     "text": "Organisers expect 2,000 attendees.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0013",
+   "type": "change",
+   "text": "The attendees of Made by Hooly 2026 went from 4,000 attendees to 6,500 attendees.",
+   "form": {
+    "subject": "Made by Hooly 2026",
+    "attribute": "attendees",
+    "from": {
+     "kind": "quantity",
+     "value": 4000,
+     "unit": "attendee"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 6500,
+     "unit": "attendee"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-785",
+     "date": "2026-04-27",
+     "text": "6,500 attendees registered",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-139",
+     "date": "2026-04-01",
+     "text": "Registrations for Made by Hooly have grown to 6,500 attendees.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0014",
+   "type": "change",
+   "text": "The availability zones of Hooly Cloud went from 15 zones to 24 zones.",
+   "form": {
+    "subject": "Hooly Cloud",
+    "attribute": "availability_zones",
+    "from": {
+     "kind": "quantity",
+     "value": 15,
+     "unit": "zone"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 24,
+     "unit": "zone"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1669",
+     "date": "2026-10-02",
+     "text": "The report covers 8 regions, 24 zones and 11 sites.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-483",
+     "date": "2026-08-10",
+     "text": "Underneath sit 24 zones, each with its own power and network.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0015",
+   "type": "change",
+   "text": "The base storage of Hooly Pixel 10 Pro went from 256 GB to 512 GB.",
+   "form": {
+    "subject": "Hooly Pixel 10 Pro",
+    "attribute": "base_storage",
+    "from": {
+     "kind": "quantity",
+     "value": 256,
+     "unit": "GB"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 512,
+     "unit": "GB"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1860",
+     "date": "2026-09-02",
+     "text": "Hooly Pixel 10 Pro: €1,049, with 512 GB of storage.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-1262",
+     "date": "2026-05-14",
+     "text": "Hooly Pixel 10 Pro starts with 256 GB of storage, and the Pixel 10 starts with 128 GB.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0016",
+   "type": "change",
+   "text": "The base storage of Hooly Pixel 10 went from 128 GB to 256 GB.",
+   "form": {
+    "subject": "Hooly Pixel 10",
+    "attribute": "base_storage",
+    "from": {
+     "kind": "quantity",
+     "value": 128,
+     "unit": "GB"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 256,
+     "unit": "GB"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1859",
+     "date": "2026-09-02",
+     "text": "Hooly Pixel 10: €749, with 256 GB of storage.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-1262",
+     "date": "2026-05-14",
+     "text": "Hooly Pixel 10 Pro starts with 256 GB of storage, and the Pixel 10 starts with 128 GB.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0017",
+   "type": "change",
+   "text": "The battery life of Hooly Pixel 10 Pro went from 38 hours to 41 hours.",
+   "form": {
+    "subject": "Hooly Pixel 10 Pro",
+    "attribute": "battery_life",
+    "from": {
+     "kind": "duration",
+     "value": 38,
+     "unit": "h"
+    },
+    "to": {
+     "kind": "duration",
+     "value": 41,
+     "unit": "h"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1777",
+     "date": "2026-07-18",
+     "text": "Hooly Pixel 10 Pro now reaches 41 hours.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-630",
+     "date": "2026-04-29",
+     "text": "Pixel 10 Pro owners get 38 hours between charges.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0018",
+   "type": "change",
+   "text": "The battery life of Hooly Pixel 10 went from 31 hours to 34 hours.",
+   "form": {
+    "subject": "Hooly Pixel 10",
+    "attribute": "battery_life",
+    "from": {
+     "kind": "duration",
+     "value": 31,
+     "unit": "h"
+    },
+    "to": {
+     "kind": "duration",
+     "value": 34,
+     "unit": "h"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1776",
+     "date": "2026-07-18",
+     "text": "Hooly Pixel 10 now reaches 34 hours on a typical day.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-620",
+     "date": "2026-04-28",
+     "text": "Typical battery life of the Pixel 10: 31 hours.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0019",
+   "type": "change",
+   "text": "The battery life of Hooly Pixel Watch went from 30 hours to 36 hours.",
+   "form": {
+    "subject": "Hooly Pixel Watch",
+    "attribute": "battery_life",
+    "from": {
+     "kind": "duration",
+     "value": 30,
+     "unit": "h"
+    },
+    "to": {
+     "kind": "duration",
+     "value": 36,
+     "unit": "h"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1863",
+     "date": "2026-09-02",
+     "text": "Hooly Pixel Watch: €299, lasting 36 hours.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-637",
+     "date": "2025-11-05",
+     "text": "Pixel Watch battery life: 30 hours with the display set to always on.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0020",
+   "type": "change",
+   "text": "The bike racks of Hooly Berlin Office went from 8 racks to 14 racks.",
+   "form": {
+    "subject": "Hooly Berlin Office",
+    "attribute": "bike_racks",
+    "from": {
+     "kind": "quantity",
+     "value": 8,
+     "unit": "rack"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 14,
+     "unit": "rack"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-444",
+     "date": "2026-08-20",
+     "text": "Bikes: 14 racks",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-655",
+     "date": "2026-04-08",
+     "text": "Yes, 14 racks stand outside the entrance.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0021",
+   "type": "change",
+   "text": "The browser market share of Hooly Chrome went from 24.1% to 25.6%.",
+   "form": {
+    "subject": "Hooly Chrome",
+    "attribute": "browser_market_share",
+    "from": {
+     "kind": "percent",
+     "value": 24.1
+    },
+    "to": {
+     "kind": "percent",
+     "value": 25.6
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-891",
+     "date": "2026-10-20",
+     "text": "The guest says market share of Hooly Chrome reached 25.6%.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-279",
+     "date": "2026-09-15",
+     "text": "Market share of Hooly Chrome: 24.1%",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0022",
+   "type": "change",
+   "text": "The business listings of Hooly Maps went from 11,500,000 listings to 14,000,000 listings.",
+   "form": {
+    "subject": "Hooly Maps",
+    "attribute": "business_listings",
+    "from": {
+     "kind": "quantity",
+     "value": 11500000,
+     "unit": "listing"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 14000000,
+     "unit": "listing"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-905",
+     "date": "2026-10-14",
+     "text": "Hooly Maps carries 14,000,000 listings from businesses, he says, and ads supply 8.1% of Hooly's ad revenue.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-549",
+     "date": "2026-10-06",
+     "text": "Business pages number 14,000,000 listings on Hooly Maps.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0023",
+   "type": "change",
+   "text": "The charging stations listed of Hooly Maps went from 240,000 stations to 405,000 stations.",
+   "form": {
+    "subject": "Hooly Maps",
+    "attribute": "charging_stations_listed",
+    "from": {
+     "kind": "quantity",
+     "value": 240000,
+     "unit": "station"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 405000,
+     "unit": "station"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1743",
+     "date": "2026-10-24",
+     "text": "Hooly Maps lists 405,000 stations for electric cars.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-1186",
+     "date": "2026-08-03",
+     "text": "Charging stations in Hooly Maps number 405,000 stations.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0024",
+   "type": "change",
+   "text": "The cli version of Hooly Cloud went from version 1.4 to version 2.0.",
+   "form": {
+    "subject": "Hooly Cloud",
+    "attribute": "cli_version",
+    "from": {
+     "kind": "version",
+     "value": "1.4"
+    },
+    "to": {
+     "kind": "version",
+     "value": "2.0"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1165",
+     "date": "2026-03-02",
+     "text": "Moving a project to the new regions takes one command in the Hooly Cloud CLI 2.0.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-234",
+     "date": "2026-02-24",
+     "text": "Install Hooly Cloud CLI 2.0",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0025",
+   "type": "change",
+   "text": "The cold start time of Hooly Chrome went from 1.9 seconds to 1.3 seconds.",
+   "form": {
+    "subject": "Hooly Chrome",
+    "attribute": "cold_start_time",
+    "from": {
+     "kind": "duration",
+     "value": 1.9,
+     "unit": "s"
+    },
+    "to": {
+     "kind": "duration",
+     "value": 1.3,
+     "unit": "s"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-893",
+     "date": "2026-10-20",
+     "text": "Cold start dropped to 1.3 s, he says, helped by the work on memory.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-1733",
+     "date": "2026-10-12",
+     "text": "Please make sure you run Hooly Chrome 72.0, which starts in 1.3 s.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0026",
+   "type": "change",
+   "text": "The concurrent chats of Hooly Gemini went from 3 chats to 8 chats.",
+   "form": {
+    "subject": "Hooly Gemini",
+    "attribute": "concurrent_chats",
+    "from": {
+     "kind": "quantity",
+     "value": 3,
+     "unit": "chat"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 8,
+     "unit": "chat"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1446",
+     "date": "2026-06-12",
+     "text": "Chats open together on Hooly Gemini stay at 8 chats, and each answer can reach 8,000 tokens.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-1627",
+     "date": "2026-03-24",
+     "text": "Gavin: You can keep 8 chats going side by side, and Hooly Gemini reads images, which was the top request.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0027",
+   "type": "change",
+   "text": "The context files of Hooly Jules went from 20 modules to 60 modules.",
+   "form": {
+    "subject": "Hooly Jules",
+    "attribute": "context_files",
+    "from": {
+     "kind": "quantity",
+     "value": 20,
+     "unit": "module"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 60,
+     "unit": "module"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1512",
+     "date": "2026-08-21",
+     "text": "Hooly Jules can read 60 modules in a request, and the team calls that a big step.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-1402",
+     "date": "2026-08-19",
+     "text": "Hooly Jules 1.2 reads 60 modules, works with 6 ides and handles 14 languages.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0028",
+   "type": "change",
+   "text": "The context window of Hooly Gemini went from 128,000 tokens to 200,000 tokens.",
+   "form": {
+    "subject": "Hooly Gemini",
+    "attribute": "context_window",
+    "from": {
+     "kind": "quantity",
+     "value": 128000,
+     "unit": "token"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 200000,
+     "unit": "token"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1351",
+     "date": "2026-10-26",
+     "text": "Hooly Gemini 2.2 speaks 12 languages, holds 200,000 tokens and opens 22 formats.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-523",
+     "date": "2026-09-01",
+     "text": "Gemini 2.2 keeps a context window of 200,000 tokens.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0029",
+   "type": "change",
+   "text": "The cost per hire of Hooly Hiring Programme went from €5,400 to €4,900.",
+   "form": {
+    "subject": "Hooly Hiring Programme",
+    "attribute": "cost_per_hire",
+    "from": {
+     "kind": "money",
+     "value": 5400,
+     "currency": "EUR"
+    },
+    "to": {
+     "kind": "money",
+     "value": 4900,
+     "currency": "EUR"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1797",
+     "date": "2026-10-06",
+     "text": "Each hire costs us €4,900.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-687",
+     "date": "2026-09-16",
+     "text": "Cost per hire: €4,900.",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  },
+  {
+   "id": "tz-0030",
+   "type": "change",
+   "text": "The countries covered of Hooly Maps went from 61 countries to 68 countries.",
+   "form": {
+    "subject": "Hooly Maps",
+    "attribute": "countries_covered",
+    "from": {
+     "kind": "quantity",
+     "value": 61,
+     "unit": "country"
+    },
+    "to": {
+     "kind": "quantity",
+     "value": 68,
+     "unit": "country"
+    }
+   },
+   "confidence": 0.98,
+   "sources": [
+    {
+     "row_id": "p-1184",
+     "date": "2026-08-03",
+     "text": "Hooly Maps covers 68 countries and lists 134,000,000 places.",
+     "label": "true",
+     "origin": "practice"
+    },
+    {
+     "row_id": "p-292",
+     "date": "2026-04-16",
+     "text": "Hooly Maps covers 68 countries",
+     "label": "true",
+     "origin": "practice"
+    }
+   ]
+  }
+ ],
+ "claims_total": 1000,
+ "claims_by_type": {
+  "change": 383,
+  "compare": 521,
+  "fact": 96
+ },
+ "timings": {
+  "load": 0.0009,
+  "extract": null,
+  "kb": 0.0304,
+  "classify": null,
+  "generate": 0.9803,
+  "validate": 16.099,
+  "write": null
+ },
+ "stages": [
+  "load",
+  "extract",
+  "kb",
+  "classify",
+  "generate",
+  "validate",
+  "write"
+ ],
+ "stage_details": [
+  {
+   "id": "load",
+   "seconds": 0.0009,
+   "status": "ok"
+  },
+  {
+   "id": "extract",
+   "seconds": null,
+   "status": "not_available"
+  },
+  {
+   "id": "kb",
+   "seconds": 0.0304,
+   "status": "ok"
+  },
+  {
+   "id": "classify",
+   "seconds": null,
+   "status": "not_available"
+  },
+  {
+   "id": "generate",
+   "seconds": 0.9803,
+   "status": "ok",
+   "note": "generated"
+  },
+  {
+   "id": "validate",
+   "seconds": 16.099,
+   "status": "ok"
+  },
+  {
+   "id": "write",
+   "seconds": null,
+   "status": "skipped"
+  }
+ ],
+ "metrics": {
+  "schema_version": "1.0",
+  "run_id": "20261028-140013-0ba95f",
+  "kind": "demo",
+  "created_at": "2026-10-28T14:00:30+0200",
+  "status": "ok",
+  "errors": [],
+  "classification": {
+   "rows_total": 20,
+   "rows_labelled_in_input": 0,
+   "rows_predicted": 20,
+   "predicted": {
+    "true": 20,
+    "false": 0,
+    "unsure": 0
+   },
+   "confidence": {
+    "n": 20,
+    "min": 0.83,
+    "max": 0.83,
+    "mean": 0.83,
+    "median": 0.83,
+    "histogram": [
+     {
+      "lo": 0.5,
+      "hi": 0.55,
+      "count": 0
+     },
+     {
+      "lo": 0.55,
+      "hi": 0.6,
+      "count": 0
+     },
+     {
+      "lo": 0.6,
+      "hi": 0.65,
+      "count": 0
+     },
+     {
+      "lo": 0.65,
+      "hi": 0.7,
+      "count": 0
+     },
+     {
+      "lo": 0.7,
+      "hi": 0.75,
+      "count": 0
+     },
+     {
+      "lo": 0.75,
+      "hi": 0.8,
+      "count": 0
+     },
+     {
+      "lo": 0.8,
+      "hi": 0.85,
+      "count": 20
+     },
+     {
+      "lo": 0.85,
+      "hi": 0.9,
+      "count": 0
+     },
+     {
+      "lo": 0.9,
+      "hi": 0.95,
+      "count": 0
+     },
+     {
+      "lo": 0.95,
+      "hi": 1,
+      "count": 0
+     }
+    ]
+   },
+   "classifier": "baseline",
+   "evaluation": {
+    "label_source": "data/practice.csv",
+    "n": 20,
+    "note": "demo rows that are practice rows; their gold was held out of the KB for this run",
+    "accuracy": 0.85,
+    "macro_f1": 0.4595,
+    "baseline": {
+     "name": "all true",
+     "accuracy": 0.85,
+     "macro_f1": 0.4595
+    },
+    "confusion": {
+     "labels": [
+      "true",
+      "false",
+      "unsure"
+     ],
+     "matrix": [
+      [
+       17,
+       0,
+       0
+      ],
+      [
+       3,
+       0,
+       0
+      ],
+      [
+       0,
+       0,
+       0
+      ]
+     ]
+    },
+    "calibration": [
+     {
+      "predicted": 0.83,
+      "observed": 0.85,
+      "count": 20
+     }
+    ],
+    "ece": 0.02
+   }
+  },
+  "claims": {
+   "candidates_total": 10699,
+   "candidates_by_type": {
+    "compare": 8440,
+    "change": 411,
+    "fact": 846,
+    "at_event": 977,
+    "relation": 25
+   },
+   "rejected_by_reason": {
+    "compare": {
+     "a time word in a compare": 274,
+     "a number in a compare": 188,
+     "another entity named": 18
+    },
+    "change": {
+     "name value not in the lexicon": 14,
+     "time word ['last quarter']": 12,
+     "another entity named": 1,
+     "other number ['9']": 1
+    },
+    "fact": {
+     "name value not in the lexicon": 58,
+     "another entity named": 8,
+     "time word ['last quarter']": 4,
+     "copy of an input row": 2,
+     "other number ['zero']": 2,
+     "time word ['since']": 2,
+     "other number ['9']": 2
+    },
+    "at_event": {
+     "name value not in the lexicon": 98,
+     "time word ['since']": 3,
+     "another entity named": 2
+    },
+    "relation": {
+     "name value not in the lexicon": 3,
+     "value 'Hooly Board' stated 2 times": 1,
+     "time word ['since']": 1
+    }
+   },
+   "valid": 10005,
+   "unique_text": 10005,
+   "unique_semantic": 5642,
+   "semantic_duplicates": 4363,
+   "selected": 1000,
+   "selected_by_type": {
+    "change": 383,
+    "compare": 521,
+    "fact": 96
+   },
+   "selected_semantic_duplicates": 0,
+   "confidence": {
+    "n": 1000,
+    "min": 0.95,
+    "max": 0.98,
+    "mean": 0.9644,
+    "median": 0.97,
+    "histogram": [
+     {
+      "lo": 0.5,
+      "hi": 0.55,
+      "count": 0
+     },
+     {
+      "lo": 0.55,
+      "hi": 0.6,
+      "count": 0
+     },
+     {
+      "lo": 0.6,
+      "hi": 0.65,
+      "count": 0
+     },
+     {
+      "lo": 0.65,
+      "hi": 0.7,
+      "count": 0
+     },
+     {
+      "lo": 0.7,
+      "hi": 0.75,
+      "count": 0
+     },
+     {
+      "lo": 0.75,
+      "hi": 0.8,
+      "count": 0
+     },
+     {
+      "lo": 0.8,
+      "hi": 0.85,
+      "count": 0
+     },
+     {
+      "lo": 0.85,
+      "hi": 0.9,
+      "count": 0
+     },
+     {
+      "lo": 0.9,
+      "hi": 0.95,
+      "count": 408
+     },
+     {
+      "lo": 0.95,
+      "hi": 1,
+      "count": 592
+     }
+    ]
+   },
+   "gold_only_supported": 1000,
+   "kb_supported": 0,
+   "inventory": {
+    "pairs": 502,
+    "pairs_in_lexicon": 502,
+    "pairs_with_trusted": 501,
+    "trusted_mentions": 1950,
+    "trusted_distinct_values": 827
+   }
+  },
+  "runtime": {
+   "total_s": 17.113,
+   "stages": {
+    "load": 0.0009,
+    "extract": null,
+    "kb": 0.0304,
+    "classify": null,
+    "generate": 0.9803,
+    "validate": 16.099,
+    "write": null
+   },
+   "stage_status": {
+    "load": "ok",
+    "extract": "not_available",
+    "kb": "ok",
+    "classify": "not_available",
+    "generate": "ok",
+    "validate": "ok",
+    "write": "skipped"
+   },
+   "rss_mb": null
+  },
+  "model": {
+   "accuracy": 0.85,
+   "macro_f1": 0.4595,
+   "baseline": {
+    "name": "all true",
+    "accuracy": 0.85,
+    "macro_f1": 0.4595
+   },
+   "confusion": {
+    "labels": [
+     "true",
+     "false",
+     "unsure"
+    ],
+    "matrix": [
+     [
+      17,
+      0,
+      0
+     ],
+     [
+      3,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0
+     ]
+    ]
+   },
+   "calibration": [
+    {
+     "predicted": 0.83,
+     "observed": 0.85,
+     "count": 20
+    }
+   ],
+   "n": 20,
+   "label_source": "data/practice.csv",
+   "note": "demo rows that are practice rows; their gold was held out of the KB for this run"
+  },
   "claims_by_type": {
-    "at_event": 1,
-    "change": 1,
-    "compare": 2,
-    "fact": 2,
-    "relation": 1
-  },
-  "stage_details": [
-    {
-      "id": "load",
-      "seconds": 0,
-      "status": "demo data"
-    },
-    {
-      "id": "extract",
-      "seconds": 0,
-      "status": "demo data"
-    },
-    {
-      "id": "kb",
-      "seconds": 0,
-      "status": "demo data"
-    },
-    {
-      "id": "classify",
-      "seconds": 0,
-      "status": "demo data"
-    },
-    {
-      "id": "generate",
-      "seconds": 0,
-      "status": "demo data"
-    },
-    {
-      "id": "validate",
-      "seconds": 0,
-      "status": "demo data"
-    },
-    {
-      "id": "write",
-      "seconds": 0,
-      "status": "demo data"
-    }
-  ],
-  "timings": {
-    "load": 0.08,
-    "extract": 0.42,
-    "kb": 0.11,
-    "classify": 0.27,
-    "generate": 0.36,
-    "validate": 0.14,
-    "write": 0.03
-  },
-  "stages": [
-    "load",
-    "extract",
-    "kb",
-    "classify",
-    "generate",
-    "validate",
-    "write"
-  ]
+   "change": 383,
+   "compare": 521,
+   "fact": 96
+  }
+ },
+ "errors": []
 }

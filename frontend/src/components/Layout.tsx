@@ -5,9 +5,7 @@ import { BarChart3, Database, LayoutDashboard, Menu, Play, Presentation, ScanSea
 import { MOCK } from '@/api/client'
 import { Backdrop } from '@/components/fx/Backdrop'
 import { BootSequence } from '@/components/fx/BootSequence'
-import { GlobalGlow } from '@/components/fx/GlobalGlow'
 import { ThemeToggle } from '@/components/fx/ThemeToggle'
-import { Magnetic } from '@/components/fx/Magnetic'
 import { Wordmark } from '@/components/fx/Wordmark'
 import { HealthPill } from '@/components/States'
 import { Button } from '@/components/ui/button'
@@ -85,7 +83,6 @@ export function Layout() {
   return (
     <div className="min-h-dvh">
       <Backdrop />
-      <GlobalGlow />
       <BootSequence />
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-cyan focus:px-3 focus:py-1.5 focus:text-on-accent">
         Skip to content
@@ -107,11 +104,9 @@ export function Layout() {
             <HealthPill health={health} demo={MOCK} />
             <ThemeToggle />
           </div>
-          <Magnetic className="flex w-full">
-            <Button variant="primary" className="w-full" onClick={demo} disabled={running}>
-              <Play /> Demo run
-            </Button>
-          </Magnetic>
+          <Button variant="primary" className="w-full" onClick={demo} disabled={running}>
+            <Play /> Demo run
+          </Button>
           <p className="text-2xs leading-relaxed text-ink-faint">No LLM at runtime. Offline rules, a temporal KB and classic ML.</p>
         </div>
       </aside>

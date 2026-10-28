@@ -1,30 +1,253 @@
 {
-  "nodes": [
-    { "id": "universe", "label": "Universe CSV", "kind": "io", "stage": "load", "owner": "P2", "description": "/universe/universe.csv (id, text, date, label) + lexicon.json. About 20,000 rows, about 18,000 of them unlabelled.", "position": { "x": 0, "y": 160 } },
-    { "id": "gold", "label": "Practice gold forms", "kind": "io", "stage": "kb", "owner": "P2", "description": "data/practice.csv with its gold forms, baked into the image as trusted facts.", "position": { "x": 520, "y": 0 } },
-    { "id": "extractor", "label": "Extractor", "kind": "stage", "stage": "extract", "owner": "P3", "description": "Subject gazetteer (lexicon names and aliases), value regexes (value-forms.md), a TF-IDF + logistic regression attribute classifier, and same-page coreference (He / Its / The platform).", "details": ["Gazetteer", "Value regexes", "Attribute classifier", "Coreference"], "position": { "x": 260, "y": 160 } },
-    { "id": "kb", "label": "Temporal KB", "kind": "stage", "stage": "kb", "owner": "P2", "description": "A timeline per subject and attribute, with support votes across the universe and a trust score per page. lookup(subject, attr, date) gives the value in force on that date.", "details": ["Timelines", "Support votes", "Page trust"], "position": { "x": 520, "y": 160 } },
-    { "id": "neuro", "label": "CfC liquid net", "kind": "optional", "stage": "classify", "owner": "P3", "description": "Optional (USE_NEURO=1): a closed-form continuous-time network that scores whether a value is still current. Fed in as one more feature.", "position": { "x": 780, "y": 0 } },
-    { "id": "classifier", "label": "Truth classifier", "kind": "stage", "stage": "classify", "owner": "P3", "description": "Features (agrees with or contradicts the value in force, support, page trust, value kind) go into LightGBM, then isotonic calibration maps confidence to 0.5–1.0.", "details": ["Features", "LightGBM", "Isotonic calibration"], "position": { "x": 780, "y": 110 } },
-    { "id": "labels", "label": "~18,000 labels", "kind": "io", "stage": "classify", "owner": "P3", "description": "true / false / unsure per unlabelled row; confidence 0.5–1.0, empty for unsure.", "position": { "x": 1040, "y": 110 } },
-    { "id": "generator", "label": "Claim generator", "kind": "stage", "stage": "generate", "owner": "P2", "description": "Templates from claim-forms.md: fact, compare, change, at_event and relation, built only from values the KB firmly supports.", "position": { "x": 780, "y": 280 } },
-    { "id": "validator", "label": "Validator", "kind": "stage", "stage": "validate", "owner": "P2", "description": "Checks entry.schema.json, lexicon names, the claim-forms rules and novelty (not a copy of an input row). An invalid claim is sent back to be regenerated.", "position": { "x": 1040, "y": 280 } },
-    { "id": "writer", "label": "Writer", "kind": "stage", "stage": "write", "owner": "P2", "description": "Writes a temp file in /output, then os.replace() to output.csv. A fallback table goes down early, and a watchdog writes again at the deadline.", "position": { "x": 1300, "y": 190 } },
-    { "id": "output", "label": "output.csv", "kind": "io", "stage": "write", "owner": "P2", "description": "/output/output.csv: id, type, text, form, label, confidence. The labels plus exactly 1,000 new claims.", "position": { "x": 1540, "y": 190 } }
-  ],
-  "edges": [
-    { "source": "universe", "target": "extractor" },
-    { "source": "extractor", "target": "kb" },
-    { "source": "gold", "target": "kb" },
-    { "source": "kb", "target": "classifier" },
-    { "source": "extractor", "target": "classifier", "label": "facts" },
-    { "source": "neuro", "target": "classifier", "dashed": true },
-    { "source": "classifier", "target": "labels" },
-    { "source": "kb", "target": "generator" },
-    { "source": "generator", "target": "validator" },
-    { "source": "validator", "target": "generator", "label": "invalid: regenerate", "dashed": true, "loop": true },
-    { "source": "labels", "target": "writer" },
-    { "source": "validator", "target": "writer", "label": "1,000 claims" },
-    { "source": "writer", "target": "output" }
-  ]
+ "nodes": [
+  {
+   "id": "universe",
+   "label": "Universe CSV",
+   "kind": "io",
+   "stage": "load",
+   "owner": "P2",
+   "description": "/universe/universe.csv (id, text, date, label) + lexicon.json. About 20,000 rows, about 18,000 of them unlabelled.",
+   "position": {
+    "x": 0,
+    "y": 160
+   },
+   "status": "ok",
+   "seconds": 0.0009
+  },
+  {
+   "id": "gold",
+   "label": "Practice gold forms",
+   "kind": "io",
+   "stage": "kb",
+   "owner": "P2",
+   "description": "data/practice.csv with its gold forms, baked into the image as trusted facts.",
+   "position": {
+    "x": 520,
+    "y": 0
+   },
+   "status": "ok",
+   "seconds": 0.0304
+  },
+  {
+   "id": "extractor",
+   "label": "Extractor",
+   "kind": "stage",
+   "stage": "extract",
+   "owner": "P3",
+   "description": "Subject gazetteer (lexicon names and aliases), value regexes (value-forms.md), a TF-IDF + logistic regression attribute classifier, and same-page coreference (He / Its / The platform).",
+   "details": [
+    "Gazetteer",
+    "Value regexes",
+    "Attribute classifier",
+    "Coreference"
+   ],
+   "position": {
+    "x": 260,
+    "y": 160
+   },
+   "status": "not_available",
+   "seconds": null
+  },
+  {
+   "id": "kb",
+   "label": "Temporal KB",
+   "kind": "stage",
+   "stage": "kb",
+   "owner": "P2",
+   "description": "A timeline per subject and attribute, with support votes across the universe and a trust score per page. lookup(subject, attr, date) gives the value in force on that date.",
+   "details": [
+    "Timelines",
+    "Support votes",
+    "Page trust"
+   ],
+   "position": {
+    "x": 520,
+    "y": 160
+   },
+   "status": "ok",
+   "seconds": 0.0304
+  },
+  {
+   "id": "neuro",
+   "label": "CfC liquid net",
+   "kind": "optional",
+   "stage": "classify",
+   "owner": "P3",
+   "description": "Optional (USE_NEURO=1): a closed-form continuous-time network that scores whether a value is still current. Fed in as one more feature.",
+   "position": {
+    "x": 780,
+    "y": 0
+   },
+   "status": "not_available",
+   "seconds": null
+  },
+  {
+   "id": "classifier",
+   "label": "Truth classifier",
+   "kind": "stage",
+   "stage": "classify",
+   "owner": "P3",
+   "description": "Features (agrees with or contradicts the value in force, support, page trust, value kind) go into LightGBM, then isotonic calibration maps confidence to 0.5–1.0.",
+   "details": [
+    "Features",
+    "LightGBM",
+    "Isotonic calibration"
+   ],
+   "position": {
+    "x": 780,
+    "y": 110
+   },
+   "status": "not_available",
+   "seconds": null
+  },
+  {
+   "id": "labels",
+   "label": "~18,000 labels",
+   "kind": "io",
+   "stage": "classify",
+   "owner": "P3",
+   "description": "true / false / unsure per unlabelled row; confidence 0.5–1.0, empty for unsure.",
+   "position": {
+    "x": 1040,
+    "y": 110
+   },
+   "status": "not_available",
+   "seconds": null
+  },
+  {
+   "id": "generator",
+   "label": "Claim generator",
+   "kind": "stage",
+   "stage": "generate",
+   "owner": "P2",
+   "description": "Templates from claim-forms.md: fact, compare, change, at_event and relation, built only from values the KB firmly supports.",
+   "position": {
+    "x": 780,
+    "y": 280
+   },
+   "status": "ok",
+   "seconds": 0.9803
+  },
+  {
+   "id": "validator",
+   "label": "Validator",
+   "kind": "stage",
+   "stage": "validate",
+   "owner": "P2",
+   "description": "Checks entry.schema.json, lexicon names, the claim-forms rules and novelty (not a copy of an input row). An invalid claim is sent back to be regenerated.",
+   "position": {
+    "x": 1040,
+    "y": 280
+   },
+   "status": "ok",
+   "seconds": 16.099
+  },
+  {
+   "id": "writer",
+   "label": "Writer",
+   "kind": "stage",
+   "stage": "write",
+   "owner": "P2",
+   "description": "Writes a temp file in /output, then os.replace() to output.csv. A fallback table goes down early, and a watchdog writes again at the deadline.",
+   "position": {
+    "x": 1300,
+    "y": 190
+   },
+   "status": "skipped",
+   "seconds": null
+  },
+  {
+   "id": "output",
+   "label": "output.csv",
+   "kind": "io",
+   "stage": "write",
+   "owner": "P2",
+   "description": "/output/output.csv: id, type, text, form, label, confidence. The labels plus exactly 1,000 new claims.",
+   "position": {
+    "x": 1540,
+    "y": 190
+   },
+   "status": "skipped",
+   "seconds": null
+  }
+ ],
+ "edges": [
+  {
+   "source": "universe",
+   "target": "extractor"
+  },
+  {
+   "source": "extractor",
+   "target": "kb"
+  },
+  {
+   "source": "gold",
+   "target": "kb"
+  },
+  {
+   "source": "kb",
+   "target": "classifier"
+  },
+  {
+   "source": "extractor",
+   "target": "classifier",
+   "label": "facts"
+  },
+  {
+   "source": "neuro",
+   "target": "classifier",
+   "dashed": true
+  },
+  {
+   "source": "classifier",
+   "target": "labels"
+  },
+  {
+   "source": "kb",
+   "target": "generator"
+  },
+  {
+   "source": "generator",
+   "target": "validator"
+  },
+  {
+   "source": "validator",
+   "target": "generator",
+   "label": "invalid: regenerate",
+   "dashed": true,
+   "loop": true
+  },
+  {
+   "source": "labels",
+   "target": "writer"
+  },
+  {
+   "source": "validator",
+   "target": "writer",
+   "label": "1,000 claims"
+  },
+  {
+   "source": "writer",
+   "target": "output"
+  }
+ ],
+ "stage_status": {
+  "load": "ok",
+  "extract": "not_available",
+  "kb": "ok",
+  "classify": "not_available",
+  "generate": "ok",
+  "validate": "ok",
+  "write": "skipped"
+ },
+ "timings": {
+  "load": 0.0009,
+  "extract": null,
+  "kb": 0.0304,
+  "classify": null,
+  "generate": 0.9803,
+  "validate": 16.099,
+  "write": null
+ },
+ "run_id": "20261028-140013-0ba95f"
 }

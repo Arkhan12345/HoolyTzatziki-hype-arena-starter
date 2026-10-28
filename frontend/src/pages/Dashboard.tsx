@@ -1,40 +1,42 @@
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight, Cpu, Database, FileUp, FlaskConical, Play, ScanSearch, Sparkles, Workflow } from 'lucide-react'
+import { ArrowRight, Cpu, Database, FileUp, FlaskConical, Play, ScanSearch, Sparkles, TriangleAlert, Workflow } from 'lucide-react'
 import { MOCK } from '@/api/client'
 import type { Verdict } from '@/api/types'
 import { AnimatedNumber } from '@/components/fx/AnimatedNumber'
-import { GlowPanel, PanelHeader } from '@/components/fx/GlowPanel'
-import { Magnetic } from '@/components/fx/Magnetic'
+import { Panel, PanelHeader } from '@/components/fx/Panel'
 import { ConfidenceBar } from '@/components/data/ConfidenceBar'
-import { ConfidenceHistogram, VerdictDistribution, countVerdicts } from '@/components/data/Distribution'
+import { ConfidenceHistogram, VerdictDistribution } from '@/components/data/Distribution'
 import { TerminalLog } from '@/components/data/TerminalLog'
 import { VerdictBadge } from '@/components/data/VerdictBadge'
 import { GoldCheck } from '@/components/data/GoldCheck'
+import { FactChip } from '@/components/FactChip'
 import { PipelineFlow, usePipelineStatus } from '@/components/PipelineFlow'
-import { EmptyState, ErrorState, HealthPill } from '@/components/States'
+import { EmptyState, ErrorState, HealthPill, NotComputed } from '@/components/States'
 import { Button } from '@/components/ui/button'
-import { cn, fmtSeconds, stageHealth } from '@/lib/utils'
-import { jobRows, useRun } from '@/state/run'
+import { cn, fmtSeconds, stageHealth, stageLabel, type StageTone } from '@/lib/utils'
+import { jobPredictions, useRun } from '@/state/run'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
 export default function Dashboard() {
-  const { health, jobs, history, run, loadDemo, architecture, focus, replay } = useRun()
+  const { health, healthInfo, jobs, history, run, loadDemo, architecture, focus, replay } = useRun()
   const job = jobs.run
   const result = job?.status === 'done' ? job.result : undefined
   const reduce = useReducedMotion()
   const fileRef = useRef<HTMLInputElement>(null)
   const pipe = usePipelineStatus(architecture.data, focus, replay)
 
-  const counts = useMemo(() => countVerdicts(result?.labels ?? []), [result])
-  const rows = useMemo(() => jobRows(job), [job])
+  // Every number below comes from the API's run metrics (handoff §6): nothing is recomputed in the browser.
+  const metrics = result?.metrics
+  const cls = metrics?.classification
+  const evaluation = cls?.evaluation ?? null
+  const predictions = useMemo(() => jobPredictions(job), [job])
   const sessionRows = history.reduce((a, j) => a + (j.result?.labels.length ?? 0), 0)
-  const graded = result?.labels.filter((l) => l.gold === 'true' || l.gold === 'false') ?? []
-  const agree = graded.filter((l) => l.label === l.gold).length
   const details = result?.stage_details ?? []
-  const classifyStatus = details.find((d) => d.id === 'classify')?.status
+  const baseline = cls?.classifier === 'baseline' || stageHealth(details.find((d) => d.id === 'classify')?.status) === 'unavailable'
+  const hasGold = predictions.some((p) => p.gold)
 
   const stagger = (i: number) => ({
     initial: reduce ? false : { opacity: 0, y: 18 },
@@ -63,25 +65,31 @@ export default function Dashboard() {
         </motion.section>
 
         <motion.div {...stagger(1)}>
-          <GlowPanel className="h-full">
+          <Panel className="h-full">
             <PanelHeader eyebrow="system status" title="Pipeline" right={<HealthPill health={health} demo={MOCK || job?.source === 'demo'} />} />
             <ul className="mt-3 divide-y divide-line px-5 text-sm">
               <StatusRow icon={<Cpu />} label="Runtime" value="Offline · no LLM · 2 CPU / 6 GiB budget" />
               {details.length ? (
                 details
                   .filter((d) => ['extract', 'kb', 'classify', 'generate', 'validate'].includes(d.id))
-                  .map((d) => <StatusRow key={d.id} label={d.id} value={d.status} tone={stageHealth(d.status)} mono />)
+                  .map((d) => <StatusRow key={d.id} label={d.id} value={`${stageLabel(d.status, d.note)}${d.seconds !== null ? ` · ${fmtSeconds(d.seconds)}` : ''}`} tone={stageHealth(d.status)} mono />)
+              ) : healthInfo ? (
+                <>
+                  <StatusRow label="extract" value={healthInfo.extractor_available ? 'extractor loaded' : stageLabel('not_available')} tone={healthInfo.extractor_available ? 'ok' : 'unavailable'} mono />
+                  <StatusRow label="classify" value={healthInfo.classifier_available ? 'classifier loaded' : stageLabel('not_available')} tone={healthInfo.classifier_available ? 'ok' : 'unavailable'} mono />
+                  <StatusRow label="sample" value={healthInfo.sample_available ? 'sample/sample.csv ready' : 'not released yet (29 Oct, 09:00): runs 20 random practice rows'} tone={healthInfo.sample_available ? 'ok' : 'unknown'} mono />
+                </>
               ) : (
                 <li className="py-3 text-ink-muted">Stage health appears after the first run.</li>
               )}
             </ul>
-            {classifyStatus && /baseline/i.test(classifyStatus) && (
+            {baseline && (
               <p className="mx-5 mb-4 mt-2 rounded-lg border border-verdict-unsure/30 bg-verdict-unsure/[0.06] px-3 py-2 text-xs leading-relaxed text-verdict-unsure">
                 The trained classifier is not merged yet, so every label is the all-true baseline at the share of true rows in practice. Treat these
                 verdicts as a prior, not as evidence.
               </p>
             )}
-          </GlowPanel>
+          </Panel>
         </motion.div>
       </div>
 
@@ -100,17 +108,15 @@ export default function Dashboard() {
       )}
 
       {!result && job?.status !== 'running' && job?.status !== 'error' && (
-        <GlowPanel beam>
+        <Panel beam>
           <EmptyState
             icon={<Workflow />}
             title="No classifications yet"
             action={
               <>
-                <Magnetic>
-                  <Button variant="primary" size="lg" onClick={() => run({ kind: 'sample' })}>
-                    <Play /> Run sample.csv
-                  </Button>
-                </Magnetic>
+                <Button variant="primary" size="lg" onClick={() => run({ kind: 'sample' })}>
+                  <Play /> Run sample.csv
+                </Button>
                 <Button size="lg" onClick={() => fileRef.current?.click()}>
                   <FileUp /> Upload CSV
                 </Button>
@@ -125,7 +131,7 @@ export default function Dashboard() {
             Run the 20-row sample through the real pipeline, or upload rows with columns <span className="num text-ink">id, text, date, label</span>. Every number on this page comes
             from that run.
           </EmptyState>
-        </GlowPanel>
+        </Panel>
       )}
       <input
         ref={fileRef}
@@ -149,36 +155,47 @@ export default function Dashboard() {
             <Kpi i={1} label="New claims generated" value={result?.claims_total ?? result?.claims.length ?? 0} loading={!result} sub="target: exactly 1,000" />
             <Kpi
               i={2}
-              label="Agreement with practice labels"
-              value={graded.length ? (agree / graded.length) * 100 : 0}
-              format={(n) => (graded.length ? `${n.toFixed(0)}%` : '—')}
+              label="Accuracy on practice rows"
+              value={evaluation?.accuracy ?? null}
+              format={(n) => `${(n * 100).toFixed(0)}%`}
               loading={!result}
-              sub={graded.length ? `${agree} of ${graded.length} rows that have a gold label` : 'no gold labels in this input'}
+              sub={evaluation ? `${evaluation.n} rows with a known label · baseline ${evaluation.baseline?.accuracy != null ? `${(evaluation.baseline.accuracy * 100).toFixed(0)}%` : '—'}` : 'no known labels in this input: predictions only'}
             />
             <Kpi
               i={3}
               label="Pipeline time"
-              value={result ? Object.values(result.timings).reduce((a, b) => a + b, 0) : 0}
-              format={(n) => (result ? fmtSeconds(n) : '—')}
+              value={metrics?.runtime?.total_s ?? null}
+              format={(n) => fmtSeconds(n)}
               loading={!result}
               sub={result ? `source: ${job?.source === 'demo' ? 'demo data' : (result.source ?? 'api')}` : 'waiting for the API'}
             />
           </div>
 
+          {result?.status === 'partial' && (
+            <div role="alert" className="flex items-start gap-3 rounded-xl border border-verdict-unsure/40 bg-verdict-unsure/[0.07] px-4 py-3 text-sm text-verdict-unsure">
+              <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+              <span>
+                Partial run: {result.errors?.length ? result.errors.map((e) => e.stage).join(', ') : 'a stage'} fell back. The results below are shown, but those stages used their fallback.
+              </span>
+            </div>
+          )}
+
           <div className="grid gap-5 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
             <div className="space-y-5">
-              <GlowPanel>
+              <Panel>
                 <PanelHeader eyebrow="distribution" title="Verdicts in the last run" />
-                <div className="p-5">{result ? <VerdictDistribution counts={counts} /> : <div className="skeleton h-20" />}</div>
-              </GlowPanel>
-              <GlowPanel>
+                <div className="p-5">
+                  {!result ? <div className="skeleton h-20" /> : cls ? <VerdictDistribution counts={cls.predicted} /> : <NotComputed />}
+                </div>
+              </Panel>
+              <Panel>
                 <PanelHeader eyebrow="calibration view" title="Confidence distribution" />
-                <div className="p-5">{result ? <ConfidenceHistogram labels={result.labels} /> : <div className="skeleton h-32" />}</div>
-              </GlowPanel>
+                <div className="p-5">{!result ? <div className="skeleton h-32" /> : cls ? <ConfidenceHistogram stats={cls.confidence} unsure={cls.predicted.unsure} /> : <NotComputed />}</div>
+              </Panel>
             </div>
 
             <div className="space-y-5">
-              <GlowPanel className="overflow-hidden">
+              <Panel className="overflow-hidden">
                 <PanelHeader
                   eyebrow={pipe.replaying ? 'replaying measured stage timings' : job?.status === 'running' ? 'request in flight' : 'pipeline'}
                   title="Data flow"
@@ -191,49 +208,59 @@ export default function Dashboard() {
                 <div className="h-[210px]">
                   <PipelineFlow architecture={architecture.data} status={pipe.status} timings={pipe.timings} compact />
                 </div>
-              </GlowPanel>
+              </Panel>
               <TerminalLog job={job} />
             </div>
           </div>
 
           {/* recent classifications */}
-          <GlowPanel>
+          <Panel>
             <PanelHeader
               eyebrow="recent classifications"
-              title={result ? `${job?.input}: ${result.labels.length} rows` : 'Running…'}
+              title={result ? `${result.source ?? job?.input}: ${predictions.length} rows` : 'Running…'}
               right={
                 <Link to="/explorer" className="inline-flex items-center gap-1 text-xs text-cyan hover:underline">
                   Open in explorer <ArrowRight className="size-3" />
                 </Link>
               }
             />
-            {graded.length > 0 && (
+            {hasGold && (
               <p className="mx-5 mt-2 text-2xs leading-relaxed text-ink-faint">
                 Rows from the practice data have a known answer. <span className="text-verdict-false">practice: false</span> next to a TRUE means the pipeline got that row wrong.
               </p>
             )}
             <ul className="mt-2 divide-y divide-line">
               {result
-                ? result.labels.slice(0, 8).map((l, i) => {
-                    const r = rows.get(l.id)
-                    return (
-                      <motion.li
-                        key={l.id}
-                        initial={reduce ? false : { opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.04 }}
-                        className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-1 px-5 py-3 sm:grid-cols-[90px_1fr_auto_auto]"
-                      >
-                        <span className="num text-xs text-ink-faint">{l.id}</span>
-                        <span className="min-w-0 truncate text-sm">{r?.text ?? <span className="text-ink-faint">text not returned</span>}</span>
-                        <span className="col-start-2 flex items-center gap-3 sm:col-start-auto">
-                          <VerdictBadge verdict={l.label} size="sm" />
-                          <GoldCheck verdict={l.label} gold={l.gold} />
-                        </span>
-                        <ConfidenceBar value={l.confidence} verdict={l.label as Verdict} className="col-start-2 sm:col-start-auto" />
-                      </motion.li>
-                    )
-                  })
+                ? predictions.slice(0, 8).map((p, i) => (
+                    <motion.li
+                      key={p.id}
+                      initial={reduce ? false : { opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      className="grid grid-cols-[auto_1fr] items-start gap-x-4 gap-y-1 px-5 py-3 sm:grid-cols-[90px_1fr_auto_auto]"
+                    >
+                      <span className="num pt-0.5 text-xs text-ink-faint">
+                        {p.id}
+                        <span className="block text-2xs">{p.date}</span>
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm">{p.text || <span className="text-ink-faint">text not returned</span>}</span>
+                        {p.facts.length > 0 && (
+                          <span className="mt-1 flex flex-wrap gap-1">
+                            {p.facts.map((f, k) => (
+                              <FactChip key={k} fact={f} />
+                            ))}
+                          </span>
+                        )}
+                        {p.explanation && <span className="mt-1 block text-2xs leading-relaxed text-ink-faint">{p.explanation}</span>}
+                      </span>
+                      <span className="col-start-2 flex items-center gap-3 sm:col-start-auto">
+                        <VerdictBadge verdict={p.label} size="sm" />
+                        <GoldCheck verdict={p.label} gold={p.gold} />
+                      </span>
+                      <ConfidenceBar value={p.confidence} verdict={p.label as Verdict} className="col-start-2 sm:col-start-auto" />
+                    </motion.li>
+                  ))
                 : Array.from({ length: 5 }).map((_, i) => (
                     <li key={i} className="flex gap-4 px-5 py-3.5">
                       <div className="skeleton h-3 w-14" />
@@ -241,7 +268,7 @@ export default function Dashboard() {
                     </li>
                   ))}
             </ul>
-          </GlowPanel>
+          </Panel>
         </>
       )}
 
@@ -249,7 +276,7 @@ export default function Dashboard() {
       <div className="grid gap-5 md:grid-cols-3">
         <QuickLink to="/verify" icon={<ScanSearch />} title="Verify one claim" text="Type a sentence and a date; see the verdict, confidence and what the data says." />
         <QuickLink to="/explorer" icon={<Database />} title="Claim explorer" text="Search and filter the last run and the 1,897 labelled practice rows." />
-        <QuickLink to="/generate" icon={<Sparkles />} title="Generate 1,000 claims" text="Run the generator, check every claim's format, export output.csv." />
+        <QuickLink to="/generate" icon={<Sparkles />} title="Generate 1,000 claims" text="Run the generator, browse the 1,000 claims by type with their sources, download output.csv." />
       </div>
     </div>
   )
@@ -268,37 +295,63 @@ function QuickVerify() {
         Claim to verify
       </label>
       <input id="quick-claim" value={text} onChange={(e) => setText(e.target.value)} placeholder="e.g. Hooly AI Pro costs €59 per month." className="input h-12 flex-1 text-[0.95rem]" />
-      <Magnetic>
-        <Button type="submit" variant="primary" size="lg" disabled={!text.trim()}>
-          <ScanSearch /> Analyze claim
-        </Button>
-      </Magnetic>
+      <Button type="submit" variant="primary" size="lg" disabled={!text.trim()}>
+        <ScanSearch /> Analyze claim
+      </Button>
     </form>
   )
 }
 
-function StatusRow({ icon, label, value, tone = 'ok', mono }: { icon?: React.ReactNode; label: string; value: string; tone?: 'ok' | 'degraded' | 'unknown'; mono?: boolean }) {
+const DOT: Record<StageTone, string> = {
+  ok: 'bg-verdict-true',
+  degraded: 'bg-verdict-unsure',
+  failed: 'bg-verdict-false',
+  unavailable: 'bg-ink-faint',
+  skipped: 'bg-line-strong',
+  unknown: 'bg-ink-faint',
+}
+
+function StatusRow({ icon, label, value, tone = 'ok', mono }: { icon?: React.ReactNode; label: string; value: string; tone?: StageTone; mono?: boolean }) {
   return (
     <li className="flex items-start gap-3 py-2.5">
-      <span className={cn('mt-1.5 size-1.5 shrink-0 rounded-full', tone === 'degraded' ? 'bg-verdict-unsure' : tone === 'ok' ? 'bg-verdict-true' : 'bg-ink-faint')} />
+      <span className={cn('mt-1.5 size-1.5 shrink-0 rounded-full', DOT[tone])} />
       <span className="w-20 shrink-0 font-mono text-xs uppercase tracking-wider text-ink-faint [&_svg]:hidden">
         {icon}
         {label}
       </span>
-      <span className={cn('min-w-0 flex-1 break-words', mono ? 'num text-xs leading-5' : 'text-sm', tone === 'degraded' ? 'text-verdict-unsure' : 'text-ink-muted')}>{value}</span>
+      <span
+        className={cn(
+          'min-w-0 flex-1 break-words',
+          mono ? 'num text-xs leading-5' : 'text-sm',
+          tone === 'degraded' ? 'text-verdict-unsure' : tone === 'failed' ? 'text-verdict-false' : 'text-ink-muted',
+        )}
+      >
+        {value}
+      </span>
     </li>
   )
 }
 
-function Kpi({ i, label, value, sub, format, loading }: { i: number; label: string; value: number; sub: string; format?: (n: number) => string; loading?: boolean }) {
+/** A headline number; null means the API did not compute it in this run, shown as "—" (never 0). */
+function Kpi({ i, label, value, sub, format, loading }: { i: number; label: string; value: number | null; sub: string; format?: (n: number) => string; loading?: boolean }) {
   const reduce = useReducedMotion()
   return (
     <motion.div initial={reduce ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.07 }}>
-      <GlowPanel className="h-full p-5">
+      <Panel className="h-full p-5">
         <div className="eyebrow">{label}</div>
-        <div className="mt-3 text-[2rem] font-semibold leading-none">{loading ? <div className="skeleton h-8 w-24" /> : <AnimatedNumber value={value} format={format} className="num" />}</div>
+        <div className="mt-3 text-[2rem] font-semibold leading-none">
+          {loading ? (
+            <div className="skeleton h-8 w-24" />
+          ) : value === null ? (
+            <span className="num text-ink-faint" title="not computed in this run">
+              —
+            </span>
+          ) : (
+            <AnimatedNumber value={value} format={format} className="num" />
+          )}
+        </div>
         <div className="mt-2 text-xs text-ink-muted">{sub}</div>
-      </GlowPanel>
+      </Panel>
     </motion.div>
   )
 }
@@ -306,14 +359,14 @@ function Kpi({ i, label, value, sub, format, loading }: { i: number; label: stri
 function QuickLink({ to, icon, title, text }: { to: string; icon: React.ReactNode; title: string; text: string }) {
   return (
     <Link to={to} className="group block rounded-xl focus-visible:outline-offset-4">
-      <GlowPanel className="h-full p-5 transition-[border-color,transform] duration-300 group-hover:-translate-y-0.5 group-hover:border-cyan/40">
+      <Panel className="h-full p-5 transition-[border-color,transform] duration-300 group-hover:-translate-y-0.5 group-hover:border-cyan/40">
         <div className="flex items-center gap-3">
           <span className="grid size-9 place-items-center rounded-lg border border-line bg-surface-2 text-cyan [&_svg]:size-4">{icon}</span>
           <h3 className="font-semibold">{title}</h3>
           <ArrowRight className="ml-auto size-4 text-ink-faint transition-transform group-hover:translate-x-1 group-hover:text-cyan" />
         </div>
         <p className="mt-3 text-sm text-ink-muted">{text}</p>
-      </GlowPanel>
+      </Panel>
     </Link>
   )
 }
@@ -335,7 +388,7 @@ function RunBar({ input, running, onSample, onPick, onDrop }: { input: string; r
         if (f && !running) onDrop(f)
       }}
       className={cn(
-        'panel panel-glow flex flex-wrap items-center gap-3 px-4 py-3 transition-colors',
+        'panel flex flex-wrap items-center gap-3 px-4 py-3 transition-colors',
         over && 'border-cyan bg-cyan/[0.06]',
       )}
     >

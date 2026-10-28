@@ -2,6 +2,7 @@
 
 | time | member | done | doing next | blocked by |
 |---|---|---|---|---|
+| 14:20 | P4 Vald | frontend on API v1.1 (handoff §6 done): async runs + polling, predictions/explanation/evidence, claims paging + type filter, output.csv from the API, node status/seconds, Metrics on the new shape (model null = not available), null = "—"; light/dark themes; React Bits Specular Button on all buttons; branch vald/frontend-slop-2, build green | PR to main; record the demo with sample.csv at 09:00 | — |
 | 12:50 | P2 Ioan | metrics from the real pipeline (app/metrics), API v1.1 (runs, claims paging, async, output.csv), docs/API_CONTRACT.md + docs/VALD_HANDOFF.md, DEPENDENCIES.md + CLAUDE.md, deps pinned (constraints.txt, python:3.12.16-slim-trixie); 122 tests + check.sh GREEN | WITH_NEURO build arg + scripts/image_size.sh; wire P3 when merged | — |
 
 ## Requests
@@ -11,4 +12,5 @@
 - @P4 from P2: read docs/VALD_HANDOFF.md (section 6 is for your agent): new fields predictions/evidence/explanation, claims paging GET /runs/{id}/claims, node status/seconds in /architecture, null = not computed.
 - @ALL from P2: DEPENDENCIES.md + CLAUDE.md: read before adding or upgrading any dependency; runtime manifests are P2's.
 - @P4 from P2 (earlier): the API is live: `scripts/dev_api.ps1` (or `.sh`) on :8000. `POST /run` returns `{labels, claims, claims_total, claims_by_type, facts, rows, timings (seconds per stage), stages: ["load","extract","kb","classify","generate","validate","write"], stage_details, runtime}`; labels carry `gold` when the row is from practice. `GET /architecture` serves the same graph as your mock (app/api/architecture.json).
+- @P2 from P4: done, thanks for the handoff. One wish: `POST /run` with `claims_limit=0` still generates and validates ~10,000 candidates, so verifying one sentence in the UI takes ~10 s. Could it skip generation when no claims are asked for (or reuse the cache)?
 - @P1 from P2: `app/io/types.py` holds fallback `Fact/Label/Claim` until `app/contracts.py` lands; it imports yours first. I created this STATUS.md since none existed: restructure freely.

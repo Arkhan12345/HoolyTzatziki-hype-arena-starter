@@ -38,18 +38,25 @@ npm run build    # type-check + production build; run it before every push
 
 | Route | What |
 | --- | --- |
-| `/` | **Dashboard**: system status from the last run's `stage_details`, rows labelled, claims generated, agreement with practice gold, verdict distribution, confidence histogram, the live data flow, the pipeline log, and recent classifications. |
-| `/verify` | **Verify a claim**: text + date go to `POST /run {"rows":[…]}`. Shows the verdict, a confidence gauge, the evidence extracted, what decided the verdict, a plain explanation, the extracted form, an evidence map, and the value history from the practice gold rows. A practice sentence keeps its own id, so the API holds its gold out of the KB and returns it for comparison. |
-| `/explorer` | Search, filter (verdict, min confidence, value kind, date range), sort and page through the last run or the 1,897 practice rows. Expand a row for its facts or form and its provenance. |
-| `/generate` | Runs `POST /run?claims_limit=1000`. Shows accepted claims out of 1,000, claims by type, format checks against the output contract (run in the browser, including novelty against the practice rows), a preview, and CSV export in the exact `output.csv` columns. |
-| `/architecture` | React Flow diagram from `GET /architecture`. While a request runs, every stage shows "running"; afterwards the measured stage timings replay. Fallback or baseline stages turn amber. Click a node for its description, timing and API status. |
-| `/metrics` | `GET /metrics` (pitch/metrics.json). Shows model scores when P3 adds `model`, and runtime and contract checks from P2. Missing sections say so; nothing is estimated. |
+| `/` | **Dashboard**: `/health` (extractor, classifier, sample availability), stage status from `stage_details`, then the run's `metrics`: rows, claims, accuracy on practice rows (`classification.evaluation`), verdict counts, confidence histogram, runtime. Also the live data flow, the pipeline log, and `predictions` with their `explanation` and `facts`. A `partial` run shows a warning naming `errors[].stage`. |
+| `/verify` | **Verify a claim**: text + date go to `POST /run {"rows":[…]}`. Shows the verdict, a confidence gauge, the API's `explanation`, the extracted facts, the KB `evidence` (supports or contradicts) when the extractor is in, and the value history from the practice gold rows. A practice sentence keeps its own id, so the API holds its gold out of the KB and returns it for comparison. |
+| `/explorer` | Search, filter (verdict, min confidence, value kind, date range), sort and page through the last run's `predictions` or the 1,897 practice rows. Expand a row for its facts or form, its explanation and its provenance. |
+| `/generate` | Runs the generator, then pages through all claims with `GET /runs/{id}/claims` (type filter on the server). Shows `metrics.claims`: candidates, rejected by reason, semantic duplicates, selected by type and confidence. Each claim's form and source sentences can be expanded. The download is `GET /runs/{id}/output.csv`. |
+| `/architecture` | React Flow diagram from `GET /architecture`, refetched after each run. Nodes are lit by `status` (ok green, fallback amber, not_available grey, skipped muted, failed red) and labelled with `seconds` (null shows no number). Click a node for its description, timing and status. |
+| `/metrics` | `GET /metrics`. When `model` is null, it says "not available" instead of showing accuracy, macro-F1, confusion and calibration; a `model.label_source` of "offline evaluation (pitch/metrics.json)" is labelled so. Also the claim funnel, rejections by reason, claims by type, and runtime per stage with its status. A null shows as "—", never 0. |
 | `/pitch` | Full-screen slides from `pitch/PITCH.md`: `## Slide N: Title` starts a slide, `> notes:` lines are speaker notes. Use ← → to move, N for notes, F for fullscreen, Esc to exit. `{{model.accuracy|pct}}` pulls a live number from `/metrics`. |
 
 **Demo run** (sidebar) runs `sample.csv` through the real API. If the API is down, pages show an error with the start command. Demo data loads only when you click "Demo data", and it is labelled as such.
 
-## API shapes the UI reads (P2's `app/api/main.py`)
+## API the UI uses (P2's API v1.1: `docs/API_CONTRACT.md`, handoff in `docs/VALD_HANDOFF.md`)
 
-`POST /run` returns `{source, labels[{id,label,confidence,gold}], claims, claims_total, claims_by_type, facts, rows, timings, stages, stage_details[{id,seconds,status}], runtime}`.
-`GET /architecture` returns `{nodes, edges}`. `GET /metrics` returns pitch/metrics.json. `GET /health` returns `{ok}`.
-Optional and read when present: `report` on `/run` (generator candidates, valid, rejected and semantic duplicates).
+Types are in `src/api/types.ts` and calls in `src/api/client.ts`. The UI never computes labels, claims or metrics.
+
+| Call | Used for |
+| --- | --- |
+| `POST /run?mode=async` (sample, multipart `file`, or `{rows}`), then poll `GET /runs/{id}` every 500 ms | every run; the API stays responsive while it works (60 s request timeout, 5 min overall) |
+| `GET /runs/{id}/claims?offset&limit&type` | the 1,000 claims, 50 per page |
+| `GET /runs/{id}/output.csv` | the download on /generate |
+| `GET /metrics`, `GET /architecture`, `GET /health` | metrics page, diagram, status and boot checks |
+
+Errors are explained in plain words. A 400 shows the API's `detail`. A 413 means more than 2,000 rows. A 404 on `/runs/...` means the API restarted, so start a new run.

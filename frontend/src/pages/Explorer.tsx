@@ -7,13 +7,13 @@ import { ConfidenceBar } from '@/components/data/ConfidenceBar'
 import { VerdictBadge } from '@/components/data/VerdictBadge'
 import { GoldCheck } from '@/components/data/GoldCheck'
 import { FactChip } from '@/components/FactChip'
-import { GlowPanel } from '@/components/fx/GlowPanel'
+import { Panel } from '@/components/fx/Panel'
 import { CopyButton, EmptyState, PageHeader } from '@/components/States'
 import { Button } from '@/components/ui/button'
 import { Tabs } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { loadPractice, type PracticeRow } from '@/lib/world'
-import { jobRows, useRun } from '@/state/run'
+import { jobPredictions, useRun } from '@/state/run'
 
 interface Row {
   id: string
@@ -23,6 +23,8 @@ interface Row {
   confidence: number | null
   gold?: Verdict | null
   facts: { subject: string; attribute: string; value: Value; conf?: number }[]
+  /** The API's one-sentence reason (last run only). */
+  explanation?: string
 }
 
 type SourceKey = 'run' | 'practice'
@@ -53,19 +55,16 @@ export default function ExplorerPage() {
   const all: Row[] = useMemo(() => {
     if (source === 'run') {
       if (!job?.result) return []
-      const rows = jobRows(job)
-      return job.result.labels.map((l) => {
-        const r = rows.get(l.id)
-        return {
-          id: l.id,
-          text: r?.text ?? '',
-          date: r?.date ?? '',
-          verdict: l.label,
-          confidence: l.confidence,
-          gold: l.gold,
-          facts: job.result!.facts.filter((f) => f.row_id === l.id),
-        }
-      })
+      return jobPredictions(job).map((p) => ({
+        id: p.id,
+        text: p.text,
+        date: p.date,
+        verdict: p.label,
+        confidence: p.confidence,
+        gold: p.gold,
+        facts: p.facts,
+        explanation: p.explanation,
+      }))
     }
     return (practice ?? []).map((r) => ({ id: r.id, text: r.text, date: r.date, verdict: r.label, confidence: null, gold: r.label, facts: r.forms }))
   }, [source, job, practice])
@@ -126,7 +125,7 @@ export default function ExplorerPage() {
         }
       />
 
-      <GlowPanel className="p-4">
+      <Panel className="p-4">
         <div className="flex flex-wrap items-center gap-2">
           <label className="relative flex min-w-[220px] flex-1 items-center">
             <Search className="pointer-events-none absolute left-3 size-4 text-ink-faint" />
@@ -205,9 +204,9 @@ export default function ExplorerPage() {
             </motion.div>
           )}
         </AnimatePresence>
-      </GlowPanel>
+      </Panel>
 
-      <GlowPanel className="overflow-hidden">
+      <Panel className="overflow-hidden">
         {source === 'run' && !job ? (
           <EmptyState
             icon={<Database />}
@@ -293,7 +292,7 @@ export default function ExplorerPage() {
             </div>
           </>
         )}
-      </GlowPanel>
+      </Panel>
     </div>
   )
 }
@@ -329,6 +328,12 @@ function Details({ row, source }: { row: Row; source: SourceKey }) {
           <dd className="num">{row.id}</dd>
           <dt className="text-ink-faint">Stated on</dt>
           <dd className="num">{row.date || '—'}</dd>
+          {row.explanation && (
+            <>
+              <dt className="text-ink-faint">Why</dt>
+              <dd className="text-ink-muted">{row.explanation}</dd>
+            </>
+          )}
           <dt className="text-ink-faint">Label source</dt>
           <dd>{source === 'run' ? 'pipeline (POST /run)' : 'practice dataset gold label'}</dd>
           {source === 'run' && (

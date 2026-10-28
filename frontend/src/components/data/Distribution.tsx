@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion'
-import type { Label, Verdict } from '@/api/types'
+import type { ConfidenceStats, Label, Verdict } from '@/api/types'
 import { VerdictBadge } from './VerdictBadge'
 import { VERDICT_COLOR, cn } from '@/lib/utils'
 
@@ -49,45 +49,36 @@ export function VerdictDistribution({ counts, className }: { counts: Record<Verd
   )
 }
 
-/** Histogram of confidences in 0.05 bins over the contract range; unsure rows are counted separately. */
-export function ConfidenceHistogram({ labels, className }: { labels: Label[]; className?: string }) {
+/** The API's confidence histogram (0.05 bins over the contract range); unsure rows carry no confidence and are counted apart. */
+export function ConfidenceHistogram({ stats, unsure, className }: { stats: ConfidenceStats | null | undefined; unsure: number; className?: string }) {
   const reduce = useReducedMotion()
-  const bins = Array.from({ length: 10 }, (_, i) => ({ lo: 0.5 + i * 0.05, n: 0 }))
-  let unsure = 0
-  for (const l of labels) {
-    if (l.confidence === null || l.confidence === undefined) {
-      unsure++
-      continue
-    }
-    const i = Math.min(9, Math.max(0, Math.floor((l.confidence - 0.5) / 0.05 + 1e-9)))
-    bins[i].n++
-  }
-  const max = Math.max(1, ...bins.map((b) => b.n))
-  const scored = labels.length - unsure
+  if (!stats) return <p className={cn('text-sm text-ink-muted', className)} title="not computed in this run">— no confidences in this run</p>
+  const bins = stats.histogram
+  const max = Math.max(1, ...bins.map((b) => b.count))
   return (
     <div className={className}>
-      <div className="flex h-28 items-end gap-[2px]" role="img" aria-label={`Confidence histogram of ${scored} scored rows; ${unsure} unsure without confidence`}>
+      <div className="flex h-28 items-end gap-[2px]" role="img" aria-label={`Confidence histogram of ${stats.n} scored rows; ${unsure} unsure without confidence`}>
         {bins.map((b, i) => (
           <div key={i} className="group relative flex h-full flex-1 items-end">
             <motion.div
-              className={cn('w-full rounded-t-[3px]', b.n ? 'bg-gradient-to-t from-cyan-deep to-cyan' : 'bg-surface-3')}
-              initial={{ height: reduce ? `${(b.n / max) * 100}%` : '0%' }}
-              animate={{ height: b.n ? `${Math.max(4, (b.n / max) * 100)}%` : '2px' }}
+              className={cn('w-full rounded-t-[3px]', b.count ? 'bg-gradient-to-t from-cyan-deep to-cyan' : 'bg-surface-3')}
+              initial={{ height: reduce ? `${(b.count / max) * 100}%` : '0%' }}
+              animate={{ height: b.count ? `${Math.max(4, (b.count / max) * 100)}%` : '2px' }}
               transition={{ duration: 0.8, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
             />
             <span className="pointer-events-none absolute -top-6 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-surface-3 px-1.5 py-0.5 text-2xs text-ink group-hover:block">
-              {b.lo.toFixed(2)}–{(b.lo + 0.05).toFixed(2)}: {b.n}
+              {b.lo.toFixed(2)}–{b.hi.toFixed(2)}: {b.count}
             </span>
           </div>
         ))}
       </div>
       <div className="num mt-1.5 flex justify-between text-2xs text-ink-faint">
-        <span>0.50</span>
-        <span>0.75</span>
-        <span>1.00</span>
+        <span>{bins[0]?.lo.toFixed(2) ?? '0.50'}</span>
+        <span>median {stats.median.toFixed(2)}</span>
+        <span>{bins[bins.length - 1]?.hi.toFixed(2) ?? '1.00'}</span>
       </div>
       <p className="mt-2 text-xs text-ink-muted">
-        {scored.toLocaleString()} scored · <span className="text-verdict-unsure">{unsure.toLocaleString()} unsure</span> (no confidence by contract)
+        {stats.n.toLocaleString()} scored · <span className="text-verdict-unsure">{unsure.toLocaleString()} unsure</span> (no confidence by contract)
       </p>
     </div>
   )

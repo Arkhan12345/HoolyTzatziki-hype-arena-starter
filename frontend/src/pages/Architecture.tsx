@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Play, X } from 'lucide-react'
 import { PipelineFlow, usePipelineStatus } from '@/components/PipelineFlow'
 import { TerminalLog } from '@/components/data/TerminalLog'
-import { GlowPanel } from '@/components/fx/GlowPanel'
+import { Panel } from '@/components/fx/Panel'
 import { PageHeader } from '@/components/States'
 import { Button } from '@/components/ui/button'
 import { fmtSeconds, stageHealth } from '@/lib/utils'
@@ -33,7 +33,7 @@ export default function ArchitecturePage() {
         }
       />
 
-      <GlowPanel className="relative h-[min(68vh,640px)] min-h-[420px] overflow-hidden">
+      <Panel className="relative h-[min(68vh,640px)] min-h-[420px] overflow-hidden">
         <div className="absolute left-4 top-3 z-10 flex items-center gap-2 text-xs">
           {running ? (
             <span className="num rounded-full border border-cyan/40 bg-cyan/10 px-2.5 py-0.5 text-cyan-ice">request in flight · stage unknown until the API answers</span>
@@ -95,7 +95,7 @@ export default function ArchitecturePage() {
             </motion.aside>
           )}
         </AnimatePresence>
-      </GlowPanel>
+      </Panel>
 
       <TerminalLog job={focus} />
     </div>

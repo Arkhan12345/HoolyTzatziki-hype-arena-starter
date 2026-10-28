@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { demoRun, getArchitecture, getHealth, runPipeline, type RunInput } from '@/api/client'
-import type { Architecture, InputRow, RunResponse, Source, Sourced } from '@/api/types'
+import type { Architecture, Health as HealthInfo, InputRow, Prediction, RunResponse, Source, Sourced } from '@/api/types'
 import { ApiError } from '@/api/types'
 import architectureMock from '@/mocks/architecture.json'
 import { parseCsv } from '@/lib/csv'
@@ -20,10 +20,14 @@ export interface Job {
   offline?: boolean
   /** Rows as sent, so tables can show text even when the API omits `rows`. */
   rows: InputRow[]
+  /** The API's id for this run (as soon as the async run has started). */
+  runId?: string
 }
 
 interface RunState {
   health: Health
+  /** What GET /health reported: version, extractor/classifier/sample availability. */
+  healthInfo: HealthInfo | null
   architecture: Sourced<Architecture>
   jobs: Record<JobKind, Job | null>
   /** Batch runs of this session, newest first (dashboard "recent classifications"). */
@@ -46,6 +50,7 @@ const inputName = (input: RunInput) => (input.kind === 'file' ? input.file.name 
 
 export function RunProvider({ children }: { children: ReactNode }) {
   const [health, setHealth] = useState<Health>('checking')
+  const [healthInfo, setHealthInfo] = useState<HealthInfo | null>(null)
   const [architecture, setArchitecture] = useState<Sourced<Architecture>>({ data: architectureMock as Architecture, source: 'demo' })
   const [jobs, setJobs] = useState<Record<JobKind, Job | null>>({ run: null, verify: null, generate: null })
   const [history, setHistory] = useState<Job[]>([])
@@ -55,7 +60,10 @@ export function RunProvider({ children }: { children: ReactNode }) {
 
   const refreshHealth = useCallback(() => {
     setHealth('checking')
-    getHealth().then((ok) => setHealth(ok ? 'online' : 'offline'))
+    getHealth().then((h) => {
+      setHealthInfo(h)
+      setHealth(h?.ok ? 'online' : 'offline')
+    })
   }, [])
 
   useEffect(() => {
@@ -63,12 +71,13 @@ export function RunProvider({ children }: { children: ReactNode }) {
     getArchitecture().then(setArchitecture)
   }, [refreshHealth])
 
-  // The demo API blocks while it runs the pipeline, so a missed health check is often just a busy server: re-check quietly.
+  // A missed health check may be a busy or restarting server: re-check quietly while offline.
   useEffect(() => {
     if (health !== 'offline') return
     const t = setInterval(() => {
-      getHealth().then((ok) => {
-        if (!ok) return
+      getHealth().then((h) => {
+        if (!h?.ok) return
+        setHealthInfo(h)
         setHealth('online')
         getArchitecture().then(setArchitecture)
       })
@@ -94,9 +103,15 @@ export function RunProvider({ children }: { children: ReactNode }) {
 
     let done: Job
     try {
-      const res = await runPipeline(input, claimsLimit)
-      done = { ...started, status: 'done', finishedAt: Date.now(), result: res.data, source: res.source }
-      setHealth(res.source === 'api' ? 'online' : 'offline')
+      const res = await runPipeline(input, claimsLimit, (runId) => {
+        if (token === tokens.current[kind]) setJobs((j) => ({ ...j, [kind]: { ...started, runId } }))
+      })
+      done = { ...started, status: 'done', finishedAt: Date.now(), result: res.data, source: res.source, runId: res.data.run_id }
+      if (res.source === 'api') {
+        setHealth('online')
+        // node statuses and seconds of this run (handoff §4)
+        getArchitecture().then(setArchitecture)
+      }
     } catch (e) {
       const offline = e instanceof ApiError && e.offline
       done = { ...started, status: 'error', finishedAt: Date.now(), error: e instanceof Error ? e.message : String(e), offline }
@@ -132,7 +147,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <Ctx.Provider value={{ health, architecture, jobs, history, focus, replay, refreshHealth, run, loadDemo, verify, generate, clear }}>
+    <Ctx.Provider value={{ health, healthInfo, architecture, jobs, history, focus, replay, refreshHealth, run, loadDemo, verify, generate, clear }}>
       {children}
     </Ctx.Provider>
   )
@@ -152,4 +167,17 @@ export function jobRows(job: Job | null): Map<string, InputRow> {
   for (const r of job?.result?.rows ?? []) m.set(r.id, r)
   for (const r of job?.rows ?? []) if (!m.has(r.id)) m.set(r.id, r)
   return m
+}
+
+/** One row per prediction: the API's predictions when present, else labels joined with rows (older API, demo). */
+// eslint-disable-next-line react-refresh/only-export-components
+export function jobPredictions(job: Job | null): Prediction[] {
+  const r = job?.result
+  if (!r) return []
+  if (r.predictions?.length) return r.predictions
+  const rows = jobRows(job)
+  return r.labels.map((l) => {
+    const row = rows.get(l.id)
+    return { id: l.id, text: row?.text ?? '', date: row?.date ?? '', label: l.label, confidence: l.confidence, gold: l.gold ?? null, facts: r.facts.filter((f) => f.row_id === l.id), evidence: null, explanation: '' }
+  })
 }

@@ -49,6 +49,15 @@ export function ErrorState({ message, offline, onRetry, extra }: { message: stri
   )
 }
 
+/** A value the API returned as null: shown as "—", never as 0 (API contract: null = not computed). */
+export function NotComputed({ className }: { className?: string }) {
+  return (
+    <span className={cn('num text-ink-faint', className)} title="not computed in this run">
+      —
+    </span>
+  )
+}
+
 export function HealthPill({ health, demo }: { health: Health; demo?: boolean }) {
   const cfg = demo
     ? { text: 'demo data', dot: 'bg-verdict-unsure', cls: 'text-verdict-unsure border-verdict-unsure/40' }
