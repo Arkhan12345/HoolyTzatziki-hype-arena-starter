@@ -4,7 +4,7 @@
 fictional company Hooly as true / false / unsure with confidence, and generate exactly 1,000 new true claims.
 An LLM may help build the system but may not be it.
 
-**Fork:** https://github.com/Alexx1612/hype-arena-starter (upstream `QA-DNA/hype-arena-starter`)
+**Fork:** https://github.com/Arkhan12345/HoolyTzatziki-hype-arena-starter (upstream `QA-DNA/hype-arena-starter`)
 **Hard deadline:** PR titled "Tzatziki" opened before **11:00 on 29 Oct**; no pushes after 11:00.
 
 ## Who gets which file
@@ -21,10 +21,10 @@ Shared reference docs (in `docs/` since the first commit):
 
 ## How to start (every member, on your own laptop)
 
-1. **Get access:** the fork owner (Alexx1612) adds X, Ioan, Arckan and Vald as collaborators (`gh repo edit` or GitHub → Settings → Collaborators).
+1. **Get access:** the fork owner (Arkhan12345) adds X, Ioan, Arckan and Vald as collaborators (`gh repo edit` or GitHub → Settings → Collaborators).
 2. **Clone and add upstream:**
    ```sh
-   git clone https://github.com/Alexx1612/hype-arena-starter.git
+   git clone https://github.com/Arkhan12345/HoolyTzatziki-hype-arena-starter.git
    cd hype-arena-starter
    git remote add upstream https://github.com/QA-DNA/hype-arena-starter.git
    ```

@@ -11,7 +11,7 @@ Sources: the challenge brief page, starter `README.md`, `contracts/README.md`, `
 |---|---|---|
 | R-01 | The submitted system MUST NOT be an LLM. LLMs MAY be used to build it and to make what it learns from. | all |
 | R-02 | The truth is what Hooly's universe says. The system MUST NOT use the live web or a pretrained model's world knowledge as evidence. | P3 |
-| R-03 | Work MUST happen in our public fork (`Alexx1612/hype-arena-starter`) so it is traceable. | P1 |
+| R-03 | Work MUST happen in our public fork (`Arkhan12345/HoolyTzatziki-hype-arena-starter`) so it is traceable. | P1 |
 | R-04 | Any architecture/algorithm is allowed. | — |
 
 ## B. Input (at run time)
