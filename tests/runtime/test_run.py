@@ -35,7 +35,22 @@ def test_main_passes_upstream_checker(universe):
     r = _check(u, o)
     assert r.returncode == 0, r.stdout
     assert report["total_s"] < 120
-    assert sorted(os.listdir(o)) == ["architecture.json", "metrics.json", "output.csv"], "temp files left behind"
+    assert sorted(os.listdir(o)) == ["architecture.json", "claims_debug.jsonl", "metrics.json", "output.csv"],         "temp files left behind"
+
+
+def test_claims_debug_lists_source_sentences(universe):
+    import json
+
+    from app.run import main
+
+    u, o = universe
+    main(str(u), str(o), time.time() + 600)
+    with open(o / "claims_debug.jsonl", encoding="utf-8") as f:
+        recs = [json.loads(line) for line in f]
+    assert len(recs) == 1000
+    assert all(r["sources"] and all(s["text"] and s["date"] for s in r["sources"]) for r in recs)
+    with open(o / "output.csv", encoding="utf-8") as f:
+        assert "sources" not in f.readline()  # debug never reaches the official table
 
 
 def test_auxiliary_artifacts_match_their_schemas(universe):

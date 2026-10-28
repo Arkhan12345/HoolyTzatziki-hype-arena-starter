@@ -62,7 +62,8 @@ def test_frontend_payload_is_stable(sample_run):
     lb = sample_run["labels"][0]
     assert set(lb) >= {"id", "label", "confidence"}
     cl = sample_run["claims"][0]
-    assert set(cl) >= {"id", "type", "text", "form", "confidence"} and "meta" not in cl
+    assert set(cl) >= {"id", "type", "text", "form", "confidence", "sources"} and "meta" not in cl
+    assert cl["sources"] and {"row_id", "date", "text"} <= set(cl["sources"][0])
     assert set(sample_run["rows"][0]) == {"id", "text", "date"}
     assert all(v is None or isinstance(v, (int, float)) for v in sample_run["timings"].values())
 

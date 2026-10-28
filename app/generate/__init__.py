@@ -1,7 +1,7 @@
-def generate(kb, lexicon, input_texts, n=1000, report=None):
+def generate(kb, lexicon, input_texts, n=1000, report=None, **kwargs):
     from app.generate.select import generate as _generate
 
-    return _generate(kb, lexicon, input_texts, n, report)
+    return _generate(kb, lexicon, input_texts, n, report, **kwargs)
 
 
 def generate_from_inventory(inventory, input_texts, n=1000, report=None):

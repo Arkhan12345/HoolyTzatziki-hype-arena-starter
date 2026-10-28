@@ -10,6 +10,7 @@ output is n compares. Order of preference:
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from collections import Counter, defaultdict
@@ -139,7 +140,8 @@ def generate_from_inventory(inv: FactInventory, input_texts: set[str], n: int = 
         cl = Claim(id=f"tz-{i + 1:04d}", type=c.type, text=c.text, form=c.form,
                    confidence=round(min(0.99, max(0.5, c.confidence)), 3))
         try:  # provenance stays out of the submission: the writer only reads the official fields
-            cl.meta = {"evidence": list(c.evidence), "semantic_key": json.dumps(c.semantic_key, default=str), **c.meta}
+            cl.meta = {"evidence": list(c.evidence), "sources": inv.sources(c.evidence),
+                       "semantic_key": json.dumps(c.semantic_key, default=str), **c.meta}
         except Exception:  # noqa: BLE001 - P1's Claim may be frozen/slotted
             pass
         claims.append(cl)
@@ -150,6 +152,12 @@ def generate_from_inventory(inv: FactInventory, input_texts: set[str], n: int = 
 
 
 def generate(kb, lexicon: dict, input_texts: set[str], n: int = 1000, report: dict | None = None,
-             trust_extracted: bool = False) -> list[Claim]:
-    """Pipeline entry (agreed interface): KB -> inventory -> claims."""
-    return generate_from_inventory(FactInventory.from_kb(kb, trust_extracted=trust_extracted), input_texts, n, report)
+             trust_extracted: bool = False, trust_classified: bool | None = None) -> list[Claim]:
+    """Pipeline entry (agreed interface): KB -> inventory -> claims.
+
+    trust_classified (default: env TZ_TRUST_CLASSIFIED=1) also builds claims on facts of rows the sentence
+    classifier labelled true with high confidence (KB.add_classified), not only on practice gold."""
+    if trust_classified is None:
+        trust_classified = os.environ.get("TZ_TRUST_CLASSIFIED") == "1"
+    inv = FactInventory.from_kb(kb, trust_extracted=trust_extracted, trust_classified=trust_classified)
+    return generate_from_inventory(inv, input_texts, n, report)

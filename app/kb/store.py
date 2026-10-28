@@ -80,6 +80,7 @@ class KB:
         self.row_dates: dict[str, str] = {}
         self.page_votes: dict[str, list[int]] = defaultdict(lambda: [0, 0])  # date -> [agree, disagree]
         self.ingest: dict = {}  # adapter counters: extracted_in, extracted_dropped
+        self.rows: dict[str, dict] = {}  # row id -> {text, date, label, origin}: provenance for claims
 
     # ---- build -------------------------------------------------------------------------------
     def _add(self, subject, attribute, value, date, source, weight, row_id):
@@ -93,6 +94,7 @@ class KB:
         for r in gold_rows:
             label, form, date = r.get("label"), r.get("form") or [], r.get("date", "")
             self.row_dates[r["id"]] = date
+            self.rows[r["id"]] = {"text": r.get("text", ""), "date": date, "label": label, "origin": "practice"}
             if label == "true":
                 for f in form:
                     self._add(f["subject"], f["attribute"], f["value"], date, "gold", GOLD_WEIGHT, r["id"])
@@ -104,15 +106,44 @@ class KB:
         """P3's facts (dataclass, object or dict; see app.kb.adapter), dated by their row."""
         from app.kb.adapter import to_records
 
-        for r in rows or []:
-            self.row_dates.setdefault(r["id"], r.get("date", ""))
+        self._remember(rows)
         for f in to_records(facts, self.ingest):
             date = self.row_dates.get(f.row_id, "")
             self._add(f.subject, f.attribute, f.value, date, "extracted", f.conf, f.row_id)
 
-    def build(self, facts, gold_rows: list[dict], rows: list[dict] | None = None) -> "KB":
+    def add_classified(self, labels, facts, rows: list[dict] | None = None, min_conf: float = 0.9) -> int:
+        """Structured output of the sentence classification (X/Arckan): the facts of every row the
+        classifier labelled true with confidence >= min_conf become `classified` evidence for that
+        row's date. Labels: objects or dicts with id, label, confidence. Returns how many were added."""
+        from app.kb.adapter import _get, to_records
+
+        self._remember(rows)
+        sure = {}
+        for lb in labels or []:
+            rid, label, conf = _get(lb, "id"), _get(lb, "label"), _get(lb, "confidence")
+            if rid and label == "true" and conf is not None and float(conf) >= min_conf:
+                sure[str(rid)] = float(conf)
+        n = 0
+        for f in to_records(facts):
+            if f.row_id in sure and self.row_dates.get(f.row_id):
+                self._add(f.subject, f.attribute, f.value, self.row_dates[f.row_id], "classified",
+                          min(sure[f.row_id], f.conf if f.conf > 0 else 1.0), f.row_id)
+                self.rows.setdefault(f.row_id, {}).update(classified={"label": "true", "confidence": sure[f.row_id]})
+                n += 1
+        self.ingest["classified_facts"] = self.ingest.get("classified_facts", 0) + n
+        return n
+
+    def _remember(self, rows) -> None:
+        for r in rows or []:
+            self.row_dates.setdefault(r["id"], r.get("date", ""))
+            self.rows.setdefault(r["id"], {"text": r.get("text", ""), "date": r.get("date", ""),
+                                           "label": r.get("label") or None, "origin": "universe"})
+
+    def build(self, facts, gold_rows: list[dict], rows: list[dict] | None = None, labels=None) -> "KB":
         self.add_gold(gold_rows)
         self.add_extracted(facts, rows)
+        if labels is not None:
+            self.add_classified(labels, facts, rows)
         self._page_trust()
         return self
 
