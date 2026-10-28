@@ -1,3 +1,6 @@
+> **Handed over to X on 28 Oct** (see [`pitch/matei_handoff_before_he_left.md`](../pitch/matei_handoff_before_he_left.md)).
+> The pitch files are X's now; the open items are in [`X_research+architecture.md`](X_research+architecture.md) → "Pitch (taken over from Matei)".
+
 # Matei · P5 · Pitch + Presentation + Findings (new member) — Team Tzatziki · Hype or Truth
 
 > **How to use:** clone https://github.com/Arkhan12345/HoolyTzatziki-hype-arena-starter (ask Arkhan12345 to add you as a collaborator), run `claude` in the repo, and paste this WHOLE file (`team/Matei_pitch+presentation.md`) as the first message.

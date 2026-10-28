@@ -55,7 +55,9 @@ A run that passes here can still fail ours on what the practice data does not ho
 ## Team Tzatziki — how our system is supposed to work
 
 *Added by Team Tzatziki. Everything above this line is the original starter text.*
-More detail: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md), [`docs/EDA.md`](docs/EDA.md), [`team/README.md`](team/README.md).
+**Docs map → [`docs/README.md`](docs/README.md)** (what to read, and when) · roles: [`team/README.md`](team/README.md) · every result: [`docs/RESULTS.md`](docs/RESULTS.md).
+
+**Current best (research, gold facts):** L6 = staircase timeline + page trust + failure statuses + hard rules + evidence-sum calibrator: macro-F1 **0.801** vs 0.735 for plain LightGBM on the same folds (ECE 0.050). Liquid, spiking and character-level nets: no gain on true/false. Not yet in `app/`: the shipped labels are still the all-true baseline (83.3% on all rows, 85.3% on check.sh's hidden rows).
 
 ### Repository layout
 
@@ -78,8 +80,8 @@ hype-arena-starter/
 │   ├── check.sh                 builds the image and runs it like the arena, on practice rows
 │   ├── input.py                 hides every 5th label to make the run's input
 │   └── check_output.py          checks output.csv (columns, ids, 1,000 claims, label count)
-├── docs/                    [T] design: ARCHITECTURE, REQUIREMENTS, EDA, EDA_v2, MODELS, RULES (dataset logic), API_CONTRACT
-├── team/                    [T] (incl. X_research+architecture.md, Matei_pitch+presentation.md) one prompt per member + team rules (branches, commits, merges)
+├── docs/                    [T] design + research; start at docs/README.md (map), RESULTS.md (every result), RULES.md (dataset logic)
+├── team/                    [T] one prompt per member (X_research+architecture.md, Ioan_…, Arckan_…, Vald_…, Matei_… handed over) + team rules
 ├── frontend/                [T] Vite + React UI: architecture diagram, live run, metrics, pitch
 ├── Dockerfile               [T] python:3.12.16-slim-trixie image the arena runs, USER 10001
 ├── requirements.txt         [T] direct runtime deps; constraints.txt pins every package; requirements-dev.txt = tests only
@@ -88,9 +90,15 @@ hype-arena-starter/
 ├── app/                     [T] the system: run.py, io/, kb/, generate/, validate/, api/
 ├── tests/runtime/           [T] tests for run, generator, validator, API
 ├── models/                  [T] trained model files shipped in the image
-├── pitch/                   [T] JOURNAL.md (one line per commit) + metrics.json for the UI
+├── pitch/                   [T] PITCH.md (deck at /pitch), STORY.md (numbers), QA.md, VIDEO_SCRIPT.md, figs/, screenshots/ (figure library),
+│                                JOURNAL.md (one line per merge), metrics.json (numbers for the UI)
 ├── STATUS.md                [T] who does what, plus requests between members
-├── eda/                     [T] EDA scripts: rules, features, per-row model advice, bake-off (X/model-strategy-v2)
+├── eda/                     [T] research (dev-only, never in the image); start at eda/README.md
+│   ├── 01_parse … 10_results_table.py   scripts in order: parse, rules, per-row advice, bake-off, splits, label ladder, handoff, figures, results
+│   ├── improve/  neuro/  selfimprove/   label-ladder pieces, liquid/spiking/char nets (GPU), 60-min self-improvement loop
+│   ├── tests/  audit.py                 Gherkin + unit tests, leakage/reproducibility audit
+│   ├── splits.csv                       shared folds (holdout pages, fold_group, fold_row5, time)
+│   └── out/                             results CSVs, figures, handoff/ files for teammates
 └── sample/sample.csv        [S] 20 unlabelled rows added on 29 Oct at 09:00
 ```
 
@@ -110,9 +118,9 @@ hype-arena-starter/
 | `app/` | team | Ioan + Arckan | The pipeline: extract → KB → classify → generate → validate → write |
 | `tests/` | team | Ioan | Runtime tests |
 | `models/` | team | Arckan | Trained weights baked into the image |
-| `pitch/` | team | everyone / X | Journal and metrics for the pitch page |
+| `pitch/` | team | X (since 28 Oct; journal: everyone appends) | Deck, numbers sheet, Q&A, video script, figures, journal and metrics |
 | `STATUS.md` | team | everyone | Status board and requests |
-| `eda/` | team | X (research) + Arckan | EDA scripts and outputs (`eda/out/`: rules, relations, per-row advice, bake-off); dev-time only, not in the image |
+| `eda/` | team | X (research) + Arckan | Research scripts, tests and outputs; dev-time only, not in the image (`eda/README.md`) |
 
 ### The pipeline
 
@@ -318,4 +326,4 @@ flowchart TD
 ```
 
 Every option is scored with the same folds (grouped by page, plus a time-forward split) on macro-F1, ECE and runtime,
-and recorded in `train/results.csv`. Details: [`docs/MODELS.md`](docs/MODELS.md). Data rules, per-row option advice and the first bake-off: [`docs/EDA_v2.md`](docs/EDA_v2.md), [`docs/RULES.md`](docs/RULES.md).
+and recorded in `train/results.csv`. Details: [`docs/MODELS.md`](docs/MODELS.md). Measured results so far: [`docs/RESULTS.md`](docs/RESULTS.md).

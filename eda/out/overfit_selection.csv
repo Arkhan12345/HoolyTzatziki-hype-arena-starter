@@ -1,0 +1,14 @@
+check,n_variants,trial_se,value,gain_final_vs_L0,held_fold,picked,gain_on_held_fold,note
+expected_max_noise,103.0,0.00350952380952381,0.010685020582286531,0.08417989476001042,,,,
+nested_tau_days,,,,,0.0,45.0,-0.001019076833187249,
+nested_tau_days,,,,,1.0,45.0,0.011194556800240618,
+nested_tau_days,,,,,2.0,45.0,0.003416641137605425,
+nested_tau_days,,,,,3.0,45.0,0.015578383641674742,
+nested_tau_days,,,,,4.0,45.0,0.028258764940239045,
+nested_tau_days_summary,,,4.0,,,,,held-out folds where the pick wins
+nested_min_child_samples,,,,,0.0,40,0.005699999999999927,
+nested_min_child_samples,,,,,1.0,40,-0.0022999999999999687,
+nested_min_child_samples,,,,,2.0,20,0.0,
+nested_min_child_samples,,,,,3.0,20,0.007900000000000018,
+nested_min_child_samples,,,,,4.0,40,0.006799999999999917,
+nested_min_child_samples_summary,,,3.0,,,,,held-out folds where the pick wins

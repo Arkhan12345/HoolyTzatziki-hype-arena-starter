@@ -1,0 +1,72 @@
+rule,family,support,pages,lift_false,p_unsure,false_ci95,priority,knob,verdict
+disagrees with previous mention (label-free),support,642,221,2.03,0.006,"[0.26, 0.33]",1303.3,,already in model: agree_prev_mention_min (=0)
+agrees with previous mention (label-free),support,809,229,0.3,0.012,"[0.03, 0.06]",2696.7,,already in model: agree_prev_mention_min (=1)
+text: first_person,wording,64,41,1.5,0.078,"[0.14, 0.33]",96.0,,already in model: first_person
+page genre = first_person_hype,genre,62,19,2.76,0.016,"[0.29, 0.53]",171.1,,already in model: genre_first_person_hype
+text: hedge,wording,65,53,2.11,0.015,"[0.21, 0.43]",137.2,,already in model: hedge
+hype_score >= 2,wording,53,33,1.42,0.17,"[0.12, 0.33]",75.3,,already in model: hype_score (>= 2)
+text: joke_tail,wording,57,34,1.44,0.193,"[0.12, 0.33]",82.1,,already in model: joke_tail
+value >= 2x pair median,value,69,59,3.67,0.029,"[0.42, 0.65]",253.2,,already in model: log_dev_from_pair_median_max (>= log 2)
+text: negation,wording,98,80,1.54,0.051,"[0.15, 0.32]",150.9,,already in model: negation
+comparison op present (over/under),value,38,30,1.8,0.0,"[0.15, 0.42]",68.4,,already in model: op_present_max
+page first-person share >= 0.3,page,62,19,2.76,0.016,"[0.29, 0.53]",171.1,,already in model: page_first_person_share (>= 0.3)
+pair has a single value in the corpus,support,280,142,0.0,0.061,"[0.00, 0.01]",280000.0,,already in model: pair_n_values_max (=1) and the never-false hard rule
+worst fact relation = before_first_known,temporal,154,73,1.96,0.065,"[0.22, 0.36]",301.8,,already in model: rel_before_first_known
+worst fact relation = contradicts,temporal,218,129,3.08,0.014,"[0.38, 0.52]",671.4,,already in model: rel_contradicts
+worst fact relation = match_latest,temporal,878,240,0.2,0.01,"[0.02, 0.04]",4390.0,,already in model: rel_match_latest
+worst fact relation = stale_older,temporal,68,43,5.74,0.0,"[0.73, 0.91]",390.3,,already in model: rel_stale_older
+worst fact relation = unseen_pair,temporal,107,65,0.26,0.065,"[0.01, 0.09]",411.5,,already in model: rel_unseen_pair
+value never repeated anywhere else,support,391,161,2.01,0.043,"[0.25, 0.34]",785.9,,already in model: same_value_rows_min (a tree splits it at 0)
+headline/spec line AND match_latest,combo,218,59,0.35,0.018,"[0.03, 0.09]",622.9,headline_and_match_latest,candidate -> knob
+value never repeated AND pair has >=3 values,support,160,103,2.53,0.025,"[0.30, 0.45]",404.8,never_repeated_and_3values,candidate -> knob
+value kinds = version,kind,73,59,0.38,0.0,"[0.02, 0.13]",192.1,kinds_version_only,candidate -> knob
+first person AND number,combo,49,33,1.82,0.041,"[0.16, 0.40]",89.2,first_person_and_number,candidate -> knob
+first person AND joke tail,combo,39,28,1.4,0.128,"[0.11, 0.36]",54.6,first_person_and_joke,candidate -> knob
+value kinds = duration|quantity,kind,24,21,2.0,0.0,"[0.15, 0.49]",48.0,kinds_duration_quantity,candidate -> knob
+value kinds = quantity|version,kind,26,23,0.26,0.038,"[0.01, 0.19]",100.0,,"dropped: CI [0.01, 0.19] contains base 0.146"
+single-row page,structure,30,30,1.83,0.0,"[0.14, 0.44]",54.9,,"dropped: CI [0.14, 0.44] contains base 0.146"
+value kinds = percent|quantity,kind,16,16,0.0,0.062,"[0.00, 0.19]",16000.0,,"dropped: not confirmed; support 16 < 20; CI [0.00, 0.19] contains base 0.146"
+'today' but text date != page date,date,2,1,0.0,0.5,"[0.00, 0.66]",2000.0,,dropped: not confirmed; support 2 < 20; pages 1 < 10
+text: hearsay,wording,2,2,0.0,1.0,"[0.00, 0.66]",2000.0,,dropped: not confirmed; support 2 < 20; pages 2 < 10
+page genre = quote_interview,genre,31,5,0.66,0.0,"[0.03, 0.25]",47.0,,"dropped: pages 5 < 10; weak (lift 0.66, p_unsure 0.0); CI [0.03, 0.25] contains base 0.146"
+hedge AND value never repeated,combo,16,14,4.71,0.0,"[0.44, 0.86]",75.4,,dropped: support 16 < 20
+value kinds = duration|money,kind,16,15,0.86,0.0,"[0.03, 0.36]",18.6,,"dropped: support 16 < 20; weak (lift 0.86, p_unsure 0.0); CI [0.03, 0.36] contains base 0.146"
+value kinds = date|name,kind,17,15,1.61,0.0,"[0.10, 0.47]",27.4,,"dropped: support 17 < 20; CI [0.10, 0.47] contains base 0.146"
+value kinds = name,kind,127,96,0.54,0.008,"[0.04, 0.14]",235.2,,"dropped: weak (lift 0.54, p_unsure 0.008)"
+text: still,wording,21,21,0.65,0.0,"[0.03, 0.29]",32.3,,"dropped: weak (lift 0.65, p_unsure 0.0); CI [0.03, 0.29] contains base 0.146"
+value kinds = date,kind,102,84,0.67,0.02,"[0.05, 0.17]",152.2,,"dropped: weak (lift 0.67, p_unsure 0.02); CI [0.05, 0.17] contains base 0.146"
+worst fact relation = future_value,temporal,472,164,0.7,0.021,"[0.08, 0.13]",674.3,,"dropped: weak (lift 0.7, p_unsure 0.021)"
+value repeated by >=1 other page (same pair),support,1505,281,0.74,0.015,"[0.09, 0.12]",2033.8,,"dropped: weak (lift 0.74, p_unsure 0.015)"
+template seen >= 3 times,template,54,44,0.76,0.056,"[0.05, 0.22]",71.1,,"dropped: weak (lift 0.76, p_unsure 0.056); CI [0.05, 0.22] contains base 0.146"
+value kinds = duration,kind,147,104,0.84,0.014,"[0.08, 0.19]",175.0,,"dropped: weak (lift 0.84, p_unsure 0.014); CI [0.08, 0.19] contains base 0.146"
+n_facts >= 3,structure,57,42,0.84,0.018,"[0.06, 0.23]",67.9,,"dropped: weak (lift 0.84, p_unsure 0.018); CI [0.06, 0.23] contains base 0.146"
+text date in the future (> 1 day),date,41,33,0.84,0.024,"[0.05, 0.26]",48.8,,"dropped: weak (lift 0.84, p_unsure 0.024); CI [0.05, 0.26] contains base 0.146"
+text: kv_line,wording,304,73,0.86,0.013,"[0.09, 0.17]",353.5,,"dropped: weak (lift 0.86, p_unsure 0.013); CI [0.09, 0.17] contains base 0.146"
+text has date,date,149,118,0.87,0.013,"[0.08, 0.19]",171.3,,"dropped: weak (lift 0.87, p_unsure 0.013); CI [0.08, 0.19] contains base 0.146"
+first row of page (headline),structure,291,291,0.87,0.017,"[0.09, 0.17]",334.5,,"dropped: weak (lift 0.87, p_unsure 0.017); CI [0.09, 0.17] contains base 0.146"
+text: now_today,wording,148,113,0.88,0.027,"[0.08, 0.19]",168.2,,"dropped: weak (lift 0.88, p_unsure 0.027); CI [0.08, 0.19] contains base 0.146"
+page genre = spec_sheet_or_slides,genre,439,58,0.9,0.023,"[0.10, 0.17]",487.8,,"dropped: weak (lift 0.9, p_unsure 0.023); CI [0.10, 0.17] contains base 0.146"
+text: no_period,wording,435,70,0.9,0.023,"[0.10, 0.17]",483.3,,"dropped: weak (lift 0.9, p_unsure 0.023); CI [0.10, 0.17] contains base 0.146"
+page genre = release_notes,genre,799,108,0.9,0.025,"[0.11, 0.16]",887.8,,"dropped: weak (lift 0.9, p_unsure 0.025); CI [0.11, 0.16] contains base 0.146"
+value kinds = boolean,kind,150,114,0.91,0.047,"[0.09, 0.20]",164.8,,"dropped: weak (lift 0.91, p_unsure 0.047); CI [0.09, 0.20] contains base 0.146"
+page genre = pricing_page,genre,154,31,0.93,0.0,"[0.09, 0.20]",165.6,,"dropped: weak (lift 0.93, p_unsure 0.0); CI [0.09, 0.20] contains base 0.146"
+value kinds = money|quantity,kind,50,32,0.96,0.0,"[0.07, 0.26]",52.1,,"dropped: weak (lift 0.96, p_unsure 0.0); CI [0.07, 0.26] contains base 0.146"
+subject only by pronoun/implicit,extraction,629,187,0.96,0.021,"[0.11, 0.17]",655.2,,"dropped: weak (lift 0.96, p_unsure 0.021); CI [0.11, 0.17] contains base 0.146"
+page genre = event_recap,genre,272,31,0.98,0.026,"[0.11, 0.19]",277.6,,"dropped: weak (lift 0.98, p_unsure 0.026); CI [0.11, 0.19] contains base 0.146"
+text: superlative,wording,103,85,1.0,0.058,"[0.09, 0.23]",103.0,,"dropped: weak (lift 1.0, p_unsure 0.058); CI [0.09, 0.23] contains base 0.146"
+text: change_verb,wording,53,48,1.03,0.038,"[0.08, 0.27]",54.6,,"dropped: weak (lift 1.03, p_unsure 0.038); CI [0.08, 0.27] contains base 0.146"
+value kinds = percent,kind,172,115,1.04,0.012,"[0.11, 0.21]",178.9,,"dropped: weak (lift 1.04, p_unsure 0.012); CI [0.11, 0.21] contains base 0.146"
+value kinds = money,kind,148,103,1.06,0.02,"[0.11, 0.22]",156.9,,"dropped: weak (lift 1.06, p_unsure 0.02); CI [0.11, 0.22] contains base 0.146"
+text date in the past (> 1 day),date,76,69,1.08,0.013,"[0.09, 0.26]",82.1,,"dropped: weak (lift 1.08, p_unsure 0.013); CI [0.09, 0.26] contains base 0.146"
+text: future,wording,66,57,1.14,0.015,"[0.10, 0.27]",75.2,,"dropped: weak (lift 1.14, p_unsure 0.015); CI [0.10, 0.27] contains base 0.146"
+value kinds = quantity,kind,710,227,1.17,0.027,"[0.14, 0.20]",830.7,,"dropped: weak (lift 1.17, p_unsure 0.027); CI [0.14, 0.20] contains base 0.146"
+value kinds = name|quantity,kind,29,29,1.18,0.034,"[0.08, 0.35]",34.2,,"dropped: weak (lift 1.18, p_unsure 0.034); CI [0.08, 0.35] contains base 0.146"
+n_facts >= 2,structure,430,200,1.19,0.009,"[0.14, 0.21]",511.7,,"dropped: weak (lift 1.19, p_unsure 0.009); CI [0.14, 0.21] contains base 0.146"
+page genre = people_announcement,genre,66,11,1.25,0.015,"[0.11, 0.29]",82.5,,"dropped: weak (lift 1.25, p_unsure 0.015); CI [0.11, 0.29] contains base 0.146"
+round number (x10),value,602,231,1.29,0.032,"[0.16, 0.22]",776.6,,"dropped: weak (lift 1.29, p_unsure 0.032)"
+page genre = other_page,genre,74,28,1.3,0.0,"[0.12, 0.29]",96.2,,"dropped: weak (lift 1.3, p_unsure 0.0); CI [0.12, 0.29] contains base 0.146"
+text: number_words,wording,36,35,1.33,0.056,"[0.10, 0.35]",47.9,,"dropped: weak (lift 1.33, p_unsure 0.056); CI [0.10, 0.35] contains base 0.146"
+text: quote,wording,41,28,1.34,0.049,"[0.10, 0.34]",54.9,,"dropped: weak (lift 1.34, p_unsure 0.049); CI [0.10, 0.34] contains base 0.146"
+text: we_our,wording,78,60,1.4,0.013,"[0.13, 0.31]",109.2,,"dropped: weak (lift 1.4, p_unsure 0.013); CI [0.13, 0.31] contains base 0.146"
+text: starts_pronoun,wording,49,39,1.4,0.02,"[0.11, 0.34]",68.6,,"dropped: weak (lift 1.4, p_unsure 0.02); CI [0.11, 0.34] contains base 0.146"
+value <= 0.5x pair median,value,122,92,1.4,0.025,"[0.14, 0.29]",170.8,,"dropped: weak (lift 1.4, p_unsure 0.025); CI [0.14, 0.29] contains base 0.146"

@@ -1,0 +1,24 @@
+model,test,value,threshold,verdict,note
+FINAL,1 train-vs-test gap (macro-F1),0.1731,> 0.10 = WARN,WARN,train 0.991 / out-of-fold 0.818
+L0,1 train-vs-test gap (macro-F1),0.2656,> 0.10 = WARN,WARN,train 1.000 / out-of-fold 0.734
+L4,1 train-vs-test gap (macro-F1),0.1869,> 0.10 = WARN,WARN,train 0.993 / out-of-fold 0.806
+L6,1 train-vs-test gap (macro-F1),0.1921,> 0.10 = WARN,WARN,train 0.993 / out-of-fold 0.801
+extratrees,1 train-vs-test gap (macro-F1),0.2716,> 0.10 = WARN,WARN,train 0.982 / out-of-fold 0.711
+knn15,1 train-vs-test gap (macro-F1),0.3947,> 0.10 = WARN,WARN,train 1.000 / out-of-fold 0.605
+logreg,1 train-vs-test gap (macro-F1),0.0664,> 0.10 = WARN,PASS,train 0.765 / out-of-fold 0.698
+svm_rbf,1 train-vs-test gap (macro-F1),0.1566,> 0.10 = WARN,WARN,train 0.776 / out-of-fold 0.620
+L0,2 CV-vs-holdout gap (macro-F1),-0.0084,> 2 x holdout SE = WARN,PASS,CV 0.735 / holdout 0.743 / SE 0.044
+L4,2 CV-vs-holdout gap (macro-F1),0.0734,> 2 x holdout SE = WARN,PASS,CV 0.806 / holdout 0.733 / SE 0.043
+FINAL,2 CV-vs-holdout gap (macro-F1),0.0746,> 2 x holdout SE = WARN,PASS,CV 0.819 / holdout 0.745 / SE 0.043
+FINAL,"3 label permutation: learned part (max of L0 / FINAL without hard rules, 5 runs)",0.4791,<= 0.50 else FAIL (leakage),PASS,"L0 mean 0.470, FINAL without rules mean 0.455; all-true 0.4546"
+FINAL,3b label-free floor: FINAL with hard rules on shuffled labels (mean),0.5831,info,INFO,"the hard rules read label-free timeline votes, so they keep some skill without labels"
+L0,4 learning curve (75% -> 100% gain),0.014,> 0 = still data-limited,PASS,25% 0.613 / 50% 0.650 / 75% 0.721 / 100% 0.735
+FINAL,4 learning curve (75% -> 100% gain),0.0413,> 0 = still data-limited,PASS,25% 0.630 / 50% 0.734 / 75% 0.778 / 100% 0.819
+FINAL,5 seed stability (std macro-F1),0.0026,> 0.01 = WARN,PASS,"mean 0.8151, range 0.8124-0.8191"
+FINAL,6 selection bias (gain vs expected max noise),0.0842,> 0.011 (noise max),PASS,"103 variants, trial SE 0.0035"
+FINAL,6 nested check: tau_days pick wins on the unseen fold,4.0,>= 3 of 5,PASS,
+FINAL,6 nested check: min_child_samples pick wins on the unseen fold,3.0,>= 3 of 5,PASS,
+FINAL,7 gain vs L0 on fold_group,0.0842,> 0,PASS,L0 0.735 / FINAL 0.819
+FINAL,7 gain vs L0 on fold_row5,0.0699,> 0,PASS,L0 0.757 / FINAL 0.827
+FINAL,7 gain vs L0 on time_split,0.0699,> 0,PASS,L0 0.637 / FINAL 0.707
+FINAL,"8 archetypes worse than L0 by > 0.05 (n >= 20, >= 3 false)",1.0,0,WARN,lying_page -0.275

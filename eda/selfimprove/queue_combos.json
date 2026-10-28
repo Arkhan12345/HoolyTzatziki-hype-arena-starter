@@ -1,0 +1,12 @@
+{
+  "about": "Combination round on top of the loop's final configuration. Same goal.json accept rule; each value is one change against the current base, greedy; at most max_rounds passes; its own time budget.",
+  "budget_minutes": 45,
+  "max_rounds": 2,
+  "queue": [
+    ["et_vote", 0.5], ["et_vote", 0.7],
+    ["lgbm_seeds", 5],
+    ["bigru_blend", "auto"], ["bigru_blend", 0.85], ["bigru_blend", 0.7],
+    ["neural_stack", true],
+    ["unsure_head", "snn"], ["unsure_head", "cfc"]
+  ]
+}

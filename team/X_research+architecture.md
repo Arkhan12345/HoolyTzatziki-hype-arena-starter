@@ -75,6 +75,25 @@ Arckan ships a classifier that uses the research (beats 0.83 accuracy and 0.455 
 
 ---
 
+## Pitch (taken over from Matei, 28 Oct 15:20)
+
+Matei left; the pitch files are X's (`pitch/PITCH.md`, `STORY.md`, `QA.md`, `VIDEO_SCRIPT.md`, `figs/`, `export/`,
+`screenshots/`). His notes: [`pitch/matei_handoff_before_he_left.md`](../pitch/matei_handoff_before_he_left.md). Open items, in order:
+1. **Merge: done.** PRs #11–#13 are on `main` (deck, story, Q&A, video script, figures, both handoff notes).
+2. **Figures on the slides** only after Vald's `frontend/scripts/sync-assets.mjs` copies `pitch/figs/` → `public/figs/`
+   (Request in `STATUS.md`). Then an image line for `pitch/figs/label_mix.svg` on slide 2, `fake_strike` on slide 3, `leaderboard` +
+   `ablation` on slide 9 (`-dark.svg` if the deck renders dark). Candidate figures to choose from: `pitch/screenshots/INDEX.md`.
+3. **Live numbers:** use `{{offline.data.model.*}}`, never a bare `{{model.*}}` (after a demo run without the classifier
+   that shows the all-true score).
+4. **No markdown tables in `PITCH.md`**: the deck renderer has no table support; they show as raw pipes.
+5. **Claim precision is 0.17% / 0.67% / 1.9% wrong** at 10 / 25 / 50% of practice pages hidden (STORY C3); the older
+   0.5% is out of date.
+6. **08:30 freeze:** export the deck as PDF to `pitch/export/` (+ a screenshot of `/architecture`).
+7. **09:00–10:00:** record the video on `sample/sample.csv` (predictions and explanations only: the sample has no labels).
+8. **Numbers rule:** a number not in `pitch/STORY.md` is not said on stage (new research numbers: rows B1, I1–I9).
+
+---
+
 ## Next steps from the research (28 Oct evening)
 
 1. **Integrate the research streams:** merge `eda/out/improve_labels.csv`, `improve_neuro.csv`, `extraction.csv` and the weak-label rows into `eda/out/improve_all.csv`; pick the winner (best macro-F1, ties → lower ECE, must pass CPU time); score it **once** on the `holdout` pages.

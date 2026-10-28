@@ -1,0 +1,128 @@
+{
+ "goal_sha256": "e3e3f6ff1158eee9897421999f6682ce3b508a44bf7d7dd09d617e2896b9825b",
+ "started": "2026-10-28 16:40",
+ "elapsed_s": 1102.1290287971497,
+ "base_cfg": {
+  "switch": 1.5,
+  "tau_days": 45.0,
+  "anchor": 6.0,
+  "two_page_rule": true,
+  "trust_rounds": 3,
+  "trust_pseudo": 3.0,
+  "genre_pseudo": 10.0,
+  "num_leaves": 15,
+  "min_child_samples": 20,
+  "n_estimators": 200,
+  "learning_rate": 0.05,
+  "drop_family": null,
+  "weak_features": false,
+  "cfc_feature": false,
+  "calibrator": "evidence_sum",
+  "g1": false,
+  "g3": false,
+  "g4": false,
+  "joke": false,
+  "single_value": false,
+  "hearsay": false,
+  "today": false
+ },
+ "done": [
+  "g1",
+  "g3",
+  "g4",
+  "joke",
+  "single_value",
+  "hearsay",
+  "today",
+  "p2:headline_and_match_latest",
+  "p2:never_repeated_and_3values",
+  "p2:kinds_version_only",
+  "p2:first_person_and_number",
+  "p2:first_person_and_joke",
+  "p2:kinds_duration_quantity",
+  "p2:tree_unsure",
+  "p2:tree_false",
+  "p2:tree_unsure_layer"
+ ],
+ "kept": [],
+ "lockbox": {
+  "skipped": "no rule kept: the final model is the main loop's final, already scored on the holdout (0.7445)"
+ },
+ "permutation": {
+  "reps": [
+   {
+    "rep": 0,
+    "macro_f1_tf": 0.5939226979436973,
+    "macro_f1_3": 0.39594846529579825
+   },
+   {
+    "rep": 1,
+    "macro_f1_tf": 0.5866975673609158,
+    "macro_f1_3": 0.3911317115739439
+   },
+   {
+    "rep": 2,
+    "macro_f1_tf": 0.6032038720472551,
+    "macro_f1_3": 0.40213591469817006
+   }
+  ],
+  "max_tf": 0.6032038720472551,
+  "pass": false
+ },
+ "queue": [
+  "g1",
+  "g3",
+  "g4",
+  "joke",
+  "single_value",
+  "hearsay",
+  "today",
+  "p2:headline_and_match_latest",
+  "p2:never_repeated_and_3values",
+  "p2:kinds_version_only",
+  "p2:first_person_and_number",
+  "p2:first_person_and_joke",
+  "p2:kinds_duration_quantity",
+  "p2:tree_unsure",
+  "p2:tree_false",
+  "p2:tree_unsure_layer"
+ ],
+ "base_check": {
+  "mean_tf": 0.8182036129092356,
+  "pooled_tf": 0.8190796780752867
+ },
+ "final": {
+  "switch": 1.5,
+  "tau_days": 45.0,
+  "anchor": 6.0,
+  "two_page_rule": true,
+  "trust_rounds": 3,
+  "trust_pseudo": 3.0,
+  "genre_pseudo": 10.0,
+  "num_leaves": 15,
+  "min_child_samples": 20,
+  "n_estimators": 200,
+  "learning_rate": 0.05,
+  "drop_family": null,
+  "weak_features": false,
+  "cfc_feature": false,
+  "calibrator": "evidence_sum",
+  "g1": false,
+  "g3": false,
+  "g4": false,
+  "joke": false,
+  "single_value": false,
+  "hearsay": false,
+  "today": false
+ },
+ "final_cv": {
+  "mean_tf": 0.8182036129092356,
+  "pooled_tf": 0.8190796780752867,
+  "mean_3": 0.5454690752728237,
+  "pooled_3": 0.5460531187168578,
+  "acc": 0.8976773383553045,
+  "ece": 0.03977747234419746,
+  "unsure_recall": 0.0
+ },
+ "goal_sha256_end": "e3e3f6ff1158eee9897421999f6682ce3b508a44bf7d7dd09d617e2896b9825b"
+}

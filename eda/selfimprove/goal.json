@@ -1,0 +1,23 @@
+{
+  "about": "What a better label engine means. The self-improvement loop reads this file, checks its sha256 at start and end, and may never change it.",
+  "metric": "macro_f1_tf",
+  "metric_about": "macro-F1 over the true/false classes, per fold of eda/splits.csv fold_group (5 folds, holdout pages excluded)",
+  "start_from": "L6_judge (eda/07_improve.py): staircase timeline + page trust + failure statuses + hard rules + evidence-sum calibrator",
+  "accept_change": {
+    "rule": "a one-variable change is kept only if ALL hold against the current base: mean per-fold metric gain >= min_gain, better on >= folds_better of the 5 folds, pooled ECE not worse by more than ece_worse_max, and the runtime gate holds",
+    "min_gain": 0.005,
+    "folds_better": 4,
+    "ece_worse_max": 0.01
+  },
+  "runtime_gate": {
+    "about": "measured on 2 threads (the arena has 2 CPUs); retrain = every model fit of one fold (final + inner out-of-fold fits), predict extrapolated to 20,000 rows",
+    "retrain_s_max": 10.0,
+    "predict_20k_s_max": 5.0
+  },
+  "lockbox": {
+    "rows": "holdout pages of eda/splits.csv (holdout == 1)",
+    "rule": "scored once, at the very end, for the final configuration only; never used to accept or reject a change"
+  },
+  "budget_minutes": 60,
+  "multiple_testing": "the report states the number of trials and the expected best gain of pure noise (standard error of a trial's mean gain x sqrt(2 ln n)); a final gain below it is reported as not distinguishable from noise"
+}

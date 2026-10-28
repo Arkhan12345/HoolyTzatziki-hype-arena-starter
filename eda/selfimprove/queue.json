@@ -1,0 +1,31 @@
+{
+  "about": "One-variable changes, tried in this order. Each value is tried on its own against the current base; an accepted value becomes the new base before the next trial.",
+  "defaults": {
+    "switch": 1.5, "tau_days": 90.0, "anchor": 6.0, "two_page_rule": true,
+    "trust_rounds": 3, "trust_pseudo": 3.0, "genre_pseudo": 10.0,
+    "num_leaves": 15, "min_child_samples": 10, "n_estimators": 200, "learning_rate": 0.05,
+    "drop_family": null, "weak_features": false, "cfc_feature": false, "calibrator": "evidence_sum"
+  },
+  "queue": [
+    ["switch", 1.0], ["switch", 2.5], ["switch", 4.0],
+    ["tau_days", 45.0], ["tau_days", 180.0], ["tau_days", 365.0],
+    ["anchor", 3.0], ["anchor", 10.0],
+    ["two_page_rule", false],
+    ["trust_rounds", 1], ["trust_rounds", 5],
+    ["trust_pseudo", 1.0], ["trust_pseudo", 10.0],
+    ["genre_pseudo", 3.0], ["genre_pseudo", 30.0],
+    ["num_leaves", 7], ["num_leaves", 31],
+    ["min_child_samples", 5], ["min_child_samples", 20], ["min_child_samples", 40],
+    ["n_estimators", 100], ["n_estimators", 400],
+    ["learning_rate", 0.03], ["learning_rate", 0.1],
+    ["drop_family", "wording"], ["drop_family", "date"], ["drop_family", "value_shape"],
+    ["weak_features", true],
+    ["cfc_feature", true],
+    ["calibrator", "isotonic"], ["calibrator", "none"]
+  ],
+  "skipped": {
+    "unsure_band_cfc_head": "the unsure-only CfC head was scored as a whole (eda/out/improve_neuro.csv) but its per-row out-of-fold probabilities were not saved, so it cannot be added as a one-variable change here"
+  },
+  "refine": "after the queue: for every numeric knob whose value was accepted in this round, try the two neighbours (halfway to the next tried value on each side)",
+  "rounds": "a round that accepted at least one change is followed by another round over the whole queue against the new base (max 4 rounds), until a round accepts nothing or the 60-minute budget runs out"
+}

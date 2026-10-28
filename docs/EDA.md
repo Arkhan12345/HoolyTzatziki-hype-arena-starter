@@ -1,3 +1,6 @@
+> **Superseded** by [`EDA_v2.md`](EDA_v2.md) (rules, parameters, bake-off) and [`RESULTS.md`](RESULTS.md) (every
+> result). Kept for history. Map of all docs: [`README.md`](README.md).
+
 # EDA & model proposal — Hype or Truth (Team Tzatziki)
 
 > Team mapping: **P1 = X** (architecture + pitch) · **P2 = Ioan** (backend + devops) · **P3 = Arckan** (backend + AI) · **P4 = Vald** (fullstack + frontend). Prompts live in `team/`.

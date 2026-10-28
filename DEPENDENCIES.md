@@ -77,6 +77,7 @@ Node: 24.12 on the team laptops; Vite 6 needs Node 18, 20 or 22+. Versions below
 | File | Venv | Adds on top of the runtime pins | Used by |
 | --- | --- | --- | --- |
 | `eda/requirements-eda.txt` | `.venv` (shared) | `matplotlib==3.11.2` (+ `-r requirements.txt -c constraints.txt`) | `eda/01..03, 05, 06` |
+| `eda/requirements-eda.txt` (tests) | `.venv` (shared) | `pytest==8.3.4`, `pytest-bdd==8.1.0` (+ `gherkin-official==29.0.0`, `Mako==1.4.3`, `MarkupSafe==3.0.4`, `parse==1.22.4`, `parse_type==0.6.6`, `packaging==26.3`) | `eda/tests` (Gherkin + unit), `eda/audit.py` |
 | `eda/requirements-eda-neuro.txt` | `.venv-neuro` | `torch==2.14.1+cpu`, `ncps==1.0.1`, `snntorch==1.0.0` | `eda/04_bakeoff.py` (CfC + spiking) |
 
 ## Rules

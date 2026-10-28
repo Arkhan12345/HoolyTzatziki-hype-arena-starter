@@ -1,0 +1,12 @@
+{
+ "about": "Rules round. Phase 1: the dataset rules G1-G5 (eda/improve/rules_model.py), one knob each, greedy on top of the main-loop final. Phase 2 is built at run time by loop_rules.prefilter() from eda/out/rules.csv (stats only), followed by the decision-tree leaf knobs.",
+ "queue": [
+  {"knob": "g1", "phase": 1, "what": "ratio_to_held, log_ratio_to_held, perturb_ratio_hit as features"},
+  {"knob": "g3", "phase": 1, "what": "hedge_unbacked as a feature"},
+  {"knob": "g4", "phase": 1, "what": "speaker_trust, speaker_n as features (out of fold)"},
+  {"knob": "joke", "phase": 1, "what": "G2a joke tail + single fact + not key-value -> unsure"},
+  {"knob": "single_value", "phase": 1, "what": "G2b one-off value -> never false; unsure if P(true) < t (t on inner out-of-fold rows)"},
+  {"knob": "hearsay", "phase": 1, "what": "G2c hearsay -> unsure"},
+  {"knob": "today", "phase": 1, "what": "G5 'today' + other date -> unsure"}
+ ]
+}

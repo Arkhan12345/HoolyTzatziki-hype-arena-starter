@@ -57,6 +57,16 @@ in about 4 seconds on 2 CPUs, and every decision can be explained.
 | R2 | 689 MB of 3 GiB | image size, uncompressed | `pitch/metrics.json` runtime.image | Ioan | `{{runtime.image.uncompressed_mb}}` |
 | R3 | 57 MB RSS | peak memory on the 20k run in Docker (limit 6 GiB) | `pitch/metrics.json` runtime.docker_synthetic_20k | Ioan | `{{runtime.docker_synthetic_20k.rss_mb}}` |
 | R4 | exit 0, no OOM | `scripts/check.sh` in Docker: offline, user 10001, read-only root | `pitch/metrics.json` runtime.docker_check_sh | Ioan | |
+| B1 | 85.3% | all-true accuracy on the 380 rows `scripts/check.sh` hides (324 right of 380); quote it as the check.sh baseline, next to 83.3% on all 1,897 rows | `eda/splits.csv` (`fold_row5 == 0`), `pitch/metrics.json` runtime | X | |
+| I1 | 0.735 → 0.801 | macro-F1, plain LightGBM (L0) → L6 (staircase timeline + page trust + failure statuses + hard rules + evidence-sum calibrator), main CV (`fold_group`, holdout pages excluded) | `eda/out/improve_labels.csv`, `docs/RESULTS.md` | X | |
+| I2 | +0.071, 95% CI [+0.042, +0.103] | gain of the ladder up to the hard rules (L4) over L0, page bootstrap over 248 pages | `eda/out/improve_oof.pkl` (bootstrap in `docs/RESULTS.md` notes) | X | |
+| I3 | +0.054 | the staircase timeline alone (the biggest single piece) | `eda/out/improve_labels.csv` L1 | X | |
+| I4 | 0.050 | calibration error (ECE) of L6 (L0: 0.060) | `eda/out/improve_labels.csv` | X | |
+| I5 | 66% / 88% / 94% / 99% right | L6 confidence bands 0.50–0.70 / 0.70–0.85 / 0.85–0.95 / 0.95–1.00 (263 / 348 / 630 / 350 rows): right at least as often as it claims in every band | `eda/out/handoff/calibration_bins.csv` (fold_group, L6_judge) | X | |
+| I6 | inconclusive | 43 holdout pages scored once: L4 0.733 vs L0 0.743 macro-F1, CI [−0.074, +0.057]; too few pages to confirm or reject | `eda/out/improve_labels.csv` holdout_once | X | |
+| I7 | 0.725 | fact F1 of our simple extractor against the gold facts (131/131 value-forms examples parse) | `eda/out/extraction.csv` | X | |
+| I8 | 0.806 → 0.752 | L4 macro-F1 with gold facts → with our extracted facts (the cost of real extraction) | `eda/out/improve_labels.csv` | X | |
+| I9 | no gain | liquid (CfC / LTC), GRU, spiking and character-level nets never beat LightGBM on true/false (best sweep 0.697 vs 0.742); they halve calibration error in a stack (0.030) and the CfC head finds 25% of unsure rows | `eda/out/improve_neuro.csv` | X | |
 
 ## Figures (`pitch/figs/`, regenerate with `python3 pitch/figs/make_figs.py`, standard library only)
 
