@@ -130,6 +130,17 @@ def select(valid: list[Candidate], n: int, report: dict, gold_rows: set[str] | N
     return chosen
 
 
+def claim_pairs(ctype: str, form: dict) -> list[tuple[str, str]]:
+    """The (subject, attribute) facts a claim is about."""
+    if ctype == "compare":
+        return [(form["left"]["subject"], form["left"]["attribute"]), (form["right"]["subject"], form["right"]["attribute"])]
+    if ctype == "relation":
+        return [(form["subject"], form["link"]), (form["target"], form["attribute"])]
+    if ctype == "at_event":
+        return [(form["subject"], form["attribute"]), (form["event"], "date")]
+    return [(form["subject"], form["attribute"])]
+
+
 def generate_from_inventory(inv: FactInventory, input_texts: set[str], n: int = 1000,
                             report: dict | None = None) -> list[Claim]:
     rep: dict = {}
@@ -140,7 +151,7 @@ def generate_from_inventory(inv: FactInventory, input_texts: set[str], n: int = 
         cl = Claim(id=f"tz-{i + 1:04d}", type=c.type, text=c.text, form=c.form,
                    confidence=round(min(0.99, max(0.5, c.confidence)), 3))
         try:  # provenance stays out of the submission: the writer only reads the official fields
-            cl.meta = {"evidence": list(c.evidence), "sources": inv.sources(c.evidence),
+            cl.meta = {"evidence": list(c.evidence), "sources": inv.sources(c.evidence, pairs=claim_pairs(c.type, c.form)),
                        "semantic_key": json.dumps(c.semantic_key, default=str), **c.meta}
         except Exception:  # noqa: BLE001 - P1's Claim may be frozen/slotted
             pass

@@ -16,8 +16,8 @@
       "claims_valid": 1000
     },
     "claims_by_type": {
-      "change": 384,
-      "compare": 343,
+      "compare": 446,
+      "change": 281,
       "fact": 273
     },
     "fact_staleness_check": "15% subsample of practice: facts last seen from Sep 2026 on ~96% still current, Jun-Aug ~75%, earlier ~50% (confidence follows this)",
@@ -86,6 +86,14 @@
           "hide_25pct": 0.021,
           "hide_50pct": 0.0913
         }
+      },
+      "consecutive_changes": {
+        "wrong_rate": {
+          "hide_10pct": 0.0017,
+          "hide_25pct": 0.007,
+          "hide_50pct": 0.022
+        },
+        "note": "change = consecutive steps only; on the full practice set 903 claims at >= 0.9, 97 timeline compares (dates of different attributes) at 0.885"
       }
     }
   }
