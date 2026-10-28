@@ -1,11 +1,12 @@
-"""Claim selection: candidates -> truth check -> contract check -> novelty -> rank -> exactly n.
+"""Claim selection: candidates -> independent validator -> semantic dedup -> rank -> exactly n.
 
-Confidence first. No quotas per type and no caps per subject: if the best n are all compares, the
-output is n compares. Order of preference:
-  1. truth-verified, contract-valid, new text;
-  2. one claim per semantic key first (a paraphrase or the other side of a compare states nothing new),
-     best confidence first; ties broken by spreading over (subject, attribute) pairs;
-  3. semantic duplicates only if the distinct claims run out before n.
+Every candidate goes through app/validate/claims.py (contract, truth recomputed from the KB, novelty,
+provenance); only PASS candidates can be selected, so a rejected one is replaced by the next best.
+Confidence first, no quotas. Two rules on top:
+  - one claim per piece of information (mentor's rule): paraphrases, inverse compares and aliases
+    share a semantic key and only the best one can be selected, never two;
+  - a soft preference for all five types: if a type has PASS candidates at confidence >= 0.85 but fewer
+    than MIN_PER_TYPE were selected, its best ones replace the least confident selected claims.
 """
 from __future__ import annotations
 
@@ -16,10 +17,14 @@ import time
 from collections import Counter, defaultdict
 
 from app.generate.candidates import FACTORIES, Candidate
-from app.generate.truth import truth_problems
 from app.io.types import Claim
 from app.kb.inventory import FactInventory
-from app.validate.rules import norm_text, validate_claim
+from app.validate.claims import PASS, ClaimValidator
+from app.validate.claims import report as validation_report
+from app.validate.rules import norm_text
+
+MIN_PER_TYPE = 25
+SOFT_MIN_CONF = 0.85
 
 
 def all_candidates(inv: FactInventory, report: dict | None = None):
@@ -35,47 +40,41 @@ def all_candidates(inv: FactInventory, report: dict | None = None):
         report["candidates_by_type"] = dict(counts)
 
 
-def screen(inv: FactInventory, input_texts: set[str], report: dict) -> list[Candidate]:
-    """Every candidate that is true, contract-valid and new (unique text)."""
+def screen(inv: FactInventory, input_texts: set[str], report: dict,
+           validator: ClaimValidator | None = None) -> list[Candidate]:
+    """Every candidate the independent validator passes, one per text."""
+    validator = validator or ClaimValidator(inv, input_texts)
     valid, seen_text = [], set()
     rejected = defaultdict(Counter)
-    t_truth = t_contract = 0.0
-    n = 0
+    verdicts = defaultdict(Counter)
+    t0, n = time.perf_counter(), 0
     for c in all_candidates(inv, report):
         n += 1
-        t = time.perf_counter()
-        tp = truth_problems(c.type, c.form, inv)
-        t_truth += time.perf_counter() - t
-        if tp:
-            rejected[c.type][tp[0].split(":")[0] + ": " + tp[0].split(":", 1)[-1].strip()[:40]] += 1
-            continue
         probe = Claim(id="tz-probe", type=c.type, text=c.text, form=c.form, confidence=min(1, max(0.5, c.confidence)))
-        probe.meta = c.meta  # type: ignore[attr-defined]
-        t = time.perf_counter()
-        cp = validate_claim(probe, inv.lex, None)
-        t_contract += time.perf_counter() - t
-        if cp:
-            rejected[c.type][cp[0].split(":")[0][:60]] += 1
+        v = validator.check(probe, c.meta)
+        verdicts[c.type][v.verdict] += 1
+        if v.verdict != PASS:
+            first = v.reasons[0] if v.reasons else v.verdict
+            rejected[c.type][first.split(":")[0] + ": " + first.split(":", 1)[-1].strip()[:45]] += 1
             continue
         nt = norm_text(c.text)
-        if nt in input_texts:
-            rejected[c.type]["copy of an input row"] += 1
-            continue
         if nt in seen_text:
             rejected[c.type]["duplicate text"] += 1
             continue
         seen_text.add(nt)
+        c.meta["vkey"] = v.semantic_key
         valid.append(c)
-    report.update({"candidates": n, "truth_s": round(t_truth, 3), "validate_s": round(t_contract, 3),
+    report.update({"candidates": n, "validate_s": round(time.perf_counter() - t0, 3), "truth_s": 0.0,
+                   "verdicts_by_type": {k: dict(v) for k, v in verdicts.items()},
                    "rejected": {k: dict(v.most_common()) for k, v in rejected.items()}})
     return valid
 
 
 def rank(valid: list[Candidate]) -> tuple[list[Candidate], list[Candidate]]:
-    """(distinct, duplicates): best candidate per semantic key, and the rest; both best first."""
+    """(distinct, duplicates): best candidate per (validator) semantic key, and the rest; both best first."""
     groups: dict[tuple, list[Candidate]] = defaultdict(list)
     for c in valid:
-        groups[c.semantic_key].append(c)
+        groups[c.meta.get("vkey") or c.semantic_key].append(c)
     distinct, dups = [], []
     for g in groups.values():
         g.sort(key=lambda c: (-c.confidence, c.meta.get("template", 0), c.text))
@@ -110,16 +109,45 @@ def _pair_of(c: Candidate):
     return (f["subject"], f.get("attribute"))
 
 
+def _is_inverse(c: Candidate) -> bool:
+    """A compare whose left side is not the canonical first side: the mirror of another wording."""
+    key = c.meta.get("vkey") or ()
+    return bool(key) and key[0] == "compare" and (c.form["left"]["subject"], c.form["left"]["attribute"]) != tuple(key[1])
+
+
+def _prefer_all_types(distinct: list[Candidate], n: int) -> list[Candidate]:
+    """Best n by confidence; then make room for types with strong PASS candidates but < MIN_PER_TYPE taken."""
+    chosen = list(distinct[:n])
+    rest = distinct[n:]
+    counts = Counter(c.type for c in chosen)
+    for t in ("fact", "compare", "change", "at_event", "relation"):
+        need = MIN_PER_TYPE - counts[t]
+        if need <= 0:
+            continue
+        for c in [c for c in rest if c.type == t and c.confidence >= SOFT_MIN_CONF][:need]:
+            # drop the least confident claim of a type that stays above its minimum
+            for i in range(len(chosen) - 1, -1, -1):
+                d = chosen[i]
+                if counts[d.type] > MIN_PER_TYPE:
+                    chosen.pop(i)
+                    counts[d.type] -= 1
+                    chosen.append(c)
+                    counts[t] += 1
+                    break
+    return sorted(chosen, key=lambda c: -c.confidence)
+
+
 def select(valid: list[Candidate], n: int, report: dict, gold_rows: set[str] | None = None) -> list[Candidate]:
     distinct, dups = rank(valid)
-    chosen = distinct[:n]
-    if len(chosen) < n:
-        chosen += dups[: n - len(chosen)]
+    chosen = _prefer_all_types(distinct, n)
+    inverse = sum(1 for c in dups if _is_inverse(c))
     report.update({
         "valid": len(valid), "distinct_semantic": len(distinct), "semantic_duplicates": len(dups),
+        "semantic_duplicates_inverse_compare": inverse, "semantic_duplicates_paraphrase": len(dups) - inverse,
         "valid_by_type": dict(Counter(c.type for c in valid)),
         "distinct_by_type": dict(Counter(c.type for c in distinct)),
-        "selected_semantic_duplicates": max(0, len(chosen) - len(distinct[:n])),
+        "selected_semantic_duplicates": 0,  # never: one claim per piece of information
+        "shortfall": max(0, n - len(chosen)),
         "min_confidence_selected": min((c.confidence for c in chosen), default=None),
     })
     if gold_rows is not None:
@@ -144,7 +172,8 @@ def claim_pairs(ctype: str, form: dict) -> list[tuple[str, str]]:
 def generate_from_inventory(inv: FactInventory, input_texts: set[str], n: int = 1000,
                             report: dict | None = None) -> list[Claim]:
     rep: dict = {}
-    valid = screen(inv, set(input_texts), rep)
+    validator = ClaimValidator(inv, set(input_texts))
+    valid = screen(inv, set(input_texts), rep, validator)
     chosen = select(valid, n, rep, inv.gold_rows)
     claims = []
     for i, c in enumerate(chosen):
@@ -152,13 +181,29 @@ def generate_from_inventory(inv: FactInventory, input_texts: set[str], n: int = 
                    confidence=round(min(0.99, max(0.5, c.confidence)), 3))
         try:  # provenance stays out of the submission: the writer only reads the official fields
             cl.meta = {"evidence": list(c.evidence), "sources": inv.sources(c.evidence, pairs=claim_pairs(c.type, c.form)),
-                       "semantic_key": json.dumps(c.semantic_key, default=str), **c.meta}
+                       "semantic_key": json.dumps(c.semantic_key, default=str),
+                       **{k: v for k, v in c.meta.items() if k != "vkey"}}
         except Exception:  # noqa: BLE001 - P1's Claim may be frozen/slotted
             pass
         claims.append(cl)
-    rep.update({"by_type": dict(Counter(c.type for c in claims)), "n": len(claims), "inventory": inv.stats()})
+    # the final set, re-validated as a whole (uniqueness across the 1,000)
+    verdicts = validator.check_set(claims)
+    for cl, v in zip(claims, verdicts):
+        try:
+            cl.meta["validation"] = v.as_dict()
+        except Exception:  # noqa: BLE001
+            pass
+    vrep = validation_report(claims, verdicts, {
+        "generated": rep.get("candidates"), "by_type": rep.get("candidates_by_type"),
+        "verdicts_by_type": rep.get("verdicts_by_type"), "rejected": rep.get("rejected"),
+        "passed_unique_text": rep.get("valid"), "distinct_semantic": rep.get("distinct_semantic"),
+        "semantic_duplicates": {"inverse_compare": rep.get("semantic_duplicates_inverse_compare"),
+                                "paraphrase_or_alias": rep.get("semantic_duplicates_paraphrase")}})
+    rep.update({"by_type": dict(Counter(c.type for c in claims)), "n": len(claims), "inventory": inv.stats(),
+                "validation": vrep["selected"]})
     if report is not None:
         report.update(rep)
+        report["_validation_report"] = vrep
     return claims
 
 

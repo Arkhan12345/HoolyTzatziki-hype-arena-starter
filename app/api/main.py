@@ -8,6 +8,7 @@ GET  /runs                       recent runs (newest first)
 GET  /runs/{run_id}              one run's result (status "running" while an async run works)
 GET  /runs/{run_id}/claims       the run's 1,000 claims, paged: ?offset=&limit=&type=
 GET  /runs/{run_id}/metrics      the run's metrics (schemas.METRICS)
+GET  /runs/{run_id}/validation   the claim validator's report: ?verdict=PASS|FAIL|UNVERIFIED&offset=&limit=
 GET  /runs/{run_id}/output.csv   the run's table in the official output.csv format
 GET  /metrics                    metrics of the latest finished run (+ "offline" from pitch/metrics.json)
 GET  /architecture               pipeline graph for React Flow, with each stage's status and seconds
@@ -235,7 +236,7 @@ def run_rows(rows: list[dict], source: str = "rows", claims_limit: int = 50, run
         "claims": claims_plain[:claims_limit], "claims_total": len(claims_plain),
         "claims_by_type": report.get("by_type", {}), "timings": timings, "stages": STAGE_ORDER,
         "stage_details": details, "metrics": metrics, "errors": stages.errors,
-        "_claims_all": claims_plain, "_labels_obj": labels,
+        "_claims_all": claims_plain, "_labels_obj": labels, "_validation": report.get("_validation_report"),
     }
 
 
@@ -337,6 +338,21 @@ def run_claims(run_id: str, offset: int = 0, limit: int = 100, type: str | None 
     offset, limit = max(0, offset), max(1, min(1000, limit))
     return {"run_id": run_id, "total": len(claims), "offset": offset, "limit": limit,
             "claims": claims[offset:offset + limit]}
+
+
+@app.get("/runs/{run_id}/validation")
+def run_validation(run_id: str, verdict: str | None = None, offset: int = 0, limit: int = 100):
+    """The independent validator's report: aggregate counts + one entry per claim (PASS/FAIL/UNVERIFIED)."""
+    e = _get(run_id)
+    if not e.get("result"):
+        return JSONResponse({"run_id": run_id, "status": e["status"]}, status_code=202 if e["status"] == "running" else 500)
+    rep = e["result"].get("_validation") or {}
+    per = rep.get("claims", [])
+    if verdict:
+        per = [c for c in per if c["verdict"] == verdict]
+    offset, limit = max(0, offset), max(1, min(1000, limit))
+    return {"run_id": run_id, "selected": rep.get("selected"), "candidates": rep.get("candidates"),
+            "total": len(per), "offset": offset, "limit": limit, "claims": per[offset:offset + limit]}
 
 
 @app.get("/runs/{run_id}/metrics")

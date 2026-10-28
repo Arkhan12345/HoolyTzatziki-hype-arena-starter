@@ -134,3 +134,13 @@ def test_async_run_then_poll():
         time.sleep(0.1)
     assert res.status_code == 200 and res.json()["status"] in ("ok", "partial")
     assert any(x["run_id"] == rid for x in client.get("/runs").json()["runs"])
+
+
+def test_validation_report_endpoint(sample_run):
+    r = client.get(f"/runs/{sample_run['run_id']}/validation?limit=5").json()
+    assert r["selected"]["n"] == 1000 and r["selected"]["verdicts"] == {"PASS": 1000}
+    assert r["candidates"]["generated"] > 1000 and r["candidates"]["semantic_duplicates"]["inverse_compare"] > 0
+    assert len(r["claims"]) == 5 and all({"verdict", "checks", "reasons", "evidence"} <= set(c) for c in r["claims"])
+    assert client.get(f"/runs/{sample_run['run_id']}/validation?verdict=FAIL").json()["total"] == 0
+    m = client.get(f"/runs/{sample_run['run_id']}/metrics").json()
+    assert m["claims"]["validation"]["selected"]["verdicts"] == {"PASS": 1000}

@@ -6,7 +6,7 @@ import pytest
 
 from app.generate import generate, generate_from_inventory
 from app.generate.render import value_text
-from app.generate.truth import truth_problems
+from app.validate.claims import ClaimValidator
 from app.io.reader import read_lexicon, read_practice
 from app.kb import normalize as nz
 from app.kb.inventory import FactInventory
@@ -34,9 +34,10 @@ def test_exactly_1000_unique_valid(world):
     assert len({c.id for c in claims}) == 1000
     assert len({norm_text(c.text) for c in claims}) == 1000
     inv = FactInventory.from_kb(kb)
+    judge = ClaimValidator(inv, texts)
     for c in claims:
         assert validate_claim(c, lex, texts) == [], c.text
-        assert truth_problems(c.type, c.form, inv) == [], c.text
+        assert judge.check(c).verdict == "PASS", (c.text, judge.check(c).reasons)
         assert 0.5 <= c.confidence <= 1
 
 
@@ -105,10 +106,11 @@ def test_combinatorial_compares_without_quotas():
                 c.form["left"]["subject"])
     assert len(pairs) == 561 and all(len(sides) == 2 for sides in pairs.values())
     assert report["distinct_by_type"]["compare"] == 34 * 33 // 2  # 561 distinct relations
-    assert len(claims) == 1000
-    by_type = Counter(c.type for c in claims)
-    assert by_type["compare"] + by_type["fact"] == 1000  # whatever the evidence supports, no quota
-    assert report["selected_semantic_duplicates"] == 1000 - report["distinct_semantic"]
+    # 561 pieces of information exist; the mirror wordings and the facts (each restates its own row)
+    # may not pad the set: fewer than n claims, reported, instead of relaxed rules
+    assert len(claims) == 561 and report["shortfall"] == 1000 - 561
+    assert Counter(c.type for c in claims) == {"compare": 561}
+    assert report["selected_semantic_duplicates"] == 0 and report["semantic_duplicates_inverse_compare"] >= 561
     for c in claims:
         assert validate_claim(c, lex, set()) == [], c.text
 

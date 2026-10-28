@@ -199,14 +199,17 @@ def main(universe_dir: str | None = None, output_dir: str | None = None, deadlin
         collector.write_json(out, "architecture.json",
                              collector.architecture(metrics["runtime"]["stage_status"], stages.timings, run_id))
         collector.write_claims_debug(out, claims)
-        log(f"auxiliary metrics.json, architecture.json, claims_debug.jsonl in {out}")
+        if gen_report.get("_validation_report"):
+            collector.write_json(out, "validation_report.json", gen_report["_validation_report"])
+        log(f"auxiliary metrics.json, architecture.json, claims_debug.jsonl, validation_report.json in {out}")
     except Exception:  # noqa: BLE001
         log(f"auxiliary artifacts skipped:\n{traceback.format_exc()}")
         metrics = None
 
     report = {"run_id": run_id, "timings": {k: round(v, 3) for k, v in stages.timings.items()},
               "stage_status": stages.status, "errors": stages.errors, "rows": len(rows), "blank": len(blank_ids),
-              "facts": len(facts), "kb": kb.stats(), "claims": gen_report, "rss_mb": rss_mb(),
+              "facts": len(facts), "kb": kb.stats(),
+              "claims": {k: v for k, v in gen_report.items() if not k.startswith("_")}, "rss_mb": rss_mb(),
               "total_s": round(time.time() - t0, 3), "metrics": metrics}
     log("report " + json.dumps({k: v for k, v in report.items() if k != "metrics"}, default=str))
     return report
