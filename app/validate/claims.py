@@ -12,9 +12,11 @@ and recomputes every truth condition of claim-forms.md on its own. Checks, in or
 Official rule (mentor clarification, Hype Arena, 28 Oct 2026, on top of contracts/): the same
 information may appear only once, however it is worded: "A costs more than B." and "B costs less
 than A." are one claim, and so are paraphrases and the same subject under an alias. A claim must also
-not be a reformulation of an input sentence: when one input row already states every fact a fact,
-change, at_event or relation claim states, it is a reformulation; a compare is one when a single row
-states both sides with a comparison word.
+not be a reformulation of an input sentence: when one input sentence names the claim's subjects and
+already states every fact a fact, change, at_event or relation claim states, it is a reformulation; a
+compare is one when a single sentence is about exactly its two facts and compares. A claim that ties a
+value to a subject no sentence names next to it (a pronoun, a table row, "the hall") connects what
+the universe says (README: "new claims ... that connect what the universe says") and is new.
 
 UNVERIFIED = the evidence can neither confirm nor refute it (it is not selected). FAIL = refuted or invalid.
 """
@@ -248,7 +250,29 @@ class ClaimValidator:
             ev = (self.canon(f["event"]), "date")
             days = {str(e.value["value"]) for e in self._trusted(f["event"], "date")}
             rows = {r for r in rows if any(p == ev and str(v.get("value")) in days for p, v in self.inv._by_row[r])}
+        # A sentence restates the claim only if it also NAMES the subjects: "He begins with a crew of 4
+        # engineers" or a table row "Call: 38 min, 44 min, …" gives the value without its subject, and a
+        # claim that ties that value to its named subject connects what the universe says.
+        subjects = {p[0] for p, _ in items}
+        if ctype == "at_event":
+            subjects.add(self.canon(f["event"]))
+        rows = {r for r in rows or () if subjects <= self._named_in(r)}
         return sorted(rows)[0] if rows else None
+
+    def _named_in(self, rid: str) -> set[str]:
+        """Canonical lexicon names a row's text names (whole names, longest first, any case)."""
+        cache = self.__dict__.setdefault("_named_cache", {})
+        if rid not in cache:
+            from app.validate.rules import named_entities
+
+            text = self.inv.rows.get(rid, {}).get("text") or ""
+            names = {c for _, _, c in named_entities(text, self.lex)}
+            for ev in self.lex.events:  # events that are not also subjects of the lexicon
+                if ev and ev not in names and re.search(r"(?<![\w/])" + r"\s*".join(map(re.escape, ev.split()))
+                                                        + r"(?![\w/])", text, re.I):
+                    names.add(self.canon(ev))
+            cache[rid] = names
+        return cache[rid]
 
     def provenance(self, rows: list[str]) -> tuple[str, list]:
         known = [r for r in dict.fromkeys(rows) if r in self.inv.rows]

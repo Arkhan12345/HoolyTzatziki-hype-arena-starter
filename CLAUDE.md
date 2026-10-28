@@ -4,7 +4,8 @@ Read `team/README.md` (who owns what) and the official `contracts/` first; the c
 
 - **Claims (official rule from the mentor, on top of contracts/):** one claim per piece of information. Paraphrases,
   aliases and inverse compares ("A costs more than B" / "B costs less than A") count as the same claim, and a claim
-  must not restate an input sentence. Enforced by `app/validate/claims.py`.
+  must not restate an input sentence (one that names its subjects and states its values; tying a value to a subject
+  the sentence leaves unnamed is new). Enforced by `app/validate/claims.py`.
 - **Dependencies:** before adding or upgrading any dependency, read `DEPENDENCIES.md`, inspect the actual
   lockfiles/manifests (`requirements.txt`, `constraints.txt`, `requirements-dev.txt`, `frontend/package-lock.json`),
   and update the shared dependency contract when a change is required.
