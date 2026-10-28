@@ -1,35 +1,314 @@
 {
-  "source": "mock",
-  "model": {
-    "accuracy": 0.86,
-    "macro_f1": 0.79,
-    "baseline": { "name": "all true", "accuracy": 0.71, "macro_f1": 0.28 },
-    "confusion": {
-      "labels": ["true", "false", "unsure"],
-      "matrix": [
-        [2410, 180, 60],
-        [210, 690, 40],
-        [70, 50, 120]
-      ]
+ "schema_version": "1.0",
+ "run_id": "20261028-140013-0ba95f",
+ "kind": "demo",
+ "created_at": "2026-10-28T14:00:30+0200",
+ "status": "ok",
+ "errors": [],
+ "classification": {
+  "rows_total": 20,
+  "rows_labelled_in_input": 0,
+  "rows_predicted": 20,
+  "predicted": {
+   "true": 20,
+   "false": 0,
+   "unsure": 0
+  },
+  "confidence": {
+   "n": 20,
+   "min": 0.83,
+   "max": 0.83,
+   "mean": 0.83,
+   "median": 0.83,
+   "histogram": [
+    {
+     "lo": 0.5,
+     "hi": 0.55,
+     "count": 0
     },
-    "calibration": [
-      { "predicted": 0.55, "observed": 0.53, "count": 310 },
-      { "predicted": 0.65, "observed": 0.62, "count": 480 },
-      { "predicted": 0.75, "observed": 0.77, "count": 720 },
-      { "predicted": 0.85, "observed": 0.83, "count": 960 },
-      { "predicted": 0.95, "observed": 0.94, "count": 1360 }
-    ]
+    {
+     "lo": 0.55,
+     "hi": 0.6,
+     "count": 0
+    },
+    {
+     "lo": 0.6,
+     "hi": 0.65,
+     "count": 0
+    },
+    {
+     "lo": 0.65,
+     "hi": 0.7,
+     "count": 0
+    },
+    {
+     "lo": 0.7,
+     "hi": 0.75,
+     "count": 0
+    },
+    {
+     "lo": 0.75,
+     "hi": 0.8,
+     "count": 0
+    },
+    {
+     "lo": 0.8,
+     "hi": 0.85,
+     "count": 20
+    },
+    {
+     "lo": 0.85,
+     "hi": 0.9,
+     "count": 0
+    },
+    {
+     "lo": 0.9,
+     "hi": 0.95,
+     "count": 0
+    },
+    {
+     "lo": 0.95,
+     "hi": 1,
+     "count": 0
+    }
+   ]
   },
-  "claims_by_type": { "fact": 420, "compare": 180, "change": 160, "at_event": 120, "relation": 120 },
-  "runtime": {
-    "total_s": 412,
-    "stages": { "load": 6, "extract": 168, "kb": 31, "classify": 74, "generate": 96, "validate": 33, "write": 4 }
-  },
-  "neuro": {
-    "variants": [
-      { "name": "Classic (LightGBM)", "accuracy": 0.86, "macro_f1": 0.79, "train_s": 40 },
-      { "name": "Liquid (CfC)", "accuracy": 0.87, "macro_f1": 0.8, "train_s": 310 },
-      { "name": "Spiking", "accuracy": 0.82, "macro_f1": 0.74, "train_s": 520 }
+  "classifier": "baseline",
+  "evaluation": {
+   "label_source": "data/practice.csv",
+   "n": 20,
+   "note": "demo rows that are practice rows; their gold was held out of the KB for this run",
+   "accuracy": 0.85,
+   "macro_f1": 0.4595,
+   "baseline": {
+    "name": "all true",
+    "accuracy": 0.85,
+    "macro_f1": 0.4595
+   },
+   "confusion": {
+    "labels": [
+     "true",
+     "false",
+     "unsure"
+    ],
+    "matrix": [
+     [
+      17,
+      0,
+      0
+     ],
+     [
+      3,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0
+     ]
     ]
+   },
+   "calibration": [
+    {
+     "predicted": 0.83,
+     "observed": 0.85,
+     "count": 20
+    }
+   ],
+   "ece": 0.02
   }
+ },
+ "claims": {
+  "candidates_total": 10699,
+  "candidates_by_type": {
+   "compare": 8440,
+   "change": 411,
+   "fact": 846,
+   "at_event": 977,
+   "relation": 25
+  },
+  "rejected_by_reason": {
+   "compare": {
+    "a time word in a compare": 274,
+    "a number in a compare": 188,
+    "another entity named": 18
+   },
+   "change": {
+    "name value not in the lexicon": 14,
+    "time word ['last quarter']": 12,
+    "another entity named": 1,
+    "other number ['9']": 1
+   },
+   "fact": {
+    "name value not in the lexicon": 58,
+    "another entity named": 8,
+    "time word ['last quarter']": 4,
+    "copy of an input row": 2,
+    "other number ['zero']": 2,
+    "time word ['since']": 2,
+    "other number ['9']": 2
+   },
+   "at_event": {
+    "name value not in the lexicon": 98,
+    "time word ['since']": 3,
+    "another entity named": 2
+   },
+   "relation": {
+    "name value not in the lexicon": 3,
+    "value 'Hooly Board' stated 2 times": 1,
+    "time word ['since']": 1
+   }
+  },
+  "valid": 10005,
+  "unique_text": 10005,
+  "unique_semantic": 5642,
+  "semantic_duplicates": 4363,
+  "selected": 1000,
+  "selected_by_type": {
+   "change": 383,
+   "compare": 521,
+   "fact": 96
+  },
+  "selected_semantic_duplicates": 0,
+  "confidence": {
+   "n": 1000,
+   "min": 0.95,
+   "max": 0.98,
+   "mean": 0.9644,
+   "median": 0.97,
+   "histogram": [
+    {
+     "lo": 0.5,
+     "hi": 0.55,
+     "count": 0
+    },
+    {
+     "lo": 0.55,
+     "hi": 0.6,
+     "count": 0
+    },
+    {
+     "lo": 0.6,
+     "hi": 0.65,
+     "count": 0
+    },
+    {
+     "lo": 0.65,
+     "hi": 0.7,
+     "count": 0
+    },
+    {
+     "lo": 0.7,
+     "hi": 0.75,
+     "count": 0
+    },
+    {
+     "lo": 0.75,
+     "hi": 0.8,
+     "count": 0
+    },
+    {
+     "lo": 0.8,
+     "hi": 0.85,
+     "count": 0
+    },
+    {
+     "lo": 0.85,
+     "hi": 0.9,
+     "count": 0
+    },
+    {
+     "lo": 0.9,
+     "hi": 0.95,
+     "count": 408
+    },
+    {
+     "lo": 0.95,
+     "hi": 1,
+     "count": 592
+    }
+   ]
+  },
+  "gold_only_supported": 1000,
+  "kb_supported": 0,
+  "inventory": {
+   "pairs": 502,
+   "pairs_in_lexicon": 502,
+   "pairs_with_trusted": 501,
+   "trusted_mentions": 1950,
+   "trusted_distinct_values": 827
+  }
+ },
+ "runtime": {
+  "total_s": 17.113,
+  "stages": {
+   "load": 0.0009,
+   "extract": null,
+   "kb": 0.0304,
+   "classify": null,
+   "generate": 0.9803,
+   "validate": 16.099,
+   "write": null
+  },
+  "stage_status": {
+   "load": "ok",
+   "extract": "not_available",
+   "kb": "ok",
+   "classify": "not_available",
+   "generate": "ok",
+   "validate": "ok",
+   "write": "skipped"
+  },
+  "rss_mb": null
+ },
+ "model": {
+  "accuracy": 0.85,
+  "macro_f1": 0.4595,
+  "baseline": {
+   "name": "all true",
+   "accuracy": 0.85,
+   "macro_f1": 0.4595
+  },
+  "confusion": {
+   "labels": [
+    "true",
+    "false",
+    "unsure"
+   ],
+   "matrix": [
+    [
+     17,
+     0,
+     0
+    ],
+    [
+     3,
+     0,
+     0
+    ],
+    [
+     0,
+     0,
+     0
+    ]
+   ]
+  },
+  "calibration": [
+   {
+    "predicted": 0.83,
+    "observed": 0.85,
+    "count": 20
+   }
+  ],
+  "n": 20,
+  "label_source": "data/practice.csv",
+  "note": "demo rows that are practice rows; their gold was held out of the KB for this run"
+ },
+ "claims_by_type": {
+  "change": 383,
+  "compare": 521,
+  "fact": 96
+ },
+ "offline": null
 }

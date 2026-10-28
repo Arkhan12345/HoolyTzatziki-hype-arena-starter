@@ -23,5 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# copied from ../pitch/PITCH.md by scripts/copy-pitch.mjs
+# copied from the repo by scripts/sync-assets.mjs
+public/data/
+.vite/
 public/pitch.md

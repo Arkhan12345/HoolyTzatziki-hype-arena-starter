@@ -1,7 +1,7 @@
-# Frontend: Hype or Truth (Team Tzatziki)
+# Frontend: Hype Arena (Team Tzatziki · Hype or Truth)
 
-The page the jury sees: our pipeline as a live diagram, a live run on rows we give it (`sample/sample.csv`), metrics, and the pitch deck.
-Owner: P4 (Vald). Stack: Vite + React 19 + TypeScript + Tailwind + shadcn-style components, React Flow (`@xyflow/react`) for the diagram, Recharts for charts.
+The page the jury sees: our pipeline as a live diagram, a live run on rows we give it (`sample/sample.csv`), single-claim verification, an explorer, the 1,000-claim generator, metrics, and the pitch deck.
+Owner: P4 (Vald). Stack: Vite + React 19 + TypeScript + Tailwind + framer-motion, React Flow (`@xyflow/react`) for the diagram, Recharts for charts. The visual system is described in [DESIGN.md](DESIGN.md).
 
 ## Start everything with one command
 
@@ -16,59 +16,47 @@ frontend\scripts\start.ps1       # Windows PowerShell
 ```
 
 This installs the UI's dependencies, starts the demo API on `:8000` if `app/api` exists and Python is available, and starts the UI on <http://localhost:5173>.
-If the API is not up, the UI still works: it shows **mock** results and an "API offline" banner.
 
 ## Run the UI only
 
 ```sh
 cd frontend
 npm install
-npm run dev      # talks to VITE_API_URL (default http://localhost:8000), falls back to mocks
-npm run mock     # mocks only, never calls the API (VITE_MOCK=1)
+npm run dev      # talks to VITE_API_URL (default http://localhost:8000)
+npm run mock     # demo data only, never calls the API (VITE_MOCK=1); every page says so
 npm run build    # type-check + production build; run it before every push
 ```
 
 | Env var | Default | Meaning |
 | --- | --- | --- |
 | `VITE_API_URL` | `http://localhost:8000` | Base URL of P2's FastAPI demo API |
-| `VITE_MOCK` | unset | `1` = use `src/mocks/*.json`, never call the API |
+| `VITE_MOCK` | unset | `1` = use `src/mocks/*.json` and never call the API |
+
+`scripts/sync-assets.mjs` runs before `dev` and `build`. It copies `pitch/PITCH.md`, `data/lexicon.json` and `data/practice.csv` into `public/`. These copies are git-ignored.
 
 ## Pages
 
 | Route | What |
 | --- | --- |
-| `/` | **Live run**: "Use sample.csv" (`POST /run {"use":"sample"}`) or upload/drop a CSV (`POST /run`, multipart field `file`). The pipeline diagram lights up stage by stage. Then: TRUE/FALSE/UNSURE stamps, confidence bars, extracted facts as chips, and a tab of generated claims with each form's JSON. |
-| `/architecture` | Full React Flow diagram from `GET /architecture`. Click a node for what it does and its latest timing. It lights up during a run too. |
-| `/metrics` | `GET /metrics` (pitch/metrics.json): accuracy and macro-F1 vs the all-true baseline, confusion matrix, calibration, claims by type, runtime per stage. Shows a Classic vs Liquid (CfC) vs Spiking card when the key `neuro` exists. |
-| `/pitch` | Full-screen slides from `pitch/PITCH.md`. |
+| `/` | **Dashboard**: `/health` (extractor, classifier, sample availability), stage status from `stage_details`, then the run's `metrics`: rows, claims, accuracy on practice rows (`classification.evaluation`), verdict counts, confidence histogram, runtime. Also the live data flow, the pipeline log, and `predictions` with their `explanation` and `facts`. A `partial` run shows a warning naming `errors[].stage`. |
+| `/verify` | **Verify a claim**: text + date go to `POST /run {"rows":[…]}`. Shows the verdict, a confidence gauge, the API's `explanation`, the extracted facts, the KB `evidence` (supports or contradicts) when the extractor is in, and the value history from the practice gold rows. A practice sentence keeps its own id, so the API holds its gold out of the KB and returns it for comparison. |
+| `/explorer` | Search, filter (verdict, min confidence, value kind, date range), sort and page through the last run's `predictions` or the 1,897 practice rows. Expand a row for its facts or form, its explanation and its provenance. |
+| `/generate` | Runs the generator, then pages through all claims with `GET /runs/{id}/claims` (type filter on the server). Shows `metrics.claims`: candidates, rejected by reason, semantic duplicates, selected by type and confidence. Each claim's form and source sentences can be expanded. The download is `GET /runs/{id}/output.csv`. |
+| `/architecture` | React Flow diagram from `GET /architecture`, refetched after each run. Nodes are lit by `status` (ok green, fallback amber, not_available grey, skipped muted, failed red) and labelled with `seconds` (null shows no number). Click a node for its description, timing and status. |
+| `/metrics` | `GET /metrics`. When `model` is null, it says "not available" instead of showing accuracy, macro-F1, confusion and calibration; a `model.label_source` of "offline evaluation (pitch/metrics.json)" is labelled so. Also the claim funnel, rejections by reason, claims by type, and runtime per stage with its status. A null shows as "—", never 0. |
+| `/pitch` | Full-screen slides from `pitch/PITCH.md`: `## Slide N: Title` starts a slide, `> notes:` lines are speaker notes. Use ← → to move, N for notes, F for fullscreen, Esc to exit. `{{model.accuracy|pct}}` pulls a live number from `/metrics`. |
 
-**Demo mode** (top right) runs sample.csv and walks the diagram slowly, for the video.
+**Demo run** (sidebar) runs `sample.csv` through the real API. If the API is down, pages show an error with the start command. Demo data loads only when you click "Demo data", and it is labelled as such.
 
-## API shapes the UI expects (from P2's `app/api`)
+## API the UI uses (P2's API v1.1: `docs/API_CONTRACT.md`, handoff in `docs/VALD_HANDOFF.md`)
 
-```jsonc
-// POST /run
-{ "labels":  [{ "id": "p-1", "label": "true", "confidence": 0.93 }],          // confidence null for unsure
-  "claims":  [{ "id": "c-1", "type": "fact", "text": "…", "form": {…}, "confidence": 0.9 }],
-  "facts":   [{ "row_id": "p-1", "subject": "Holdan", "attribute": "joined", "value": {"kind":"date","value":"2026-01-12"}, "span": "…", "conf": 0.9 }],
-  "timings": { "load": 0.08, "extract": 0.42, "kb": 0.11, "classify": 0.27, "generate": 0.36, "validate": 0.14, "write": 0.03 },  // seconds
-  "stages":  ["load", "extract", "kb", "classify", "generate", "validate", "write"],
-  "rows":    [{ "id": "p-1", "text": "…", "date": "2026-01-12" }]               // optional, requested: lets "Use sample.csv" show row text
-}
-// GET /architecture
-{ "nodes": [{ "id": "kb", "label": "Temporal KB", "kind": "stage|io|optional", "stage": "kb", "owner": "P2",
-              "description": "…", "details": ["…"], "position": {"x": 520, "y": 160} }],   // position optional (auto-layout)
-  "edges": [{ "source": "kb", "target": "classifier", "label": "…", "dashed": false, "loop": false }] }
-// GET /metrics: see src/mocks/metrics.json for every key the page reads; missing keys are skipped.
-```
+Types are in `src/api/types.ts` and calls in `src/api/client.ts`. The UI never computes labels, claims or metrics.
 
-A node lights up when its `stage` matches the stage being run. The mocks in `src/mocks/` are the reference shapes. `run.json` holds the first 20 practice rows with their gold forms as facts.
+| Call | Used for |
+| --- | --- |
+| `POST /run?mode=async` (sample, multipart `file`, or `{rows}`), then poll `GET /runs/{id}` every 500 ms | every run; the API stays responsive while it works (60 s request timeout, 5 min overall) |
+| `GET /runs/{id}/claims?offset&limit&type` | the 1,000 claims, 50 per page |
+| `GET /runs/{id}/output.csv` | the download on /generate |
+| `GET /metrics`, `GET /architecture`, `GET /health` | metrics page, diagram, status and boot checks |
 
-## Pitch deck (`/pitch`)
-
-`scripts/copy-pitch.mjs` copies `../pitch/PITCH.md` to `public/pitch.md` before every `dev` and `build`. It is a plain copy, not a symlink, so it works on Windows.
-
-- Every `## Slide N: Title` heading starts a slide. The body is Markdown.
-- Lines starting `> notes:` (and the `> ` lines after them) are speaker notes.
-- Live numbers: write `{{model.accuracy|pct}}`, `{{model.macro_f1|pct}}` or `{{runtime.total_s}}` in PITCH.md, and the value comes from `/metrics`.
-- Keys: ← → / Space to move, **N** for presenter notes, **F** for fullscreen, **Esc** to leave. `#s=3` in the URL opens slide 3.
+Errors are explained in plain words. A 400 shows the API's `detail`. A 413 means more than 2,000 rows. A 404 on `/runs/...` means the API restarted, so start a new run.
