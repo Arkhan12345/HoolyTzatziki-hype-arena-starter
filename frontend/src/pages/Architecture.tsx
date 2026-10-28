@@ -35,7 +35,7 @@ export default function ArchitecturePage() {
         }
       />
 
-      <Panel className="relative h-[min(68vh,640px)] min-h-[420px] overflow-hidden">
+      <Panel className="relative h-[min(76vh,760px)] min-h-[460px] overflow-hidden">
         <div className="absolute left-4 right-4 top-3 z-10 flex flex-wrap items-center gap-2 text-xs">
           <AnimatePresence mode="wait">
             {running ? (

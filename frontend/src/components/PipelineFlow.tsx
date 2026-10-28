@@ -60,10 +60,11 @@ const PipeNodeView = memo(function PipeNodeView({ data }: NodeProps<PipeNode>) {
       // the node pops when its stage starts, and settles when the stage's result lands
       animate={{ scale: status === 'active' ? 1.06 : 1 }}
       transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+      // every node has the same shape and size (inputs, stages and outputs alike); only the border style tells
+      // an optional stage apart
       className={cn(
-        'relative overflow-hidden rounded-lg border bg-surface-1 px-3 py-2 text-left transition-[border-color,background-color,box-shadow,opacity] duration-500',
-        compact ? 'w-[170px]' : 'w-[210px]',
-        kind === 'io' && 'rounded-full bg-surface-2',
+        'relative flex flex-col justify-center overflow-hidden rounded-xl border bg-surface-1 text-left transition-[border-color,background-color,box-shadow,opacity] duration-500',
+        compact ? 'h-[46px] w-[190px] px-3' : 'h-[86px] w-[250px] px-4',
         kind === 'optional' && 'border-dashed opacity-80',
         status === 'idle' && 'border-line-strong',
         status === 'running' && 'border-cyan/50 bg-cyan/[0.05]',
@@ -76,31 +77,30 @@ const PipeNodeView = memo(function PipeNodeView({ data }: NodeProps<PipeNode>) {
         data.selected && 'ring-2 ring-cyan ring-offset-2 ring-offset-void',
       )}
     >
-      <Handle type="target" position={Position.Left} className="!h-1.5 !w-1.5 !border-0 !bg-line-strong" />
-      <div className="flex items-center gap-2">
+      <div className={cn('flex items-center', compact ? 'gap-2 [&_svg]:size-4' : 'gap-2.5 [&_svg]:size-[18px]')}>
         {status === 'active' || status === 'running' ? (
-          <Loader2 className={cn('size-3.5 shrink-0 animate-spin', status === 'active' ? 'text-cyan' : 'text-cyan/60')} />
+          <Loader2 className={cn('shrink-0 animate-spin', status === 'active' ? 'text-cyan' : 'text-cyan/60')} />
         ) : status === 'done' ? (
-          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }}>
-            <Check className="size-3.5 shrink-0 text-verdict-true" />
+          <motion.span className="flex" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }}>
+            <Check className="shrink-0 text-verdict-true" />
           </motion.span>
         ) : status === 'degraded' ? (
-          <AlertTriangle className="size-3.5 shrink-0 text-verdict-unsure" />
+          <AlertTriangle className="shrink-0 text-verdict-unsure" />
         ) : status === 'unavailable' ? (
-          <Hourglass className="size-3.5 shrink-0 text-ink-faint" />
+          <Hourglass className="shrink-0 text-ink-faint" />
         ) : status === 'skipped' ? (
-          <CircleMinus className="size-3.5 shrink-0 text-ink-faint" />
+          <CircleMinus className="shrink-0 text-ink-faint" />
         ) : status === 'failed' ? (
-          <CircleX className="size-3.5 shrink-0 text-verdict-false" />
+          <CircleX className="shrink-0 text-verdict-false" />
         ) : Icon ? (
-          <Icon className="size-3.5 shrink-0 text-ink-faint" />
+          <Icon className="shrink-0 text-ink-faint" />
         ) : (
-          <span className="size-1.5 shrink-0 rounded-full bg-cyan" />
+          <span className="size-2 shrink-0 rounded-full bg-cyan" />
         )}
-        <span className={cn('truncate font-semibold text-ink', compact ? 'text-xs' : 'text-[13px]')}>{data.label}</span>
+        <span className={cn('truncate font-semibold text-ink', compact ? 'text-[13px]' : 'text-[16px]')}>{data.label}</span>
       </div>
       {!compact && (
-        <div className="mt-1 flex items-center justify-between gap-2 text-[10.5px]">
+        <div className="mt-1.5 flex items-center justify-between gap-2 text-[12.5px]">
           <span className={cn('num', OWNER_TINT[data.owner ?? ''] ?? 'text-ink-faint')}>
             {data.owner ?? ''}
             {kind === 'optional' ? ' · optional' : ''}
@@ -114,7 +114,7 @@ const PipeNodeView = memo(function PipeNodeView({ data }: NodeProps<PipeNode>) {
       )}
       {!compact && data.note && ['degraded', 'unavailable', 'failed', 'skipped'].includes(status) && (
         <div
-          className={cn('num mt-1 truncate text-[10px]', status === 'degraded' ? 'text-verdict-unsure' : status === 'failed' ? 'text-verdict-false' : 'text-ink-faint')}
+          className={cn('num mt-1 truncate text-[11.5px]', status === 'degraded' ? 'text-verdict-unsure' : status === 'failed' ? 'text-verdict-false' : 'text-ink-faint')}
           title={data.note}
         >
           {data.note}
@@ -129,9 +129,7 @@ const PipeNodeView = memo(function PipeNodeView({ data }: NodeProps<PipeNode>) {
           transition={{ duration: (data.activeMs ?? 800) / 1000, ease: 'linear' }}
         />
       )}
-      <Handle type="source" position={Position.Right} className="!h-1.5 !w-1.5 !border-0 !bg-line-strong" />
-      <Handle id="loop-out" type="source" position={Position.Bottom} className="!opacity-0" />
-      <Handle id="loop-in" type="target" position={Position.Bottom} className="!opacity-0" />
+      <NodeHandles />
     </motion.div>
   )
 })
@@ -265,6 +263,28 @@ const FlowEdgeView = memo(function FlowEdgeView(props: EdgeProps<FlowEdge>) {
   )
 })
 
+/**
+ * Connection points on all four sides, so an edge can leave and enter on whichever side faces the other node
+ * (see edgeHandles). The loop handles carry the validator → generator feedback underneath the row.
+ */
+function NodeHandles() {
+  const cls = '!h-1.5 !w-1.5 !border-0 !bg-transparent'
+  return (
+    <>
+      <Handle id="l-in" type="target" position={Position.Left} className={cls} />
+      <Handle id="l-out" type="source" position={Position.Left} className={cls} />
+      <Handle id="r-in" type="target" position={Position.Right} className={cls} />
+      <Handle id="r-out" type="source" position={Position.Right} className={cls} />
+      <Handle id="t-in" type="target" position={Position.Top} className={cls} />
+      <Handle id="t-out" type="source" position={Position.Top} className={cls} />
+      <Handle id="b-in" type="target" position={Position.Bottom} className={cls} />
+      <Handle id="b-out" type="source" position={Position.Bottom} className={cls} />
+      <Handle id="loop-out" type="source" position={Position.Bottom} className="!opacity-0" style={{ left: '35%' }} />
+      <Handle id="loop-in" type="target" position={Position.Bottom} className="!opacity-0" style={{ left: '35%' }} />
+    </>
+  )
+}
+
 const nodeTypes = { pipe: PipeNodeView }
 const edgeTypes = { flow: FlowEdgeView }
 
@@ -289,9 +309,51 @@ function autoLayout(nodes: ArchNode[], allEdges: ArchEdge[]) {
     nodes.map((n) => {
       const d = depth[n.id] ?? 0
       const row = (perCol[d] = (perCol[d] ?? -1) + 1)
-      return [n.id, { x: d * 250, y: row * 120 }]
+      return [n.id, { x: d * 370, y: row * 160 }]
     }),
   )
+}
+
+/**
+ * The diagram's layout, in grid cells: four rows and five columns, so the nodes can be big and well spaced and
+ * still fit the frame (a single row of seven stages forces the fit to zoom out until the text is tiny).
+ * Middle row: input → extractor → KB → classifier → labels. Row below: generator → validator → writer → output.
+ * Ids not listed here (a node the API adds later) fall back to the API's own position, spread out.
+ */
+const COL = 330
+const ROW = 190
+const GRID: Record<string, [number, number]> = {
+  gold: [2, 0],
+  neuro: [3, 0],
+  universe: [0, 1],
+  extractor: [1, 1],
+  kb: [2, 1],
+  classifier: [3, 1],
+  labels: [4, 1],
+  generator: [2, 2],
+  validator: [3, 2],
+  writer: [4, 2],
+  output: [4, 3],
+}
+const SPREAD = { x: 1.3, y: 1.6 }
+
+/** Edges that must not take the straight path (it would run through another node): routed under the row. */
+const ROUTES: Record<string, { sourceHandle: string; targetHandle: string }> = {
+  'extractor->classifier': { sourceHandle: 'b-out', targetHandle: 'b-in' },
+}
+
+/** Pick the sides an edge uses: the one facing the other node, horizontally or vertically. */
+function edgeHandles(e: ArchEdge, pos: Record<string, { x: number; y: number }>) {
+  if (e.loop) return { sourceHandle: 'loop-out', targetHandle: 'loop-in' }
+  const route = ROUTES[edgeKey(e)]
+  if (route) return route
+  const a = pos[e.source]
+  const b = pos[e.target]
+  if (!a || !b) return { sourceHandle: 'r-out', targetHandle: 'l-in' }
+  const dx = b.x - a.x
+  const dy = b.y - a.y
+  if (Math.abs(dy) > Math.abs(dx)) return dy > 0 ? { sourceHandle: 'b-out', targetHandle: 't-in' } : { sourceHandle: 't-out', targetHandle: 'b-in' }
+  return dx >= 0 ? { sourceHandle: 'r-out', targetHandle: 'l-in' } : { sourceHandle: 'l-out', targetHandle: 'r-in' }
 }
 
 const NO_STATUS: Record<string, NodeStatus> = {}
@@ -328,13 +390,24 @@ export function PipelineFlow({
   const reduce = useReducedMotion()
   const { theme, colors: c } = useTheme()
   const auto = useMemo(() => autoLayout(architecture.nodes, architecture.edges), [architecture])
+  const positions = useMemo(
+    () =>
+      Object.fromEntries(
+        architecture.nodes.map((n) => {
+          const g = GRID[n.id]
+          const p = g ? { x: g[0] * COL, y: g[1] * ROW } : n.position ? { x: n.position.x * SPREAD.x, y: n.position.y * SPREAD.y } : auto[n.id]
+          return [n.id, p]
+        }),
+      ),
+    [architecture, auto],
+  )
 
   const built: PipeNode[] = useMemo(
     () =>
       architecture.nodes.map((n) => ({
         id: n.id,
         type: 'pipe',
-        position: n.position ?? auto[n.id],
+        position: positions[n.id],
         draggable: false,
         data: {
           ...n,
@@ -346,7 +419,7 @@ export function PipelineFlow({
           compact,
         },
       })),
-    [architecture, auto, status, timings, notes, activeMs, selectedId, compact],
+    [architecture, positions, status, timings, notes, activeMs, selectedId, compact],
   )
 
   // React Flow keeps nodes hidden until it has measured them, which needs onNodesChange; keep `measured` across updates.
@@ -364,7 +437,7 @@ export function PipelineFlow({
           id: `e${i}-${e.source}-${e.target}`,
           source: e.source,
           target: e.target,
-          ...(e.loop ? { sourceHandle: 'loop-out', targetHandle: 'loop-in' } : {}),
+          ...edgeHandles(e, positions),
           type: 'flow',
           label: e.label,
           markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color },
@@ -372,7 +445,7 @@ export function PipelineFlow({
           data: { anim, dashed: e.dashed, colors: c, compact, particles: !reduce },
         }
       }),
-    [architecture, edgeAnim, compact, reduce, c],
+    [architecture, positions, edgeAnim, compact, reduce, c],
   )
 
   return (
