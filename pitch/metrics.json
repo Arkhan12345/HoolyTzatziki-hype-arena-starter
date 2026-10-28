@@ -16,9 +16,10 @@
       "claims_valid": 1000
     },
     "claims_by_type": {
-      "compare": 466,
+      "compare": 394,
       "change": 281,
       "at_event": 252,
+      "fact": 72,
       "relation": 1
     },
     "fact_staleness_check": "15% subsample of practice: facts last seen from Sep 2026 on ~96% still current, Jun-Aug ~75%, earlier ~50% (confidence follows this)",
@@ -114,10 +115,15 @@
       },
       "holdout_wrong_rate": {
         "hide_10pct": 0.0017,
-        "hide_25pct": 0.0057,
-        "hide_50pct": 0.0183,
-        "at_event_robust": 0.0
-      }
+        "hide_25pct": 0.0063,
+        "hide_50pct": 0.0203,
+        "fact": {
+          "hide_10pct": 0.0,
+          "hide_25pct": 0.016,
+          "hide_50pct": 0.0443
+        }
+      },
+      "fact_rule": "a fact restates an input sentence only if that sentence names its subject and states its value; 296 fact candidates PASS, 99 distinct, 72 selected"
     }
   }
 }

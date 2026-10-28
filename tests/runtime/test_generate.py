@@ -86,7 +86,7 @@ NAMES = ["Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel
 def _synthetic(n_products=34):
     products = [f"Zeta {w} Plan" for w in NAMES[:n_products]]
     lex = {"subjects": [{"name": p, "aliases": [], "attributes": ["price"]} for p in products], "events": []}
-    recs = [{"subject": p, "attribute": "price", "date": "2026-10-01",
+    recs = [{"subject": p, "attribute": "price", "date": "2026-10-01", "text": f"{p} costs €{10 + i} per month.",
              "value": {"kind": "money", "value": 10 + i, "currency": "EUR", "per": "month"}}
             for i, p in enumerate(products)]
     return FactInventory.from_records(recs, lex), lex

@@ -163,3 +163,19 @@ def test_selected_thousand_are_all_pass_and_unique():
     assert report["selected_semantic_duplicates"] == 0
     assert report["semantic_duplicates_inverse_compare"] > 0  # inverse compares were detected and dropped
     assert all(c.meta["validation"]["evidence"] for c in claims)
+
+
+def test_fact_tying_a_value_to_its_unnamed_subject_is_new(V):
+    # p-1798 "A team of 4 recruiters reads your file." never names Hooly Hiring Programme
+    form = {"subject": "Hooly Hiring Programme", "attribute": "recruiters",
+            "value": {"kind": "quantity", "value": 4, "unit": "recruiter"}}
+    v = V.check(claim("f2", "fact", "Hooly Hiring Programme has 4 recruiters.", form))
+    assert v.checks["novelty"] == PASS, v.reasons
+
+
+def test_fact_whose_sentence_names_subject_and_value_is_a_reformulation(V):
+    # "Hooly Search holds 301,000,000,000 pages." names the subject and states the value
+    form = {"subject": "Hooly Search", "attribute": "index_size",
+            "value": {"kind": "quantity", "value": 301000000000, "unit": "page"}}
+    v = V.check(claim("f3", "fact", "The index size of Hooly Search is 301,000,000,000 pages.", form))
+    assert v.checks["novelty"] == FAIL
