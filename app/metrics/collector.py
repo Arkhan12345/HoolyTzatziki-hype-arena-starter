@@ -158,6 +158,13 @@ def claim_metrics(report: dict | None, claims) -> dict:
         "gold_only_supported": r.get("selected_gold_only"),
         "kb_supported": r.get("selected_kb_supported"),
         "inventory": r.get("inventory"),
+        # independent validator (app/validate/claims.py): candidates' verdicts and the final set's
+        "validation": {
+            "candidates_verdicts_by_type": r.get("verdicts_by_type"),
+            "inverse_compares_detected": r.get("semantic_duplicates_inverse_compare"),
+            "paraphrases_detected": r.get("semantic_duplicates_paraphrase"),
+            "selected": r.get("validation"),
+        } if r.get("validation") else None,
     }
 
 

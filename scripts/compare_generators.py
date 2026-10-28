@@ -7,7 +7,7 @@
 Setting: practice pages split at random (--hide, default 50%). A sees the gold of the kept pages only;
 B sees its classifier's output on every row (as in the arena, where it reads the whole universe).
 Both go through the same generator, validator and selection, and both are judged with
-app/generate/truth.py against all of practice. Files in --out: claims_A.jsonl, claims_B.jsonl
+the independent validator (app/validate/claims.py) against all of practice. Files in --out: claims_A.jsonl, claims_B.jsonl
 (every claim with its source sentences and verdict) and comparison.json.
 
 The MOCK is not a model: it labels each practice row with its gold label (flipped with probability
@@ -27,14 +27,13 @@ sys.path.insert(0, ROOT)
 
 from app.generate import strategies  # noqa: E402
 from app.generate.select import generate_from_inventory  # noqa: E402
-from app.generate.truth import truth_problems  # noqa: E402
+from app.validate.claims import FAIL, PASS, ClaimValidator  # noqa: E402
 from app.io.reader import read_lexicon, read_practice, read_rows  # noqa: E402
 from app.kb.inventory import FactInventory  # noqa: E402
 from app.kb.store import KB  # noqa: E402
 from app.validate.rules import norm_text  # noqa: E402
 from scripts.claim_holdout import pages  # noqa: E402
 
-UNCONFIRMED = ("not held on", "no current value", "no trusted day")
 
 
 def mock_structured(practice: list[dict], noise: float, seed: int) -> tuple[list[dict], list[dict]]:
@@ -51,10 +50,10 @@ def mock_structured(practice: list[dict], noise: float, seed: int) -> tuple[list
 
 
 def judge(claims, full: FactInventory) -> list[dict]:
-    out = []
+    out, judge = [], ClaimValidator(full)
     for c in claims:
-        p = truth_problems(c.type, c.form, full)
-        verdict = "holds" if not p else ("unconfirmed" if any(w in p[0] for w in UNCONFIRMED) else "contradicted")
+        status, p, _ = judge.truth(c.type, c.form)
+        verdict = "holds" if status == PASS else ("contradicted" if status == FAIL else "unconfirmed")
         meta = getattr(c, "meta", {}) or {}
         out.append({"id": c.id, "type": c.type, "text": c.text, "form": c.form, "confidence": c.confidence,
                     "verdict": verdict, "problem": p[0] if p else None, "semantic_key": meta.get("semantic_key"),

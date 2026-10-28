@@ -4,7 +4,6 @@ import { ChevronRight, Download, Search, Sparkles } from 'lucide-react'
 import { getClaims, outputCsvUrl } from '@/api/client'
 import type { Claim, ClaimsPage } from '@/api/types'
 import { ConfidenceBar } from '@/components/data/ConfidenceBar'
-import { VerdictBadge } from '@/components/data/VerdictBadge'
 import { TerminalLog } from '@/components/data/TerminalLog'
 import { TypeBadge } from '@/components/FactChip'
 import { AnimatedNumber } from '@/components/fx/AnimatedNumber'
@@ -13,6 +12,7 @@ import { CopyButton, EmptyState, ErrorState, NotComputed, PageHeader, PartialWar
 import { Button } from '@/components/ui/button'
 import { CLAIM_TYPES, TYPE_COLORS, cn } from '@/lib/utils'
 import { useColors } from '@/lib/theme'
+import { DebugOnly, useDebug } from '@/state/debug'
 import { useRun } from '@/state/run'
 
 const TARGET = 1000
@@ -20,6 +20,7 @@ const PAGE = 50
 
 export default function GeneratePage() {
   const { jobs, generate } = useRun()
+  const { debug } = useDebug()
   // Every run generates the 1,000 claims, so without a run of its own this page shows the dashboard's last run.
   const fromDashboard = !jobs.generate && jobs.run?.status === 'done' && !!jobs.run.result?.run_id
   const job = fromDashboard ? jobs.run : jobs.generate
@@ -64,17 +65,24 @@ export default function GeneratePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="true-claim generation"
-        title="Generate 1,000 new true claims"
-        lead="The generator builds candidates from the knowledge base in the five claim forms. The validator drops anything invalid or not new, and the most confident 1,000 are kept. Every number here is what the API reports for the run."
+        eyebrow="claim generation"
+        title="1,000 new true claims"
+        lead="Built from what the timeline firmly supports, in the five claim forms. Each one is checked, new, and true."
         right={
-          <Button variant="primary" size="lg" onClick={generate} disabled={job?.status === 'running'}>
-            <Sparkles /> {job?.status === 'running' ? 'Generating…' : r ? 'Run again' : 'Run generator'}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant={runId ? 'outline' : 'primary'} onClick={generate} disabled={job?.status === 'running'}>
+              <Sparkles /> {job?.status === 'running' ? 'Generating…' : r ? 'Run again' : 'Run generator'}
+            </Button>
+            {runId && job?.status !== 'running' && (
+              <Button variant="primary" onClick={() => window.open(outputCsvUrl(runId), '_blank')}>
+                <Download /> output.csv
+              </Button>
+            )}
+          </div>
         }
       />
 
-      {fromDashboard && (
+      {fromDashboard && debug && (
         <p className="num rounded-lg border border-line bg-surface-2/60 px-3 py-2 text-xs text-ink-muted">
           Showing the claims of the dashboard's last run ({r?.run_id}). “Run generator” starts a run of its own.
         </p>
@@ -84,9 +92,8 @@ export default function GeneratePage() {
 
       {!job && (
         <Panel beam>
-          <EmptyState icon={<Sparkles />} title="Generator idle">
-            A run takes about 8 to 20 seconds the first time (it generates and validates about 10,000 candidates) and well under a second when the claims are cached. Nothing is shown as generated
-            until the API returns it.
+          <EmptyState icon={<Sparkles />} title="No claims yet">
+            Run the generator, or run the pipeline from the Run page.
           </EmptyState>
         </Panel>
       )}
@@ -114,12 +121,12 @@ export default function GeneratePage() {
                   </p>
                 </div>
               </div>
-              <dl className="mt-6 grid grid-cols-3 gap-2 text-center">
+              {debug && <dl className="mt-6 grid grid-cols-3 gap-2 text-center">
                 <Stat label="candidates" value={mc?.candidates_total} />
                 <Stat label="rejected" value={mc && mc.candidates_total != null && mc.valid != null ? mc.candidates_total - mc.valid : null} />
                 <Stat label="duplicates" value={mc?.semantic_duplicates} />
-              </dl>
-              {mc?.confidence && (
+              </dl>}
+              {debug && mc?.confidence && (
                 <p className="num mt-3 text-2xs text-ink-faint">
                   confidence {mc.confidence.min.toFixed(2)}–{mc.confidence.max.toFixed(2)} · median {mc.confidence.median.toFixed(2)}
                 </p>
@@ -151,9 +158,9 @@ export default function GeneratePage() {
               </ul>
             </Panel>
 
-            {mc && Object.keys(mc.rejected_by_reason ?? {}).length > 0 && (
+            {debug && mc && Object.keys(mc.rejected_by_reason ?? {}).length > 0 && (
               <Panel>
-                <PanelHeader eyebrow="validation" title="Why candidates were rejected" />
+                <PanelHeader eyebrow="debug" title="Why candidates were rejected" />
                 <ul className="max-h-56 space-y-1 overflow-auto p-5 pt-3 text-xs">
                   {Object.entries(mc.rejected_by_reason)
                     .flatMap(([t, reasons]) => Object.entries(reasons).map(([reason, n]) => ({ t, reason, n })))
@@ -169,19 +176,6 @@ export default function GeneratePage() {
               </Panel>
             )}
 
-            <Panel className="p-5">
-              <div className="eyebrow">export</div>
-              {runId ? (
-                <>
-                  <Button variant="primary" className="mt-3" onClick={() => window.open(outputCsvUrl(runId), '_blank')}>
-                    <Download /> output.csv for this run
-                  </Button>
-                  <p className="mt-2 text-2xs text-ink-faint">Served by the API (GET /runs/{runId}/output.csv) in the official columns id,type,text,form,label,confidence.</p>
-                </>
-              ) : (
-                <p className="mt-2 text-sm text-ink-muted">Export needs a run id from the API{job?.source === 'demo' ? ' (demo data has none)' : ''}.</p>
-              )}
-            </Panel>
           </div>
 
           <div className="min-w-0 space-y-5">
@@ -225,7 +219,7 @@ export default function GeneratePage() {
                 <>
                   <ul className={cn('divide-y divide-line/70 transition-opacity', loading && 'opacity-50')}>
                     {shown.map((c, i) => (
-                      <ClaimRow key={c.id} c={c} i={i} open={open === c.id} onToggle={() => setOpen(open === c.id ? null : c.id)} />
+                      <ClaimRow key={c.id} c={c} i={i} debug={debug} open={open === c.id} onToggle={() => setOpen(open === c.id ? null : c.id)} />
                     ))}
                     {!shown.length && <li className="p-8 text-center text-sm text-ink-muted">No claims match.</li>}
                   </ul>
@@ -245,7 +239,9 @@ export default function GeneratePage() {
                 </>
               )}
             </Panel>
-            <TerminalLog job={job} />
+            <DebugOnly>
+              <TerminalLog job={job} />
+            </DebugOnly>
           </div>
         </div>
       )}
@@ -253,23 +249,22 @@ export default function GeneratePage() {
   )
 }
 
-function ClaimRow({ c, i, open, onToggle }: { c: Claim; i: number; open: boolean; onToggle: () => void }) {
+function ClaimRow({ c, i, debug, open, onToggle }: { c: Claim; i: number; debug: boolean; open: boolean; onToggle: () => void }) {
   const reduce = useReducedMotion()
   return (
-    <motion.li initial={reduce ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 15) * 0.02 }} className="px-4 py-3 hover:bg-surface-2/40">
+    <motion.li initial={reduce ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 15) * 0.02 }} className="px-5 py-3.5 transition-colors hover:bg-surface-2/40">
       <div className="flex items-start gap-3">
         <TypeBadge type={c.type} />
         <div className="min-w-0 flex-1">
           <p className="text-sm leading-snug">{c.text}</p>
-          <button type="button" aria-expanded={open} onClick={onToggle} className="mt-1 inline-flex cursor-pointer items-center gap-1 text-2xs text-ink-faint hover:text-ink">
+          {debug && <button type="button" aria-expanded={open} onClick={onToggle} className="mt-1 inline-flex cursor-pointer items-center gap-1 text-2xs text-ink-faint hover:text-ink">
             <ChevronRight className={cn('size-3 transition-transform', open && 'rotate-90')} /> form &amp; sources <span className="num">{c.id}</span>
-          </button>
+          </button>}
         </div>
-        <VerdictBadge verdict="true" size="sm" className="mt-0.5 shrink-0" />
         <ConfidenceBar value={c.confidence} verdict="true" />
       </div>
       <AnimatePresence initial={false}>
-        {open && (
+        {debug && open && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ type: 'spring', bounce: 0.1, duration: 0.4 }} className="overflow-hidden">
             <div className="relative mt-2">
               <pre className="num overflow-x-auto rounded-lg border border-line bg-void/70 p-3 text-xs text-ink-muted">{JSON.stringify(c.form, null, 2)}</pre>

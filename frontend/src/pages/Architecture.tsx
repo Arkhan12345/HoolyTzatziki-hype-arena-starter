@@ -1,16 +1,20 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Play, X } from 'lucide-react'
+import { Play, RotateCcw, X } from 'lucide-react'
 import { PipelineFlow, usePipelineStatus } from '@/components/PipelineFlow'
 import { TerminalLog } from '@/components/data/TerminalLog'
 import { Panel } from '@/components/fx/Panel'
 import { PageHeader } from '@/components/States'
 import { Button } from '@/components/ui/button'
 import { fmtSeconds, stageHealth } from '@/lib/utils'
+import { DebugOnly, useDebug } from '@/state/debug'
 import { useRun } from '@/state/run'
 
+const pill = { initial: { opacity: 0, y: -4 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 4 }, transition: { duration: 0.18 } }
+
 export default function ArchitecturePage() {
-  const { architecture, focus, replay, run, jobs } = useRun()
+  const { architecture, focus, replay, replayAgain, run, jobs } = useRun()
+  const { debug } = useDebug()
   const [selected, setSelected] = useState<string | null>(null)
   const pipe = usePipelineStatus(architecture.data, focus, replay)
   const node = architecture.data.nodes.find((n) => n.id === selected)
@@ -20,30 +24,68 @@ export default function ArchitecturePage() {
   return (
     <div className="space-y-5">
       <PageHeader
-        eyebrow="pipeline architecture"
+        eyebrow="pipeline"
         title="How a sentence becomes a verdict"
-        lead="Text becomes facts, facts go on a timeline, and each row is judged against the value in force on its date. New claims come only from what the timeline firmly supports. No LLM runs inside the system. Click a stage to see what it does."
+        lead="Text becomes facts, facts go on a timeline, and each sentence is judged against the value in force on its date. Select a stage for details."
         right={
           <div className="flex flex-wrap items-center gap-2">
-            <span className="num text-2xs uppercase tracking-wider text-ink-faint">graph: {architecture.source === 'api' ? 'GET /architecture' : 'bundled copy'}</span>
+            {debug && <span className="num text-2xs uppercase tracking-wider text-ink-faint">graph: {architecture.source === 'api' ? 'GET /architecture' : 'bundled copy'}</span>}
             <Button variant="primary" onClick={() => run({ kind: 'sample' })} disabled={jobs.run?.status === 'running'}>
-              <Play /> Run sample through it
+              <Play /> Run sample.csv
             </Button>
           </div>
         }
       />
 
-      <Panel className="relative h-[min(68vh,640px)] min-h-[420px] overflow-hidden">
-        <div className="absolute left-4 top-3 z-10 flex items-center gap-2 text-xs">
-          {running ? (
-            <span className="num rounded-full border border-cyan/40 bg-cyan/10 px-2.5 py-0.5 text-cyan-ice">request in flight · stage unknown until the API answers</span>
-          ) : pipe.replaying ? (
-            <span className="num rounded-full border border-cyan/40 bg-cyan/10 px-2.5 py-0.5 text-cyan-ice">replaying measured timings</span>
-          ) : focus?.result ? (
-            <span className="num rounded-full border border-line bg-surface-2 px-2.5 py-0.5 text-ink-muted">last run: {focus.input}</span>
-          ) : null}
+      <Panel className="relative h-[min(76vh,760px)] min-h-[460px] overflow-hidden">
+        <div className="absolute left-4 right-4 top-3 z-10 flex flex-wrap items-center gap-2 text-xs">
+          <AnimatePresence mode="wait">
+            {running ? (
+              <motion.span key="run" {...pill} className="num rounded-full border border-cyan/40 bg-cyan/10 px-2.5 py-0.5 text-cyan-ice">
+                request in flight · the stages light up when the API answers
+              </motion.span>
+            ) : pipe.cursor ? (
+              <motion.span key={`s-${pipe.cursor.index}`} {...pill} className="num flex items-center gap-2 rounded-full border border-cyan/40 bg-cyan/10 px-2.5 py-0.5 text-cyan-ice">
+                <span className="text-ink-faint">
+                  stage {pipe.cursor.index + 1}/{pipe.cursor.total}
+                </span>
+                <span className="font-semibold">{pipe.cursor.stage}</span>
+                <span>· {fmtSeconds(pipe.cursor.seconds)}</span>
+                <span className="text-ink-muted">· {pipe.cursor.status}</span>
+              </motion.span>
+            ) : focus?.result ? (
+              <motion.span key="last" {...pill} className="num rounded-full border border-line bg-surface-2 px-2.5 py-0.5 text-ink-muted">
+                last run: {focus.result.source ?? focus.input}
+              </motion.span>
+            ) : null}
+          </AnimatePresence>
+          {focus?.result && !running && (
+            <Button size="sm" variant="ghost" className="ml-auto" onClick={replayAgain} disabled={pipe.replaying}>
+              <RotateCcw /> Replay animation
+            </Button>
+          )}
         </div>
-        <PipelineFlow architecture={architecture.data} status={pipe.status} timings={pipe.timings} notes={pipe.notes} selectedId={selected} onSelect={setSelected} />
+        {pipe.replaying && (
+          <div className="absolute inset-x-0 top-0 z-10 h-[2px] bg-line">
+            <motion.div
+              key={`${replay}-${focus?.startedAt}`}
+              className="h-full origin-left bg-cyan"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: ((pipe.cursor?.index ?? 0) + 1) / (pipe.cursor?.total ?? 1) }}
+              transition={{ duration: 0.4 }}
+            />
+          </div>
+        )}
+        <PipelineFlow
+          architecture={architecture.data}
+          status={pipe.status}
+          edges={pipe.edges}
+          activeMs={pipe.activeMs}
+          timings={pipe.timings}
+          notes={pipe.notes}
+          selectedId={selected}
+          onSelect={setSelected}
+        />
 
         <div className="pointer-events-none absolute bottom-4 left-4 flex flex-wrap gap-x-4 gap-y-1 rounded-lg border border-line bg-surface-1/90 px-3 py-2 text-[11px] text-ink-muted">
           <Legend c="border-verdict-true" t="done" />
@@ -97,7 +139,9 @@ export default function ArchitecturePage() {
         </AnimatePresence>
       </Panel>
 
-      <TerminalLog job={focus} />
+      <DebugOnly>
+        <TerminalLog job={focus} />
+      </DebugOnly>
     </div>
   )
 }

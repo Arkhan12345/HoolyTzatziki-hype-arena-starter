@@ -16,9 +16,11 @@
       "claims_valid": 1000
     },
     "claims_by_type": {
-      "compare": 446,
-      "change": 281,
-      "fact": 273
+      "compare": 527,
+      "change": 265,
+      "at_event": 138,
+      "fact": 69,
+      "relation": 1
     },
     "fact_staleness_check": "15% subsample of practice: facts last seen from Sep 2026 on ~96% still current, Jun-Aug ~75%, earlier ~50% (confidence follows this)",
     "note": "extractor and classifier not merged yet: labels are the all-true baseline (0.83 confidence)",
@@ -95,6 +97,52 @@
         },
         "note": "change = consecutive steps only; on the full practice set 903 claims at >= 0.9, 97 timeline compares (dates of different attributes) at 0.885"
       }
+    },
+    "claim_validator": {
+      "source": "app/validate/claims.py on the practice gold, 2026-10-28",
+      "candidates": 11794,
+      "pass": 9583,
+      "fail": 1885,
+      "unverified": 326,
+      "fact_rejected_as_reformulation_or_contract": 1272,
+      "inverse_compares_detected": 2459,
+      "paraphrases_detected": 2270,
+      "distinct_semantic": 4854,
+      "selected": {
+        "n": 1000,
+        "PASS": 1000,
+        "semantic_duplicates": 0
+      },
+      "holdout_wrong_rate": {
+        "hide_10pct": 0.0017,
+        "hide_25pct": 0.0063,
+        "hide_50pct": 0.0203,
+        "fact": {
+          "hide_10pct": 0.0,
+          "hide_25pct": 0.016,
+          "hide_50pct": 0.0443
+        },
+        "latest": {
+          "hide_10pct": 0.0023,
+          "hide_25pct": 0.0063,
+          "hide_50pct": 0.021
+        }
+      },
+      "fact_rule": "a fact restates an input sentence only if that sentence names its subject and states its value; 296 fact candidates PASS, 99 distinct, 72 selected",
+      "text_restatement": {
+        "rule": "every input sentence, labelled or not: a sentence naming the subject within 80 characters of the value (any value-forms writing) restates the claim; farther apart = weak, fallback only",
+        "rejected_on_practice": {
+          "fact": 32,
+          "change": 16,
+          "compare": 4,
+          "relation": 4,
+          "at_event": 3
+        },
+        "weak_available": 46,
+        "weak_selected": 0,
+        "cost_19k_rows_s": 3.8
+      },
+      "selection_rules": "at least one claim of every type that has a PASS candidate; at most 2 at_event per fact; yes/no read naturally ('Hooly Gemini was EU hosted at Hooly Cloud Next 2026.')"
     }
   }
 }

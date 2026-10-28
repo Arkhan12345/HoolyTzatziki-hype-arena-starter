@@ -36,6 +36,8 @@ interface RunState {
   focus: Job | null
   /** Increments when a job finishes, to replay its measured stage timings on the diagram. */
   replay: number
+  /** Plays the last run's stage animation again, without a new request. */
+  replayAgain: () => void
   refreshHealth: () => void
   run: (input: RunInput, label?: string) => Promise<void>
   loadDemo: () => void
@@ -141,13 +143,15 @@ export function RunProvider({ children }: { children: ReactNode }) {
     setReplay((n) => n + 1)
   }, [])
 
+  const replayAgain = useCallback(() => setReplay((n) => n + 1), [])
+
   const clear = useCallback((kind: JobKind) => {
     tokens.current[kind]++
     setJobs((j) => ({ ...j, [kind]: null }))
   }, [])
 
   return (
-    <Ctx.Provider value={{ health, healthInfo, architecture, jobs, history, focus, replay, refreshHealth, run, loadDemo, verify, generate, clear }}>
+    <Ctx.Provider value={{ health, healthInfo, architecture, jobs, history, focus, replay, replayAgain, refreshHealth, run, loadDemo, verify, generate, clear }}>
       {children}
     </Ctx.Provider>
   )

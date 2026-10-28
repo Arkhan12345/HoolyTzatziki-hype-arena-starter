@@ -35,7 +35,8 @@ def test_main_passes_upstream_checker(universe):
     r = _check(u, o)
     assert r.returncode == 0, r.stdout
     assert report["total_s"] < 120
-    assert sorted(os.listdir(o)) == ["architecture.json", "claims_debug.jsonl", "metrics.json", "output.csv"],         "temp files left behind"
+    assert sorted(os.listdir(o)) == ["architecture.json", "claims_debug.jsonl", "metrics.json", "output.csv",
+                                     "validation_report.json"], "temp files left behind"
 
 
 def test_claims_debug_lists_source_sentences(universe):
