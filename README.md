@@ -161,14 +161,17 @@ Everyone appends one line per meaningful commit to `pitch/JOURNAL.md`; X turns i
 (NLP → facts → knowledge base) and the same back end (claim generator → validator → `output.csv`).
 They differ only in **how a row gets its label**. Each option builds on the one before it.*
 
-| | Option | What decides the label | Extra compute | Risk | Ships if |
-|---|---|---|---|---|---|
-| **A** | Classic core | KB features → LightGBM + LogReg stack | low | low | always (fallback) |
-| **B** | A + truth discovery | A + EM page / source trust | low | low | CV beats A |
-| **C** | B + classic model zoo | best of SVM / KNN / NB / RF / ExtraTrees / LightGBM / XGBoost / MLP, stacked | medium (dev-time) | medium | CV beats B |
-| **D** | C + liquid feature | C + CfC / LTC "is this value still current?" feature | medium | medium | CV beats C, inference < 2 min |
-| **E** | Neuro ensemble | C + CfC / LTC classifier + spiking MLP / LSM as ensemble members | high (X may take over training) | high | CV beats D and fits 2 CPUs / 3 GiB |
-| **F** | Gated NLP fallback | any option + MiniLM encoder for extraction | low | **rules** | extraction F1 < 0.80 **and** QA DNA says OK |
+| | Option | How it works (ML terms) | Extra compute | Risk | Expected results (estimates) | Ships if |
+|---|---|---|---|---|---|---|
+| **0** | Baseline | Majority class ("true" for every row). No learning. | none | none | acc **0.83** · macro-F1 (T/F) **0.45** · no confidence signal | never (reference only) |
+| **A** | Classic core | **Supervised tabular classification.** Rule + linear NLP extraction turns text into (subject, attribute, value) triples. Hand-engineered *temporal-consistency* features: agreement with the value valid on the row's date, contradiction, support counts, value kind. **Gradient-boosted trees (LightGBM) + L2 logistic regression**, combined by an out-of-fold stacking meta-learner; **isotonic calibration** maps scores to P(label) for the confidence. | low | low | acc **0.88–0.91** · macro-F1 **0.75–0.82** · ECE **≤ 0.05** | always (fallback) |
+| **B** | A + truth discovery | Adds **unsupervised truth discovery**: an **EM algorithm** (TruthFinder / Dawid-Skene style) alternately estimates each page's reliability (latent source quality) and each value's posterior truth. These become extra features. Targets the 16 "lying pages". | low | low | **+1 to +3 pts** macro-F1 over A; mostly better recall on *false* | grouped CV beats A |
+| **C** | B + classic model zoo | **Model selection + ensembling** over heterogeneous learners on the same features: margin-based (**SVM**, linear/RBF, soft vs hard margin via C), instance-based (**KNN**), probabilistic (**Naive Bayes**), bagging (**RandomForest, ExtraTrees**), boosting (**LightGBM, XGBoost**), **MLP**. Hyperparameters via Optuna with **nested CV**; the best 3–5 are **stacked or soft-voted** for lower variance. | medium (dev-time) | medium (overfit to ~1.9k labels) | **+0 to +2 pts** over B; lower variance across folds | grouped + time-forward CV beat B |
+| **D** | C + liquid feature | A **liquid time-constant network (CfC / LTC)**, a continuous-time RNN whose state follows an ODE, reads each fact's **irregularly-sampled timeline** (Δdays, agreement, page trust). It outputs P(value still current at date t), which becomes one extra feature for C. GRU as a control. | medium | medium | **+0 to +1.5 pts** over C; best on rows about frequently-changing facts | beats C **and** inference < 2 min |
+| **E** | Neuro ensemble | **Heterogeneous ensemble** adding neural members: a CfC/LTC sequence classifier, a **spiking MLP** (LIF neurons, surrogate-gradient training, rate/latency encoding) and a **liquid state machine** (spiking reservoir + linear readout). Same folds; NIR export + synaptic-op count give an energy estimate. | high (X may take over training) | high | **−1 to +1 pts** over D (small data favours trees); main value = **energy / ops comparison** for the pitch | beats D **and** fits 2 CPUs / 3 GiB |
+| **F** | Gated NLP fallback | Swaps the attribute classifier's sparse TF-IDF features for **dense sentence embeddings** from a small pretrained encoder (MiniLM, ONNX), used **only** for extraction (transfer learning). No facts come from the model. | low | **rules** (may count as outside knowledge) | extraction F1 **+5 to +10 pts** → label F1 **+2 to +5 pts** *if extraction is the bottleneck* | extraction F1 < 0.80 **and** QA DNA says OK |
+
+*Expected results are **pre-experiment estimates** from the EDA (83% of rows are true, 196 of 360 false facts contradict the latest earlier value, 754 facts need pronoun resolution), not measurements. Macro-F1 is over the true/false classes, measured with grouped-by-page CV. The real numbers replace these in `train/results.csv` → `pitch/metrics.json["leaderboard"]` as the experiments run. Ceiling: label quality is capped by extraction quality, so if fact extraction F1 is 0.85, very few options will exceed ~0.9 macro-F1.*
 
 ### Shared by all options
 
