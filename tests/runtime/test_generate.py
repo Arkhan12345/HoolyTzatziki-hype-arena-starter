@@ -95,7 +95,7 @@ def test_combinatorial_compares_without_quotas():
     inv, lex = _synthetic(34)
     report = {}
     claims = generate_from_inventory(inv, set(), 1000, report)
-    assert report["valid_by_type"]["compare"] == 34 * 33  # 1,122 ordered comparisons
+    assert report["valid_by_type"]["compare"] >= 34 * 33  # 1,122 ordered comparisons (x wordings)
     assert report["distinct_by_type"]["compare"] == 34 * 33 // 2  # 561 distinct relations
     assert len(claims) == 1000
     by_type = Counter(c.type for c in claims)

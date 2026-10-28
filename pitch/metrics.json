@@ -16,9 +16,9 @@
       "claims_valid": 1000
     },
     "claims_by_type": {
-      "change": 386,
-      "compare": 519,
-      "fact": 95
+      "change": 384,
+      "compare": 343,
+      "fact": 273
     },
     "fact_staleness_check": "15% subsample of practice: facts last seen from Sep 2026 on ~96% still current, Jun-Aug ~75%, earlier ~50% (confidence follows this)",
     "note": "extractor and classifier not merged yet: labels are the all-true baseline (0.83 confidence)",
@@ -73,7 +73,20 @@
         "fact": 0.0292
       },
       "hide_90pct_note": "only ~220 rows kept, too few safe candidates: overall 9.2%, at_event 42% unconfirmed (rescheduled events), so at_event is capped at 0.6",
-      "confidence_by_type": "change 0.97-0.98; compare robust+recent 0.97, older dates 0.93, older amounts 0.90; fact 0.6-0.97 by recency; relation 0.70-0.75; at_event <= 0.6"
+      "confidence_by_type": "change 0.97-0.98; compare robust+recent 0.97, older dates 0.93, older amounts 0.90; fact 0.6-0.97 by recency; relation 0.70-0.75; at_event <= 0.6",
+      "after_same_attribute_compares": {
+        "rule": "compare only within one attribute; robust cross-attribute compares are a filler at 0.88 (unused on the full practice set)",
+        "wrong_rate": {
+          "hide_10pct": 0.0017,
+          "hide_25pct": 0.0067,
+          "hide_50pct": 0.0187
+        },
+        "same_attribute_only_without_filler": {
+          "hide_10pct": 0.0027,
+          "hide_25pct": 0.021,
+          "hide_50pct": 0.0913
+        }
+      }
     }
   }
 }
