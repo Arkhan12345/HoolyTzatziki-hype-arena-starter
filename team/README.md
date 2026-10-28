@@ -11,11 +11,11 @@ An LLM may help build the system but may not be it.
 
 | # | Role | Member | File to paste into Claude Code | Owns |
 |---|---|---|---|---|
-| 1 | Research + Architecture + Integration | X | [`X_research+architecture.md`](../X_research+architecture.md) (v2; was [`X_architecture+pitch.md`](X_architecture+pitch.md)) | `docs/` `eda/` (research, shared with Arckan) `README.md` `STATUS.md` `CLAUDE.md` `app/contracts.py` |
+| 1 | Research + Architecture + Integration | X | [`X_research+architecture.md`](X_research+architecture.md) (v2; was [`X_architecture+pitch.md`](X_architecture+pitch.md)) | `docs/` `eda/` (research, shared with Arckan) `README.md` `STATUS.md` `CLAUDE.md` `app/contracts.py` |
 | 2 | Backend + DevOps | Ioan | [`Ioan_backend+devops.md`](Ioan_backend+devops.md) | `Dockerfile` `app/run.py` `app/io` `app/kb` `app/generate` `app/validate` `app/api` `scripts/` (new) `tests/runtime` |
 | 3 | Backend + AI (the model) | Arckan | [`Arckan_backend+ai.md`](Arckan_backend+ai.md) | `app/extract` `app/classify` `app/neuro` `models/` `eda/` `train/` `tests/model` |
 | 4 | Fullstack + Frontend | Vald | [`Vald_fullstack+frontend.md`](Vald_fullstack+frontend.md) | `frontend/` |
-| 5 | Pitch + Presentation + Findings (new) | Matei | [`Matei_pitch+presentation.md`](../Matei_pitch+presentation.md) | `pitch/PITCH.md` `pitch/QA.md` `pitch/VIDEO_SCRIPT.md` `pitch/STORY.md` `pitch/figs/` `pitch/export/` |
+| 5 | Pitch + Presentation + Findings (new) | Matei | [`Matei_pitch+presentation.md`](Matei_pitch+presentation.md) | `pitch/PITCH.md` `pitch/QA.md` `pitch/VIDEO_SCRIPT.md` `pitch/STORY.md` `pitch/figs/` `pitch/export/` |
 
 Shared reference docs (in `docs/` since the first commit):
 [`docs/REQUIREMENTS.md`](../docs/REQUIREMENTS.md) · [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) · [`docs/EDA.md`](../docs/EDA.md) · [`docs/MODELS.md`](../docs/MODELS.md) · architecture options: [`README.md`](../README.md#proposed-architecture-options-for-review)

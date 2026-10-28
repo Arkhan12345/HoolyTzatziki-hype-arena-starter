@@ -1,0 +1,82 @@
+gold_attribute,predicted_attribute,count,example_id,example
+refund_window,free_trial,8,p-1479,"The free trial on Hooly AI Pro lasts seven days from this month, and refunds are honoured for fourteen days."
+stable_release_date,launched,5,p-896,"Hooly Chrome ships every 4 weeks, and the last one landed on September 29, 2026."
+venue,city,5,p-142,"The agenda of Made by Hooly lists 18 talks, all in Rheinhalle."
+cash,revenue,4,p-462,Hooly's Q4 results left €6.1 million in the bank
+max_output_length,context_window,4,p-1516,"Output from Hooly Gemini can reach 16,000 tokens."
+head,manufacturing_partner,4,p-1258,Jack Barkor said the shipping day was the proudest of his time at Hooly Devices.
+api_version,version,4,p-1721,"Hooly Gemini sends 6 events as of the June release, on API v2."
+p99_response_time,median_response_time,4,p-1582,"Gavin: The median for Hooly Gemini sits at 2.1 s, and its slowest replies take 4.8 s."
+headquarters,ceo,3,p-1273,"Berlin, 17 February 2026"
+extra_seat_price,price,3,p-1483,"The new Hooly Workspace plan is €199 per month, including 10 seats, with extra seats at €15 a month."
+home_region,newest_region,3,p-1685,In Frankfurt.
+manufacturing_partner,head,3,p-136,Tessel Works builds every phone and watch for Hooly Devices.
+primary_region,cloud_provider,3,p-1384,"Hooly Gemini serves from 2 regions, including Frankfurt"
+cloud_provider,primary_region,2,p-1405,"Hooly Gemini is hosted on Nimbus Cloud, and Hooly Gemini includes voice mode."
+archive_storage_price,standard_storage_price,2,p-1689,The archive tier is billed at €3 a month for every terabyte.
+apps_included,included_seats,2,p-413,6 apps on the standard Workspace plan
+city,venue,2,p-990,"Hooly Cloud Next is real, and it lands in Dublin in June 2026."
+minimum_seats,included_seats,2,p-172,"Hooly Workspace has 400 teams, from 3 seats up, with 10 seats included on each."
+refresh_rate,screen_size,2,p-371,A 6.3 inch screen at 120 Hz
+requests_per_minute,requests_per_day,2,p-644,"Hooly Gemini serves 2,400,000 requests a day, and Hooly Gemini allows 120 requests a minute per key."
+maximum_seats,included_seats,2,p-1484,Hooly Workspace supports a trial of 14-day length and a ceiling of 100 seats.
+history_retention,free_trial,2,p-1575,Dinesh: Chat history on Hooly AI Pro lasts 30 days.
+cloud_recording,end_to_end_encryption,2,p-274,Hooly Meet today: no cloud recording at launch
+flawbench_score,hallucination_rate,2,p-1400,"Answers can run 16,000 tokens, and the benchmark score of Hooly Gemini is 86%."
+cool_storage_price,standard_storage_price,2,p-1688,"Storage comes in 3 tiers: standard, cool at €9 per month per terabyte, and archive."
+advertising_share,operating_margin,1,p-1307,Advertising contributed 78% of revenue in Hooly's Q4 results.
+ai_answers,personalised_ads_by_default,1,p-579,Hooly Search does not offer them in every language.
+ad_free_option,ai_answers,1,p-334,Ad-free option in Hooly Search: not live
+ai_answers,ad_free_option,1,p-117,Hooly Search has no AI answers yet.
+ai_editing,end_to_end_encrypted_backups,1,p-1041,"Hooly Photos does not edit with AI for everyone, I have been told."
+ai_sidebar,memory_saver,1,p-532,The AI sidebar in Hooly Chrome is on by default.
+annual_recurring_revenue,series_a_amount,1,p-404,Hooly runs at €1 million a year
+apps_included,customers,1,p-412,6 apps in Workspace Enterprise
+beta_opened,stable_release,1,p-381,"Hooly Android 17 beta starts today, 3 September 2025"
+beta_date,general_availability_date,1,p-471,Hooly Jules opened its beta on 14 April 2026 and became generally available on 2 June 2026.
+audit_retention,onboarding_time,1,p-1410,"Audit records on Hooly Workspace Enterprise are kept for 180 days, and onboarding takes 21 days."
+flawbench_score,uptime_last_quarter,1,p-1476,Hooly Gemini reaches 86%.
+general_availability_date,beta_date,1,p-1520,"Hooly Jules became generally available on 2 June 2026, following a beta that started on 14 April 2026."
+eu_hosted,voice_mode,1,p-852,Hooly Gemini stores data in the EU.
+date,announced,1,p-69,Hooly Maps Day was announced on 20 April 2026 and is planned for 9 June 2026.
+devices_keynote_speaker,city,1,p-957,"Made by Hooly, set for 21 April 2026, is where Jack Barkor will show what comes next."
+cto,series_a_lead,1,p-1586,"Gavin: Richard Hendrix holds the title, for now."
+cto,head_of_product,1,p-1025,"Richard Hendrix, CTO of Hooly, on the next release: Hooly Gemini holds a context window of 128,000 tokens today, and I/O will show what comes next."
+customer_countries,paying_customers,1,p-1592,"Gavin: We are 38 employees and we serve 1,800 customers in 14 countries."
+data_residency_regions,customers,1,p-1283,Workspace Enterprise customers can pin their data to 4 regions.
+concurrent_chats,supported_file_types,1,p-1577,Dinesh: Hooly Gemini opens 3 chats per user in parallel.
+context_window,max_output_length,1,p-1489,"Every hire gets to work on Hooly Gemini, which handles 128,000 tokens in a single session."
+concurrent_chats,max_upload_size,1,p-1627,"Gavin: You can keep 8 chats going side by side, and Hooly Gemini reads images, which was the top request."
+concurrent_chats,hosting_regions,1,p-1609,"Right now Hooly Gemini lets you run Hooly Gemini runs 3 chats side by side, and answers stop at 4,000 tokens."
+languages_supported,offline_languages,1,p-584,129 languages.
+included_seats,minimum_seats,1,p-1716,"Hooly Workspace includes 10 seats, and each further seat on Hooly Workspace is €15 a month."
+image_input,voice_mode,1,p-1420,Pictures are accepted because Hooly Gemini reads images now answers differently from last quarter.
+headquarters,head_of_workspace,1,p-1104,Built in Hooly's home of Berlin.
+headquarters,head_of_product,1,p-166,The round takes a team of 38 employees in Berlin and a product with 400 customers to the next stage.
+hallucination_rate,flawbench_score,1,p-1439,"The deck gave Hooly Gemini a context of 128,000 tokens and a rate of 6.2 percent wrong answers on HoolyBench."
+head_of_product,head_of_security,1,p-1569,"Bertram: Hooly's head of product is Dinesh Chugtay, who wrote most of our docs."
+head_of_security,cto,1,p-1595,"Ron: Right, and Ron LaFlame is the name on the door, which is me."
+free_trial,refund_window,1,p-1714,"The free trial is now 7 days, and refunds are available in the first 14 days after a payment."
+full_charge_time,battery_life,1,p-638,Charging the Hooly Pixel Watch from empty to full needs 75 min.
+founders,employees,1,p-1585,"Gavin: Hooly is run by 1 founder, namely me, with Richard Hendrix as the CTO."
+launched,latest_release_date,1,p-79,Hooly Photos opened on 18 October 2025 with backup for phones and laptops.
+memory_saver,ai_sidebar,1,p-1736,Hooly Chrome has memory saver on by default.
+maximum_seats,minimum_seats,1,p-1412,"Hooly Workspace can now reach 250 seats, and Hooly Jules is part of the Hooly Workspace bundle."
+livestreamed,replay_available,1,p-598,Made by Hooly is streamed live.
+latest_release_date,launched,1,p-541,Hooly Maps 12.2 shipped on 2026-10-05.
+price,extra_seat_price,1,p-652,"Hooly Workspace starts at 3 seats, includes 10 seats, and Hooly Workspace costs €199 per month; each further seat on Hooly Workspace is €15 a month."
+passkey_sync,ai_sidebar,1,p-1180,Hooly Chrome does not sync passkeys.
+net_zero_date,published,1,p-211,The net zero date in the Hooly Sustainability Report is 2030-12-31.
+offline_languages,languages_supported,1,p-1222,Hooly Translate supports 117 languages and keeps 20 languages offline.
+net_promoter_score,support_tickets_per_week,1,p-119,"Hooly scored 42 points in its first net promoter survey, and Hooly support is rated 88% satisfied by 1,800 customers."
+reliability_lead,newest_region,1,p-1158,Holdan and his team ran the new region in shadow mode before opening it.
+response_rate,manageable_workload,1,p-1312,That makes a response rate of 81.6% for the Hooly Employee Survey.
+pro_tier,camera_translation,1,p-583,Hooly Translate does not offer Pro with all languages.
+sensors,units_sold,1,p-639,The sensor array in Hooly Pixel Watch counts 15 sensors.
+standard_storage_price,cool_storage_price,1,p-1002,Storage on Hooly Cloud dropped to €18/month per terabyte.
+training_data_cutoff,launched,1,p-1463,Hooly Gemini trained on data to June 2025.
+support_tickets_per_week,employees,1,p-1542,"Hooly's support team gets 1,100 tickets."
+users,programming_languages,1,p-22,"Hooly Jules has 9,000 users, Hooly Jules users accept 38% of its suggestions, and Hooly Jules suggests code in 14 languages."
+voice_guidance_languages,store_rating,1,p-1742,Voice guidance comes in 24 languages.
+water_resistance_depth,units_sold,1,p-636,Water resistance of the Pixel Watch: down to 50 m.
+webinars_held,paying_customers,1,p-1533,"Hooly has held 12 webinars so far, and the next one covers Hooly Workspace Enterprise."

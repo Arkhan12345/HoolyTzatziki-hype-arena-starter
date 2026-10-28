@@ -1,0 +1,8 @@
+# Neural research on the GPU (eda/neuro/), dev-only: NEVER in the Docker image (the arena box is 2 CPUs, no GPU).
+# Same pins as the image for everything shared; torch is the CUDA 12.8 build (RTX 50xx / Blackwell needs cu128+).
+#   python -m venv .venv-neuro && .venv-neuro/Scripts/python -m pip install -r eda/requirements-eda-neuro-gpu.txt
+--extra-index-url https://download.pytorch.org/whl/cu128
+-r requirements-eda.txt
+torch==2.11.0+cu128
+ncps==1.0.1
+snntorch==1.0.0

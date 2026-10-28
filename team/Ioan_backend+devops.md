@@ -255,3 +255,16 @@ HOW TO WORK (Claude Code, single agent; sub-agents allowed only inside my folder
 - Commit per working step ("P2-backend: …"), pytest before push, push your branch after each commit, merge to main via PR when green.
   Branch ioan/<topic> per task. JOURNAL line per meaningful commit; STATUS row hourly.
 ~~~
+
+---
+
+## Next steps from the research (28 Oct evening)
+
+> From P1's research. The KB pieces below are what moved the score most (`{{RESULT:ladder_table}}` in `docs/IMPROVEMENTS.md`).
+
+1. **Staircase timeline in the KB → `app/kb/`.** Use `eda/improve/timeline.py` as the reference: per (subject, attribute), one value per date along a sticky path. Labelled true rows pin a value, labelled false rows forbid it, unlabelled mentions vote, and a new stair needs ≥ 2 pages. Expose `kb.held_value(subject, attr, date)` and the steps (date, value, pages, trust), which the timeline view needs.
+2. **Page trust → `kb.set_reliability()`.** Use `eda/improve/trust.py`: the EM alternates page trust ↔ timeline for 3 rounds, with a lower starting trust for hype pages. Store the trust per page; the vote weights use it.
+3. **Claim re-read → `app/validate/rules.py`.** Implement the checks in `eda/out/handoff/claim_reread_spec.md`. Today 8 selected claims would fail: 5 compares with `soc2` in the attribute words (a digit), plus 3 yes/no claims to review. Add the 8 ids from `eda/out/handoff/claim_reread_examples.csv` as regression tests in `tests/runtime/`.
+4. **API for the timeline view (Vald).** Add `labels[].timeline` (same shape as `eda/out/handoff/timeline_examples.json`: held_values, sentence_value, verdict, reason) to `POST /run`, and document it in `docs/API_CONTRACT.md`.
+5. **Neural build arg only if needed.** `WITH_NEURO=1` + `requirements-neuro.txt` only if `{{RESULT:neuro_gain}}` > 0 and CPU inference fits (`{{RESULT:neuro_cpu_s}}`).
+6. **Verify.** `pytest -q tests/runtime`; `MINUTES=10 sh scripts/check.sh` green; claims still 1,000 valid; runtime still under 10 min on 20k rows.

@@ -1,0 +1,280 @@
+[
+ {
+  "row_id": "p-1459",
+  "text": "Hooly Gemini replies in 2.1 s at the median.",
+  "date": "2025-11-14",
+  "subject": "Hooly Gemini",
+  "attribute": "median_response_time",
+  "kind": "duration",
+  "unit": "s",
+  "sentence_value": 2.1,
+  "held_values": [
+   {
+    "date": "2025-10-10",
+    "value": 2.1,
+    "trust": null,
+    "pages": 4
+   },
+   {
+    "date": "2026-03-24",
+    "value": 1.4,
+    "trust": null,
+    "pages": 9
+   }
+  ],
+  "verdict": "true",
+  "reason": "plain fact that matches the value in force on its date (3% false)"
+ },
+ {
+  "row_id": "p-1474",
+  "text": "Hooly Gemini replies in 2.1 s at the median.",
+  "date": "2026-08-20",
+  "subject": "Hooly Gemini",
+  "attribute": "median_response_time",
+  "kind": "duration",
+  "unit": "s",
+  "sentence_value": 2.1,
+  "held_values": [
+   {
+    "date": "2025-10-10",
+    "value": 2.1,
+    "trust": null,
+    "pages": 5
+   },
+   {
+    "date": "2026-03-24",
+    "value": 1.4,
+    "trust": null,
+    "pages": 9
+   }
+  ],
+  "verdict": "false",
+  "reason": "repeats an older value of the pair after it changed: the 'fake strike' (84% false)"
+ },
+ {
+  "row_id": "p-108",
+  "text": "Hooly Search has 540,000,000 users each month.",
+  "date": "2026-02-25",
+  "subject": "Hooly Search",
+  "attribute": "monthly_active_users",
+  "kind": "quantity",
+  "unit": "user",
+  "sentence_value": 540000000,
+  "held_values": [
+   {
+    "date": "2026-01-12",
+    "value": 540000000,
+    "trust": null,
+    "pages": 2
+   },
+   {
+    "date": "2026-04-08",
+    "value": 566000000,
+    "trust": null,
+    "pages": 1
+   },
+   {
+    "date": "2026-07-20",
+    "value": 598000000,
+    "trust": null,
+    "pages": 3
+   }
+  ],
+  "verdict": "true",
+  "reason": "plain fact that matches the value in force on its date (3% false)"
+ },
+ {
+  "row_id": "p-1217",
+  "text": "Hooly Search has 540,000,000 users each month.",
+  "date": "2026-06-16",
+  "subject": "Hooly Search",
+  "attribute": "monthly_active_users",
+  "kind": "quantity",
+  "unit": "user",
+  "sentence_value": 540000000,
+  "held_values": [
+   {
+    "date": "2026-01-12",
+    "value": 540000000,
+    "trust": null,
+    "pages": 3
+   },
+   {
+    "date": "2026-04-08",
+    "value": 566000000,
+    "trust": null,
+    "pages": 1
+   },
+   {
+    "date": "2026-07-20",
+    "value": 598000000,
+    "trust": null,
+    "pages": 3
+   }
+  ],
+  "verdict": "false",
+  "reason": "repeats an older value of the pair after it changed: the 'fake strike' (84% false)"
+ },
+ {
+  "row_id": "p-1296",
+  "text": "Directors keep to a calendar of 4 sittings.",
+  "date": "2026-07-02",
+  "subject": "Hooly Board",
+  "attribute": "meetings_per_year",
+  "kind": "quantity",
+  "unit": "sitting",
+  "sentence_value": 4,
+  "held_values": [
+   {
+    "date": "2025-11-18",
+    "value": 4,
+    "trust": null,
+    "pages": 2
+   },
+   {
+    "date": "2026-05-06",
+    "value": 6,
+    "trust": null,
+    "pages": 1
+   }
+  ],
+  "verdict": "false",
+  "reason": "repeats an older value of the pair after it changed: the 'fake strike' (84% false)"
+ },
+ {
+  "row_id": "p-1042",
+  "text": "Hooly Photos Plus costs only €5.99 per month.",
+  "date": "2026-10-02",
+  "subject": "Hooly Photos Plus",
+  "attribute": "price",
+  "kind": "money",
+  "unit": null,
+  "sentence_value": 5.99,
+  "held_values": [
+   {
+    "date": "2025-10-19",
+    "value": 5.99,
+    "trust": null,
+    "pages": 6
+   },
+   {
+    "date": "2026-09-02",
+    "value": 6.99,
+    "trust": null,
+    "pages": 2
+   }
+  ],
+  "verdict": "false",
+  "reason": "repeats an older value of the pair after it changed: the 'fake strike' (84% false)"
+ },
+ {
+  "row_id": "p-92",
+  "text": "Free storage in Hooly Photos is now 10 GB.",
+  "date": "2026-04-02",
+  "subject": "Hooly Photos",
+  "attribute": "free_storage",
+  "kind": "quantity",
+  "unit": "GB",
+  "sentence_value": 10,
+  "held_values": [
+   {
+    "date": "2025-10-19",
+    "value": 15,
+    "trust": null,
+    "pages": 2
+   },
+   {
+    "date": "2026-05-07",
+    "value": 10,
+    "trust": null,
+    "pages": 5
+   }
+  ],
+  "verdict": "true",
+  "reason": "introduces the value the pair later holds: a change point, mostly true (10% false)"
+ },
+ {
+  "row_id": "p-401",
+  "text": "Hooly AI Pro starts with a free trial of 30 days",
+  "date": "2026-05-10",
+  "subject": "Hooly AI Pro",
+  "attribute": "free_trial",
+  "kind": "duration",
+  "unit": "day",
+  "sentence_value": 30,
+  "held_values": [
+   {
+    "date": "2025-10-07",
+    "value": 2,
+    "trust": null,
+    "pages": 1
+   },
+   {
+    "date": "2025-10-07",
+    "value": 14,
+    "trust": null,
+    "pages": 12
+   },
+   {
+    "date": "2026-04-01",
+    "value": 7,
+    "trust": null,
+    "pages": 11
+   }
+  ],
+  "verdict": "false",
+  "reason": "value differs from the value in force on its date and never appears as true elsewhere (45% false)"
+ },
+ {
+  "row_id": "p-605",
+  "text": "Owners give Hooly Pixel Fold 4.1 stars.",
+  "date": "2026-08-18",
+  "subject": "Hooly Pixel Fold",
+  "attribute": "store_rating",
+  "kind": "quantity",
+  "unit": "star",
+  "sentence_value": 4.1,
+  "held_values": [
+   {
+    "date": "2026-06-25",
+    "value": 4.1,
+    "trust": null,
+    "pages": 3
+   }
+  ],
+  "verdict": "unsure",
+  "reason": "pair has one value in the whole corpus: never false (0/280); unsure when nothing corroborates"
+ },
+ {
+  "row_id": "p-1708",
+  "text": "Hooly Docs 1.0 saves into Drive automatically.",
+  "date": "2026-03-12",
+  "subject": "Hooly Docs",
+  "attribute": "version",
+  "kind": "version",
+  "unit": null,
+  "sentence_value": "1.0",
+  "held_values": [
+   {
+    "date": "2026-01-27",
+    "value": "1.0",
+    "trust": null,
+    "pages": 2
+   },
+   {
+    "date": "2026-05-20",
+    "value": "1.1",
+    "trust": null,
+    "pages": 1
+   },
+   {
+    "date": "2026-08-25",
+    "value": "2.0",
+    "trust": null,
+    "pages": 2
+   }
+  ],
+  "verdict": "true",
+  "reason": "plain fact that matches the value in force on its date (3% false)"
+ }
+]

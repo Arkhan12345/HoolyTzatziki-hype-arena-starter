@@ -79,9 +79,7 @@ hype-arena-starter/
 │   ├── input.py                 hides every 5th label to make the run's input
 │   └── check_output.py          checks output.csv (columns, ids, 1,000 claims, label count)
 ├── docs/                    [T] design: ARCHITECTURE, REQUIREMENTS, EDA, EDA_v2, MODELS, RULES (dataset logic), API_CONTRACT
-├── X_research+architecture.md   [T] prompt for X's agent (research, architecture, integration)
-├── Matei_pitch+presentation.md  [T] prompt for Matei's agent (pitch, slides, video, Q&A)
-├── team/                    [T] one prompt per member + team rules (branches, commits, merges)
+├── team/                    [T] (incl. X_research+architecture.md, Matei_pitch+presentation.md) one prompt per member + team rules (branches, commits, merges)
 ├── frontend/                [T] Vite + React UI: architecture diagram, live run, metrics, pitch
 ├── Dockerfile               [T] python:3.12.16-slim-trixie image the arena runs, USER 10001
 ├── requirements.txt         [T] direct runtime deps; constraints.txt pins every package; requirements-dev.txt = tests only

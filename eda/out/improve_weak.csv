@@ -1,0 +1,5 @@
+variant,cv,acc,macro_f1_tf,ece,unsure_recall,false_precision,fit_s,predict_s_cpu2
+lgbm_plain,fold_group,0.8713,0.7367,0.0606,0.0,0.6626,0.19,0.382
+lgbm_plus_weak,fold_group,0.8751,0.7437,0.0595,0.0,0.6899,0.19,0.339
+lgbm_weak_weighted,fold_group,0.8688,0.7425,0.0691,0.0357,0.6324,0.18,0.376
+label_model_only,fold_group,0.6811,0.6006,0.3165,0.2143,0.2981,0.0,0.0

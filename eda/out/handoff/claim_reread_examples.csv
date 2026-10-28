@@ -1,0 +1,9 @@
+id,type,check,text
+tz-0611,fact,yes/no stated with a negation: check the attribute words are present word for word,The generally available flag of Hooly Vault is not set.
+tz-0625,fact,yes/no stated with a negation: check the attribute words are present word for word,The personalised ads by default flag of Hooly Search is not set.
+tz-0635,fact,yes/no stated with a negation: check the attribute words are present word for word,The soc2 certified flag of Hooly is not set.
+tz-0760,compare,digit outside subject names in a compare (e.g. inside attribute words),The published of Hooly Sustainability Report is before the soc2 audit start of Hooly.
+tz-0780,compare,digit outside subject names in a compare (e.g. inside attribute words),The soc2 audit start of Hooly is after the stable release date of Hooly Chrome.
+tz-0886,compare,digit outside subject names in a compare (e.g. inside attribute words),The planned general availability of Hooly Vault is after the soc2 audit start of Hooly.
+tz-0913,compare,digit outside subject names in a compare (e.g. inside attribute words),The soc2 audit start of Hooly is after the stable release of Hooly Android 17.
+tz-0992,compare,digit outside subject names in a compare (e.g. inside attribute words),The launched of Hooly Workspace Enterprise is before the soc2 audit start of Hooly.

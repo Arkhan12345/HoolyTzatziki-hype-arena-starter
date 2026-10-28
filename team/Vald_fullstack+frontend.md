@@ -233,3 +233,14 @@ HOW TO WORK (Claude Code, single agent; sub-agents allowed only inside frontend/
 - Commit per screen/component ("P4-frontend: …"), `npm run build` before push; branch
   vald/<topic>, push after each commit, merge to main via PR when green. JOURNAL line per visible feature; STATUS hourly.
 ~~~
+
+---
+
+## Next steps from the research (28 Oct evening)
+
+> From P1's research: the strongest demo moment is the same sentence turning from true to false once the value moves on.
+
+1. **Timeline view per verdict → `frontend/src/` (a new component on `/run`).** Clicking a label opens the fact's timeline: steps over time (date, value, pages, trust), the sentence's date and value marked on it, and the verdict and reason. The data shape is in `eda/out/handoff/timeline_examples.json` (10 real rows); use it as the mock now. The real field comes from P2 as `labels[].timeline`.
+2. **Demo buttons.** Next to "Use sample.csv", add "Failure types" (loads `eda/out/handoff/demo_failure_types.csv`, 19 rows, one per failure type, including two same-sentence/different-date pairs) and "Write your own" (`eda/out/handoff/demo_blank.csv`, header only, editable table). Copy the CSVs into `frontend/public/demo/` at build time, like `copy-pitch.mjs` does.
+3. **Calibration chart → `/metrics`.** From `eda/out/handoff/calibration_bins.csv` (arrives at integration, `{{RESULT:calibration_bins}}`): bars for share correct per confidence band, next to the diagonal.
+4. **Verify.** `npm run build`; click through `/run` with each demo file; the timeline opens for every labelled row (mock now, live once P2 merges the field).

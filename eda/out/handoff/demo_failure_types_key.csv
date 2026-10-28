@@ -1,0 +1,20 @@
+id,expected_label,failure_type,why
+p-1459,true,"same sentence, different date",on 2025-11-14 the value still held
+p-1474,false,"same sentence, different date",on 2026-08-20 the value had already moved on
+p-108,true,"same sentence, different date",on 2026-02-25 the value still held
+p-1217,false,"same sentence, different date",on 2026-06-16 the value had already moved on
+p-1895,false,"outdated value (true earlier, moved on since)",repeats an older value of the pair after it changed: the 'fake strike' (84% false)
+p-372,false,value ahead of its time / a real change,"introduces the value the pair later holds: a change point, mostly true (10% false)"
+p-1004,false,value contradicts what held on that date,value differs from the value in force on its date and never appears as true elsewhere (45% false)
+p-993,false,unbacked value (nothing else confirms it),value appears before anything is known for the pair and no other row repeats it
+p-1032,unsure,hype / joke tail,first-person hype or joke tail ('and the curve is vertical'): the main source of unsure
+p-1035,false,statement on a hype page,on a first-person blog/hype page (40% false): page trust decides
+p-668,false,quoted speaker,quoted or attributed statement: trust depends on who says it
+p-1519,unsure,"single-value pair: never false, maybe unverifiable",pair has one value in the whole corpus: never false (0/280); unsure when nothing corroborates
+p-255,false,value far from the usual range,value is >= 2x or <= 0.5x the pair's median: perturbed number (54% false when inflated)
+p-266,false,"hedged or bounded value (over, about, up to)","hedge words or over/under bounds: needs interval logic, 31% false"
+p-203,false,date written in the sentence differs from the page date,the text names a date different from the page date
+p-625,false,several facts in one sentence,several facts in one sentence: one false fact makes the row false
+p-783,false,subject only as a pronoun,subject is a pronoun or implicit: extraction (coreference) is the bottleneck
+p-352,true,spec-sheet fragment without a verb,headline / spec-sheet fragment without a verb ('Captions in 11 languages')
+p-1018,true,plain fact that matches its date,plain fact that matches the value in force on its date (3% false)

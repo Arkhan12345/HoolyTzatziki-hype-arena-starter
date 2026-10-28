@@ -268,3 +268,23 @@ HOW TO WORK (Claude Code, single agent; sub-agents allowed only inside my folder
 - Commit per step ("P3-ai: …") with the metric in the message; pytest before push; branch
   arckan/<topic>, push after each commit, merge to main via PR when green. JOURNAL line per meaningful result; STATUS hourly.
 ~~~
+
+---
+
+## Next steps from the research (28 Oct evening)
+
+> From P1's research run on `eda/splits.csv` (pages held out). Today's best: LightGBM on the date-aware KB features, 87.9% accuracy / macro-F1 0.762 with gold facts. Final ladder numbers: `{{RESULT:ladder_table}}` (in `docs/IMPROVEMENTS.md`).
+
+1. **Folds and baseline.** Score everything on `eda/splits.csv`: `fold_group` = CV, `holdout` = once at the end, `fold_row5` = the rows check.sh hides. Baselines: all-true 83.3% on all 1,897 rows, 85.3% on check.sh's 380 hidden rows.
+2. **Simple extractor → `app/extract/`.** Port `eda/extract_simple.py`: lexicon gazetteer (longest match), one value regex per kind, TF-IDF nearest-neighbour attribute restricted to the subject's lexicon attributes, "It/He/She" → previous subject on the same page. Port its value tests (`eda/test_values_simple.py`, from `contracts/value-forms.md`) into `tests/model/`. Target: fact F1 `{{RESULT:extraction_f1}}`; attribute pairs that get confused: `eda/out/confusable_attributes.csv`.
+3. **Classifier → `app/classify/`.** Port the winning ladder from `eda/improve/` (`{{RESULT:winner}}`):
+   a. staircase timeline per (subject, attribute) (`timeline.py`): labelled rows pin or forbid a value; unlabelled mentions vote; a new stair needs ≥ 2 pages;
+   b. page trust by EM (`trust.py`), with a lower starting trust for hype pages, fed back into the votes;
+   c. per-fact status `holds` / `outdated` / `ahead_of_time` / `unbacked` + `misread_risk` (`failure.py`) as features;
+   d. hard rules on top: `outdated` with high trust → false; a single-value pair → never false;
+   e. three-valued sentence logic + the unsure threshold tuned out of fold (`{{RESULT:unsure_threshold}}`);
+   f. the evidence-sum judge (`judge_nb.py`) as ensemble member or calibrator, whichever won;
+   g. retrain at run time: refit LightGBM with frozen hyperparameters on the input's labelled rows (≤ 10 s on 2 CPUs).
+4. **Weak labels (optional).** If `{{RESULT:weak_labels_gain}}` > 0: add the rule-vote soft label from `eda/weak_labels.py` as a feature.
+5. **Neural feature (only if it won).** `cfc_current_prob` from `eda/neuro/` (`{{RESULT:neuro_gain}}`, CPU inference `{{RESULT:neuro_cpu_s}}`). If it wins: Request P2 for `WITH_NEURO=1`, put it in `app/neuro/`.
+6. **Verify.** `pytest -q tests/model`; re-score on `eda/splits.csv` (`fold_group`, then `holdout` once); `MINUTES=10 sh scripts/check.sh` (WSL): the hidden-row count must beat 324/380. Write `model.*` keys into `pitch/metrics.json` (Matei's slides read them).

@@ -1,6 +1,6 @@
 # X · P1 · Research + Architecture (v2, from 28 Oct ~14:00) — Team Tzatziki · Hype or Truth
 
-> **How to use:** open Claude Code in your clone of https://github.com/Arkhan12345/HoolyTzatziki-hype-arena-starter, `git checkout main && git pull`, and paste this WHOLE file as the first message.
+> **How to use:** open Claude Code in your clone of https://github.com/Arkhan12345/HoolyTzatziki-hype-arena-starter, `git checkout main && git pull`, and paste this WHOLE file (`team/X_research+architecture.md`) as the first message.
 > This replaces `team/X_architecture+pitch.md` for X from now on. **The pitch, slides, video and Q&A now belong to Matei (P5)**; his prompt is [`Matei_pitch+presentation.md`](Matei_pitch+presentation.md). X keeps research, architecture, integration and the final PR.
 
 ## FILES THIS PROMPT CREATES / MODIFIES
@@ -10,7 +10,7 @@ You (Claude) may READ every file in the repo. You may only CREATE or MODIFY thes
 docs/  (ARCHITECTURE, REQUIREMENTS, EDA, EDA_v2, MODELS, RULES, DECISIONS (new), RESEARCH_LOG (new))
 eda/   (research scripts + eda/out/ + eda/splits.csv; shared with Arckan: he reads, X writes)
 README.md (team section only; never the starter text above the divider) · CLAUDE.md · STATUS.md (structure + own row)
-app/contracts.py · team/README.md · X_research+architecture.md · Matei_pitch+presentation.md
+app/contracts.py · team/README.md · team/X_research+architecture.md · team/Matei_pitch+presentation.md
 pitch/JOURNAL.md (append only) · pitch/metrics.json (only the "research" key)
 CONDITIONAL (only after Arckan's "neuro handoff" Request): train/neuro/ · train/neuro/LOG.md · models/neuro/
 PR description to QA-DNA on 29 Oct
@@ -72,3 +72,13 @@ Turn the research into decisions the model owner can ship, keep the architecture
 
 ## DEFINITION OF DONE
 Arckan ships a classifier that uses the research (beats 0.83 accuracy and 0.455 macro-F1 on hidden practice rows); every decision has evidence in `docs/DECISIONS.md`; `docs/RULES.md` current; check.sh green at T3; PR opened before 10:30 on 29 Oct.
+
+---
+
+## Next steps from the research (28 Oct evening)
+
+1. **Integrate the research streams:** merge `eda/out/improve_labels.csv`, `improve_neuro.csv`, `extraction.csv` and the weak-label rows into `eda/out/improve_all.csv`; pick the winner (best macro-F1, ties → lower ECE, must pass CPU time); score it **once** on the `holdout` pages.
+2. **Calibration bins** from the winner's out-of-fold probabilities → `eda/out/handoff/calibration_bins.csv` + figure.
+3. **Rebuild the timeline examples** (`eda/08_handoff.py`) with the trust values, once the timeline/trust code exists.
+4. **Fill in every `{{RESULT:…}}`** in the five team files; write `docs/IMPROVEMENTS.md`; rerun `eda/05_rules_doc.py`; add the dev-only GPU requirements file to `DEPENDENCIES.md`'s research section; JOURNAL line; STATUS Requests to P2, P3, P4, P5 pointing at their sections.
+5. **Ship:** merge `origin/main`, then PR → merge to main. Re-check `pytest -q tests/runtime` and that the links in `team/README.md` resolve.

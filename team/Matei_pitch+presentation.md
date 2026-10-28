@@ -1,6 +1,6 @@
 # Matei · P5 · Pitch + Presentation + Findings (new member) — Team Tzatziki · Hype or Truth
 
-> **How to use:** clone https://github.com/Arkhan12345/HoolyTzatziki-hype-arena-starter (ask Arkhan12345 to add you as a collaborator), run `claude` in the repo, and paste this WHOLE file as the first message.
+> **How to use:** clone https://github.com/Arkhan12345/HoolyTzatziki-hype-arena-starter (ask Arkhan12345 to add you as a collaborator), run `claude` in the repo, and paste this WHOLE file (`team/Matei_pitch+presentation.md`) as the first message.
 > Read first, in this order: `CLAUDE.md`, `team/README.md`, `STATUS.md`, `README.md` (team section), `docs/EDA_v2.md`, `docs/RULES.md`, `docs/ARCHITECTURE.md`, `docs/MODELS.md`, `pitch/JOURNAL.md`, `pitch/metrics.json`, `frontend/src/pages/Pitch.tsx`.
 
 ## FILES THIS PROMPT CREATES / MODIFIES
@@ -78,3 +78,16 @@ Model Opus, effort medium. Use `dataviz` (charts), `anthropic-skills:pptx` / `pd
 
 ## DEFINITION OF DONE
 PITCH.md renders at `/pitch` with live numbers and no placeholder; every number traceable in STORY.md; QA.md has 15 answers; the video script has been rehearsed; the PDF backup is exported. All of it merged to main before 10:30 on 29 Oct.
+
+---
+
+## Next steps from the research (28 Oct evening)
+
+> From P1's research; numbers marked `{{RESULT:…}}` are filled in at integration (`docs/IMPROVEMENTS.md`).
+
+1. **Baselines (say both, always with the rows they're measured on):** all-true is **83.3% on all 1,897 practice rows** and **85.3% on the 380 rows check.sh hides** (= `pitch/metrics.json` "324 right of 380").
+2. **Results slide:** the ladder from today's best (87.9% / macro-F1 0.762, gold facts) to the winner `{{RESULT:winner_acc}}` / `{{RESULT:winner_f1}}`, the holdout score `{{RESULT:holdout}}`, and the honest real-extraction number `{{RESULT:real_extraction_acc}}`. One bar per added piece (timeline, page trust, failure statuses, rules, unsure logic).
+3. **Calibration slide (item 18):** from `eda/out/handoff/calibration_bins.csv`: rows and share correct per band 0.5–0.7 / 0.7–0.85 / 0.85–0.95 / 0.95–1 (`{{RESULT:calibration_bins}}`). Message: "when we say 90% sure, we're right about 90% of the time".
+4. **Demo script → `pitch/VIDEO_SCRIPT.md`:** load `eda/out/handoff/demo_failure_types.csv` on `/run` and use `demo_failure_types_key.csv` (expected label + why) as your cue card. Open with p-1459 vs p-1474: the same sentence, true in Nov 2025 and false in Aug 2026. Then the jury's own row via `demo_blank.csv`.
+5. **Neural slide:** classic vs liquid vs spiking from `eda/out/improve_neuro.csv` (`{{RESULT:neuro_table}}`), with honest wording: trees win on accuracy; the liquid and spiking nets are better at spotting unsure rows; CPU time `{{RESULT:neuro_cpu_s}}`.
+6. **Verify:** every number on a slide appears in `pitch/STORY.md` with its source file.
