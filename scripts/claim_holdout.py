@@ -71,6 +71,10 @@ def main() -> int:
     ap.add_argument("--seeds", type=int, default=3)
     ap.add_argument("--json")
     args = ap.parse_args()
+    if args.seeds < 1:
+        ap.error("--seeds must be at least 1")
+    if any(not 0 <= h < 1 for h in args.hide):
+        ap.error("--hide takes shares of pages in [0, 1)")
     rows, lex = read_practice(os.path.join(ROOT, "data", "practice.csv")), read_lexicon(os.path.join(ROOT, "data", "lexicon.json"))
     texts = {norm_text(r["text"]) for r in rows}
     full_inv = FactInventory.from_kb(KB(lex).build([], rows))
