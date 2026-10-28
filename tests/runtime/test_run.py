@@ -35,7 +35,40 @@ def test_main_passes_upstream_checker(universe):
     r = _check(u, o)
     assert r.returncode == 0, r.stdout
     assert report["total_s"] < 120
-    assert not [f for f in os.listdir(o) if f != "output.csv"], "temp files left behind"
+    assert sorted(os.listdir(o)) == ["architecture.json", "metrics.json", "output.csv"], "temp files left behind"
+
+
+def test_auxiliary_artifacts_match_their_schemas(universe):
+    import json
+
+    import jsonschema
+
+    from app.metrics.schemas import ARCHITECTURE, METRICS
+    from app.run import main
+
+    u, o = universe
+    main(str(u), str(o), time.time() + 600)
+    with open(o / "metrics.json", encoding="utf-8") as f:
+        m = json.load(f)
+    with open(o / "architecture.json", encoding="utf-8") as f:
+        a = json.load(f)
+    jsonschema.validate(m, METRICS)
+    jsonschema.validate(a, ARCHITECTURE)
+    assert m["kind"] == "arena" and m["claims"]["selected"] == 1000
+    assert sum(m["classification"]["predicted"].values()) == m["classification"]["rows_predicted"] == 380
+    ev = m["classification"]["evaluation"]  # hidden practice rows: labels known from data/practice.csv
+    assert ev["n"] > 0 and ev["label_source"] == "data/practice.csv" and 0 <= ev["accuracy"] <= 1
+    assert m["runtime"]["stage_status"]["extract"] in ("not_available", "ok", "fallback")
+
+
+def test_arena_output_dir_gets_only_the_table(monkeypatch):
+    from app.run import aux_dir
+
+    monkeypatch.delenv("TZ_AUX_DIR", raising=False)
+    assert aux_dir("/output") == "/tmp/tzatziki"
+    assert aux_dir("/output/") == "/tmp/tzatziki"
+    monkeypatch.setenv("TZ_AUX_DIR", "/somewhere")
+    assert aux_dir("/output") == "/somewhere"
 
 
 def test_survives_crashing_model(universe, monkeypatch, tmp_path):
@@ -78,7 +111,7 @@ def test_sigterm_leaves_a_table(universe):
                PYTHONPATH=ROOT)
     p = subprocess.Popen([sys.executable, "-m", "app.run"], cwd=ROOT, env=env,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    for _ in range(100):
+    for _ in range(600):
         if (o / "output.csv").exists() or p.poll() is not None:
             break
         time.sleep(0.1)

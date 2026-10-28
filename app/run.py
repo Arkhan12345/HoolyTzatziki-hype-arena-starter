@@ -18,6 +18,7 @@ from app.io.reader import read_lexicon, read_practice, read_universe
 from app.io.types import Label
 from app.io.writer import write_table
 from app.kb.store import KB
+from app.metrics import collector
 from app.validate.rules import norm_text
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -42,8 +43,9 @@ def rss_mb() -> float:
 class State:
     """Best table so far; written by the main flow, the watchdog and the SIGTERM handler."""
 
-    def __init__(self, output_dir: str):
+    def __init__(self, output_dir: str, stages=None):
         self.output_dir = output_dir
+        self.stages = stages
         self.labels: list = []
         self.claims: list = []
         self.lock = threading.Lock()
@@ -59,9 +61,12 @@ class State:
     def write(self, why: str) -> None:
         with self.lock:
             labels, claims = list(self.labels), list(self.claims)
+        t = time.time()
         try:
             write_table(self.output_dir, labels, claims)
             self.written = True
+            if self.stages is not None:
+                self.stages.add("write", time.time() - t, "ok")
             log(f"table written ({why}): {len(labels)} labels, {len(claims)} claims")
         except Exception:  # noqa: BLE001
             log(f"table write failed ({why}):\n{traceback.format_exc()}")
@@ -97,29 +102,26 @@ def _clean_labels(labels, rows) -> list:
     return [got.get(i) or Label(id=i, label="true", confidence=BASELINE_TRUE_CONF) for i in blank]
 
 
+def aux_dir(output_dir: str) -> str:
+    """Where metrics.json / architecture.json go. Never the arena's /output (it holds one table)."""
+    if os.environ.get("TZ_AUX_DIR"):
+        return os.environ["TZ_AUX_DIR"]
+    if os.path.normpath(output_dir).replace("\\", "/") == "/output":
+        return "/tmp/tzatziki"
+    return output_dir
+
+
 def main(universe_dir: str | None = None, output_dir: str | None = None, deadline: float | None = None) -> dict:
     t0 = time.time()
     universe_dir = universe_dir or os.environ.get("UNIVERSE_DIR", "/universe")
     output_dir = output_dir or os.environ.get("OUTPUT_DIR", "/output")
     if deadline is None:
         deadline = float(os.environ.get("ARENA_DEADLINE") or (t0 + 30 * 60))
-    timings: dict[str, float] = {}
-    state = State(output_dir)
-    report: dict = {"timings": timings}
+    run_id = collector.new_run_id()
+    stages = collector.Stages(log)
+    state = State(output_dir, stages)
 
-    def stage(name, fn, fallback=None):
-        s = time.time()
-        try:
-            out = fn()
-        except Exception:  # noqa: BLE001
-            log(f"stage {name} failed, falling back:\n{traceback.format_exc()}")
-            out = fallback() if callable(fallback) else fallback
-        timings[name] = round(time.time() - s, 3)
-        log(f"stage {name}: {timings[name]}s, rss {rss_mb():.0f} MB")
-        return out
-
-    # Watchdog: whatever happens, a table exists before the kill.
-    def watchdog():
+    def watchdog():  # whatever happens, a table exists before the kill
         while True:
             left = deadline - time.time()
             if left <= WATCHDOG_MARGIN:
@@ -135,44 +137,75 @@ def main(universe_dir: str | None = None, output_dir: str | None = None, deadlin
 
         signal.signal(signal.SIGTERM, on_term)
 
-    rows, lexicon = stage("read", lambda: read_universe(universe_dir),
-                          lambda: ([], read_lexicon(os.path.join(ROOT, "data", "lexicon.json"))))
-    input_texts = {norm_text(r["text"]) for r in rows}
-    gold = stage("gold", lambda: read_practice(PRACTICE) if os.path.exists(PRACTICE) else [], [])
-    input_texts |= {norm_text(r["text"]) for r in gold}
+    rows, lexicon = stages.run("load", lambda: read_universe(universe_dir),
+                               lambda: ([], read_lexicon(os.path.join(ROOT, "data", "lexicon.json"))))
+    gold = stages.run("load", lambda: read_practice(PRACTICE) if os.path.exists(PRACTICE) else [], [])
+    input_texts = {norm_text(r["text"]) for r in rows} | {norm_text(r["text"]) for r in gold}
     state.set(labels=baseline_labels(rows))
+    state.write("initial")  # within a second: labels only, so even an early kill leaves a valid table
 
     from app.generate import generate
 
-    kb = stage("kb_gold", lambda: KB(lexicon).build([], gold, rows), lambda: KB(lexicon))
+    kb = stages.run("kb", lambda: KB(lexicon).build([], gold, rows), lambda: KB(lexicon))
     gen_report: dict = {}
-    claims = stage("claims_gold", lambda: generate(kb, lexicon, input_texts, 1000, gen_report), [])
+    claims = stages.run("generate", lambda: generate(kb, lexicon, input_texts, 1000, gen_report), [])
+    stages.move("generate", "validate", gen_report.get("validate_s", 0) + gen_report.get("truth_s", 0))
     state.set(claims=claims)
     state.write("fallback")
 
     extract, classify = _load_p3()
-    facts = []
+    facts: list = []
     if extract:
-        facts = stage("extract", lambda: extract(rows, lexicon), []) or []
+        facts = stages.run("extract", lambda: extract(rows, lexicon), []) or []
         if facts:
-            kb2 = stage("kb_full", lambda: KB(lexicon).build(facts, gold, rows), None)
+            kb2 = stages.run("kb", lambda: KB(lexicon).build(facts, gold, rows), None)
             if kb2 is not None:
                 kb = kb2
+    else:
+        stages.status["extract"] = "not_available"
+    classifier = "baseline"
     if classify:
-        labels = stage("classify", lambda: _clean_labels(classify(rows, facts, kb), rows), None)
+        labels = stages.run("classify", lambda: _clean_labels(classify(rows, facts, kb), rows), None)
         if labels:
             state.set(labels=labels)
+            classifier = "p3"
+    else:
+        stages.status["classify"] = "not_available"
     if facts and deadline - time.time() > 5 * 60:
-        gen_report = {}
-        claims2 = stage("claims_full", lambda: generate(kb, lexicon, input_texts, 1000, gen_report), None)
+        rep2: dict = {}
+        claims2 = stages.run("generate", lambda: generate(kb, lexicon, input_texts, 1000, rep2), None)
+        stages.move("generate", "validate", rep2.get("validate_s", 0) + rep2.get("truth_s", 0))
         if claims2 and len(claims2) >= len(claims):
             state.set(claims=claims2)
+            claims, gen_report = claims2, rep2
     state.write("final")
 
-    report.update({"rows": len(rows), "blank": sum(1 for r in rows if not r["label"]), "facts": len(facts),
-                   "kb": kb.stats(), "claims": gen_report, "rss_mb": rss_mb(),
-                   "total_s": round(time.time() - t0, 3)})
-    log("report " + json.dumps(report, default=str))
+    # Auxiliary artifacts: after the official table, never able to break it.
+    blank_ids = {r["id"] for r in rows if not r["label"]}
+    hidden_gold = {r["id"]: r["label"] for r in gold if r["id"] in blank_ids}
+    try:
+        metrics = collector.build(
+            run_id=run_id, kind="arena", status=stages.overall(), errors=stages.errors,
+            classification=collector.classification_metrics(
+                rows, state.labels, classifier, hidden_gold, "data/practice.csv",
+                "rows whose label was hidden from the input but which data/practice.csv in the image holds: "
+                "optimistic, the KB was built with these labels"),
+            claims=collector.claim_metrics(gen_report, claims),
+            runtime=collector.runtime_metrics(stages.timings, stages.status, time.time() - t0, rss_mb()))
+        out = aux_dir(output_dir)
+        collector.write_json(out, "metrics.json", metrics)
+        collector.write_json(out, "architecture.json",
+                             collector.architecture(metrics["runtime"]["stage_status"], stages.timings, run_id))
+        log(f"auxiliary metrics.json + architecture.json in {out}")
+    except Exception:  # noqa: BLE001
+        log(f"auxiliary artifacts skipped:\n{traceback.format_exc()}")
+        metrics = None
+
+    report = {"run_id": run_id, "timings": {k: round(v, 3) for k, v in stages.timings.items()},
+              "stage_status": stages.status, "errors": stages.errors, "rows": len(rows), "blank": len(blank_ids),
+              "facts": len(facts), "kb": kb.stats(), "claims": gen_report, "rss_mb": rss_mb(),
+              "total_s": round(time.time() - t0, 3), "metrics": metrics}
+    log("report " + json.dumps({k: v for k, v in report.items() if k != "metrics"}, default=str))
     return report
 
 

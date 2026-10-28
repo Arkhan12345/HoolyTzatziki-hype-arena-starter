@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12.16-slim-trixie
 
 # No home and a read-only root at run time: every cache points at /tmp.
 ENV HOME=/tmp \
@@ -20,8 +20,8 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt constraints.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt
 
 COPY app/ app/
 COPY models/ models/

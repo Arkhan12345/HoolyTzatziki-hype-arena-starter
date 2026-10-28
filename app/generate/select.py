@@ -109,7 +109,7 @@ def _pair_of(c: Candidate):
     return (f["subject"], f.get("attribute"))
 
 
-def select(valid: list[Candidate], n: int, report: dict) -> list[Candidate]:
+def select(valid: list[Candidate], n: int, report: dict, gold_rows: set[str] | None = None) -> list[Candidate]:
     distinct, dups = rank(valid)
     chosen = distinct[:n]
     if len(chosen) < n:
@@ -121,6 +121,11 @@ def select(valid: list[Candidate], n: int, report: dict) -> list[Candidate]:
         "selected_semantic_duplicates": max(0, len(chosen) - len(distinct[:n])),
         "min_confidence_selected": min((c.confidence for c in chosen), default=None),
     })
+    if gold_rows is not None:
+        gold_only = lambda c: bool(c.evidence) and all(r in gold_rows for r in c.evidence)  # noqa: E731
+        report.update({"valid_gold_only": sum(1 for c in valid if gold_only(c)),
+                       "selected_gold_only": sum(1 for c in chosen if gold_only(c)),
+                       "selected_kb_supported": sum(1 for c in chosen if not gold_only(c))})
     return chosen
 
 
@@ -128,7 +133,7 @@ def generate_from_inventory(inv: FactInventory, input_texts: set[str], n: int = 
                             report: dict | None = None) -> list[Claim]:
     rep: dict = {}
     valid = screen(inv, set(input_texts), rep)
-    chosen = select(valid, n, rep)
+    chosen = select(valid, n, rep, inv.gold_rows)
     claims = []
     for i, c in enumerate(chosen):
         cl = Claim(id=f"tz-{i + 1:04d}", type=c.type, text=c.text, form=c.form,
