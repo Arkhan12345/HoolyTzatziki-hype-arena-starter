@@ -77,7 +77,27 @@ def current(inv: FactInventory, s: str, a: str):
         conf = 0.7 if steady else 0.5
     same = [e for e in ev if e.key == last.key]
     conf += min(0.04, 0.01 * (len(same) - 1))
-    return last.value, min(conf, 0.97), tuple(r for e in same for r in e.row_ids)
+    value = _most_precise_date(ev, last.value)
+    if value is not last.value:
+        same += [e for e in ev if e.key == nz.key(value)]
+    return value, min(conf, 0.97), tuple(r for e in same for r in e.row_ids)
+
+
+def _most_precise_date(ev, value: dict) -> dict:
+    """'2026-01' -> '2026-01-12' when a trusted mention states that day and no other day of that month:
+    the referee compares dates as written, so the precise one is the safer claim."""
+    if value.get("kind") != "date" or len(str(value["value"])) == 10:
+        return value
+    v = str(value["value"])
+    # only evidence for the current value: mentions after the last one that states an unrelated date
+    unrelated = [e.date for e in ev if not (str(e.value["value"]).startswith(v) or v.startswith(str(e.value["value"])))]
+    since = max(unrelated, default="")
+    finer = {str(e.value["value"]) for e in ev if e.date > since and str(e.value["value"]).startswith(v)
+             and len(str(e.value["value"])) > len(v)}
+    if len(finer) != 1:
+        return value
+    precise = next(iter(finer))
+    return next(e.value for e in ev if str(e.value["value"]) == precise)
 
 
 def value_at(inv: FactInventory, s: str, a: str, day: str):
@@ -110,7 +130,8 @@ def fact_candidates(inv: FactInventory):
             continue
         form = {"subject": s, "attribute": a, "value": v}
         sem = ("fact", s, a, nz.key(v))
-        for i, make in enumerate((T.fact_text, T.fact_text_alt)):
+        # natural wording first; the plain forms stay as fallbacks if the validator rejects it
+        for i, make in enumerate((T.fact_text, T.fact_text_plain, T.fact_text_alt)):
             text = make(s, a, v)
             if text:
                 yield Candidate("fact", text, form, conf, sem, evid, {"template": i})
@@ -220,18 +241,24 @@ def compare_candidates(inv: FactInventory):
                     conf = 0.93 if between == "date" else 0.9
             else:
                 conf = min(lc, rc) - 0.05
-            if la != ra:
-                conf -= 0.02  # same kind, different attributes: valid, but one more thing to get right
             if conf < 0.6:
                 continue
+            if la != ra or (lv.get("kind") == "version" and ls != rs):
+                # valid per the contract, but "hallucination rate < operating margin" or "Hooly Docs has a
+                # lower version than Hooly Maps" says nothing a reader wants. Robust ones are still the
+                # safest filler (holdout: ~0% wrong), so they rank after every sensible claim but before
+                # the riskier old facts and at_event; on the full practice set they are not needed.
+                conf = 0.88 if robust else 0.55
             a_ref, b_ref = (ls, la), (rs, ra)
             sem = ("compare",) + ((a_ref, op, b_ref) if a_ref <= b_ref else (b_ref, FLIP[op], a_ref))
             for left, right, o in ((a_ref, b_ref, op), (b_ref, a_ref, FLIP[op])):
-                text = T.compare_text(left, right, o, between)
                 form = {"left": {"subject": left[0], "attribute": left[1]},
                         "right": {"subject": right[0], "attribute": right[1]}, "op": o}
-                yield Candidate("compare", text, form, round(conf, 3), sem, le + re_,
-                                {"between": between, "robust": robust})
+                texts = [T.compare_text(left, right, o, between, lv.get("kind")),
+                         T.compare_text_plain(left, right, o, between)]
+                for i, text in enumerate(dict.fromkeys(texts)):
+                    yield Candidate("compare", text, form, round(conf, 3), sem, le + re_,
+                                    {"between": between, "robust": robust, "template": i})
 
 
 FACTORIES = (compare_candidates, change_candidates, fact_candidates, at_event_candidates, relation_candidates)

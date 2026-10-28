@@ -95,7 +95,15 @@ def test_combinatorial_compares_without_quotas():
     inv, lex = _synthetic(34)
     report = {}
     claims = generate_from_inventory(inv, set(), 1000, report)
-    assert report["valid_by_type"]["compare"] == 34 * 33  # 1,122 ordered comparisons
+    assert report["valid_by_type"]["compare"] >= 34 * 33  # 1,122 ordered comparisons (x wordings)
+    pairs = {}  # every one of the 561 pairs must be stated from both sides
+    from app.generate.select import screen
+
+    for c in screen(inv, set(), {}):
+        if c.type == "compare":
+            pairs.setdefault(frozenset((c.form["left"]["subject"], c.form["right"]["subject"])), set()).add(
+                c.form["left"]["subject"])
+    assert len(pairs) == 561 and all(len(sides) == 2 for sides in pairs.values())
     assert report["distinct_by_type"]["compare"] == 34 * 33 // 2  # 561 distinct relations
     assert len(claims) == 1000
     by_type = Counter(c.type for c in claims)
@@ -247,3 +255,24 @@ def test_absent_p3_modules_mean_unavailable():
     from app.generate import strategies
 
     assert strategies.from_p3([], {}) is None
+
+
+def test_precise_date_only_from_the_current_run():
+    from app.generate.candidates import current
+
+    lex = {"subjects": [{"name": "Zeta Alpha Plan", "aliases": [], "attributes": ["launched"]}], "events": []}
+    d = lambda v: {"kind": "date", "value": v}  # noqa: E731
+    recs = [{"subject": "Zeta Alpha Plan", "attribute": "launched", "date": "2026-01-20", "value": d("2026-01-12")},
+            {"subject": "Zeta Alpha Plan", "attribute": "launched", "date": "2026-03-01", "value": d("2026-02-03")},
+            {"subject": "Zeta Alpha Plan", "attribute": "launched", "date": "2026-09-01", "value": d("2026-01")}]
+    v, _, _ = current(FactInventory.from_records(recs, lex), "Zeta Alpha Plan", "launched")
+    assert v["value"] == "2026-01"  # the old day sits before an unrelated date: not evidence for "now"
+    v2, _, _ = current(FactInventory.from_records([recs[0], recs[2]], lex), "Zeta Alpha Plan", "launched")
+    assert v2["value"] == "2026-01-12"
+
+
+def test_equal_counts_read_as_counts():
+    from app.generate.templates import compare_text
+
+    t = compare_text(("Hooly", "employees"), ("Hooly Cloud", "employees"), "eq", "amount", "quantity")
+    assert t == "Hooly has as many employees as Hooly Cloud."
