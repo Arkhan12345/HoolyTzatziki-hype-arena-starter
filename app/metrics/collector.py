@@ -204,6 +204,25 @@ def architecture(stage_status: dict | None = None, timings: dict | None = None, 
     return arch
 
 
+def claim_debug_record(claim) -> dict:
+    meta = getattr(claim, "meta", None) or {}
+    return {"id": claim.id, "type": claim.type, "text": claim.text, "form": claim.form,
+            "confidence": claim.confidence, "sources": meta.get("sources", []),
+            "semantic_key": meta.get("semantic_key")}
+
+
+def write_claims_debug(directory: str, claims) -> str:
+    """One JSON line per selected claim with the sentences it was built from (internal debug)."""
+    os.makedirs(directory, exist_ok=True)
+    final = os.path.join(directory, "claims_debug.jsonl")
+    tmp = final + f".{os.getpid()}.tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        for c in claims:
+            f.write(json.dumps(claim_debug_record(c), ensure_ascii=False, default=str) + "\n")
+    os.replace(tmp, final)
+    return final
+
+
 def write_json(directory: str, name: str, data: dict) -> str | None:
     """Auxiliary artifact, atomic; failures are logged by the caller and never raise into the run."""
     os.makedirs(directory, exist_ok=True)

@@ -51,7 +51,7 @@ def superseded(inv: FactInventory, s: str, a: str, value: dict, after: str) -> b
     later = inv.later(s, a, after)
     if any(e.source == "wrong" and e.key == k for e in later):
         return True
-    if any(e.source in ("gold", "consensus") and e.key != k for e in later):
+    if any(e.source in inv.trusted_sources and e.key != k for e in later):
         return True
     against = sum(e.weight for e in later if e.source == "extracted" and e.key != k)
     agree = sum(e.weight for e in later if e.source == "extracted" and e.key == k)

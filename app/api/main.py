@@ -226,7 +226,8 @@ def run_rows(rows: list[dict], source: str = "rows", claims_limit: int = 50, run
     for d in details:
         if d["id"] == "generate":
             d["note"] = claims_note
-    claims_plain = [_plain(c) for c in claims]
+    # every claim carries the sentences it was built from (debug; never in output.csv)
+    claims_plain = [{**_plain(c), "sources": (getattr(c, "meta", None) or {}).get("sources", [])} for c in claims]
     return {
         "run_id": run_id, "status": stages.overall(), "source": source, "created_at": collector.now_iso(),
         "rows": [{"id": r["id"], "text": r["text"], "date": r["date"]} for r in rows],
@@ -355,7 +356,7 @@ def run_output_csv(run_id: str):
 
     res = e["result"]
     claims = [Claim(id=c["id"], type=c["type"], text=c["text"], form=c["form"], confidence=c["confidence"])
-              for c in res["_claims_all"]]
+              for c in res["_claims_all"]]  # sources stay out: the official columns only
     buf = io.StringIO()
     wr = csv.writer(buf, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
     wr.writerow(COLUMNS)

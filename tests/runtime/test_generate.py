@@ -166,3 +166,44 @@ def test_units_convert():
 
 def test_report_is_json(world):
     json.dumps(world[5])
+
+
+def test_classifier_output_feeds_claims_only_when_trusted():
+    """Facts of rows the sentence classifier labelled true (X/Arckan's structured output) reach the
+    generator through KB.add_classified; they count as evidence only with trust_classified."""
+    from app.io.types import Label
+
+    inv_lex = {"subjects": [{"name": "Zeta Alpha Plan", "aliases": [], "attributes": ["price"]},
+                            {"name": "Zeta Bravo Plan", "aliases": [], "attributes": ["price"]}], "events": []}
+    rows = [{"id": "u-1", "text": "Zeta Alpha Plan costs €10 per month.", "date": "2026-10-01", "label": ""},
+            {"id": "u-2", "text": "Zeta Bravo Plan costs €20 per month.", "date": "2026-10-01", "label": ""}]
+    facts = [{"row_id": r["id"], "subject": s, "attribute": "price", "conf": 0.9,
+              "value": {"kind": "money", "value": v, "currency": "EUR", "per": "month"}}
+             for r, s, v in zip(rows, ["Zeta Alpha Plan", "Zeta Bravo Plan"], [10, 20])]
+    labels = [Label(id="u-1", label="true", confidence=0.95), Label(id="u-2", label="true", confidence=0.97)]
+    kb = KB(inv_lex).build(facts, [], rows, labels=labels)
+    assert kb.stats()["classified_facts"] == 2
+    assert generate(kb, inv_lex, set(), 10, {}, trust_classified=False) == []
+    report = {}
+    claims = generate(kb, inv_lex, set(), 10, report, trust_classified=True)
+    assert claims and report["valid_by_type"].get("compare")
+    srcs = {s["row_id"] for c in claims for s in c.meta["sources"]}
+    assert srcs <= {"u-1", "u-2"} and all(s["classified"]["confidence"] >= 0.9
+                                           for c in claims for s in c.meta["sources"])
+
+
+def test_low_confidence_classifications_are_not_evidence():
+    from app.io.types import Label
+
+    lex = {"subjects": [{"name": "Zeta Alpha Plan", "aliases": [], "attributes": ["price"]}], "events": []}
+    rows = [{"id": "u-1", "text": "x", "date": "2026-10-01", "label": ""}]
+    facts = [{"row_id": "u-1", "subject": "Zeta Alpha Plan", "attribute": "price",
+              "value": {"kind": "money", "value": 10, "currency": "EUR", "per": "month"}}]
+    kb = KB(lex).build(facts, [], rows, labels=[Label(id="u-1", label="true", confidence=0.6)])
+    assert kb.stats().get("classified_facts", 0) == 0
+
+
+def test_every_selected_claim_has_its_sentences(world):
+    for c in world[4]:
+        assert c.meta["sources"], c.text
+        assert all(s["text"] and s["origin"] == "practice" and s["label"] == "true" for s in c.meta["sources"])

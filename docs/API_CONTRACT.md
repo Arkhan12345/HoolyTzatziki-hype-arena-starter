@@ -40,7 +40,9 @@ type Stage = "load" | "extract" | "kb" | "classify" | "generate" | "validate" | 
 type StageStatus = "idle" | "ok" | "fallback" | "not_available" | "failed" | "skipped"
 
 interface Label { id: string; label: Verdict; confidence: number | null; gold: Verdict | null }   // gold only for practice rows
-interface Claim { id: string; type: "fact"|"compare"|"change"|"at_event"|"relation"; text: string; form: object; confidence: number }
+interface Claim { id: string; type: "fact"|"compare"|"change"|"at_event"|"relation"; text: string; form: object; confidence: number
+                  sources: {row_id: string; date: string; text: string; label: string | null; origin: "practice"|"universe"|"fixture"
+                            classified?: {label: "true"; confidence: number}}[] }   // sentences the claim was built from (debug, newest first, ≤ 8)
 interface Fact  { row_id: string; subject: string; attribute: string; value: {kind: string, ...}; span: string; conf: number }
 interface Evidence {                                  // one per extracted fact of the row
   subject: string; attribute: string; stated: object
@@ -109,5 +111,6 @@ interface Architecture {
 | `output.csv` | `python -m app.run` | `$OUTPUT_DIR` (arena: `/output/output.csv`) | **yes**, the only one QA DNA reads |
 | `metrics.json` (`Metrics`, `kind: "arena"`) | `python -m app.run`, after `output.csv` | `$TZ_AUX_DIR`; default: `/tmp/tzatziki` when `OUTPUT_DIR=/output`, else next to `output.csv` | no |
 | `architecture.json` (`Architecture`) | same | same | no |
+| `claims_debug.jsonl` (one `{id, type, text, form, confidence, sources, semantic_key}` per claim) | same | same | no |
 
 The arena's `/output` only ever holds `output.csv`. A failure writing the auxiliary files is logged and ignored.

@@ -11,7 +11,8 @@ the dated evidence the KB holds, already normalized (`key` = app.kb.normalize.ke
 Build it from the KB (`FactInventory.from_kb(kb)`) in the pipeline, or from plain records in tests
 (`FactInventory.from_records([...], lexicon)`), so the generator is tested without any extractor.
 
-Trusted = gold (a practice row labelled true states it). With `trust_extracted=True`, an extracted
+Trusted = gold (a practice row labelled true states it). With `trust_classified=True`, also the facts of
+rows the sentence classifier labelled true with high confidence (KB.add_classified). With `trust_extracted=True`, an extracted
 value also counts when >= 2 rows state it on one date and no gold or extracted mention that date
 disagrees; off by default until P3's extraction precision is measured.
 """
@@ -35,16 +36,19 @@ class Evidence:
 
 
 class FactInventory:
-    def __init__(self, timelines: dict[tuple[str, str], list[Evidence]], lexicon: Lexicon):
+    def __init__(self, timelines: dict[tuple[str, str], list[Evidence]], lexicon: Lexicon,
+                 rows: dict[str, dict] | None = None, trusted_sources=("gold", "consensus")):
         self.lex = lexicon
+        self.rows = rows or {}  # row id -> {text, date, label, origin}: where each claim comes from
+        self.trusted_sources = tuple(trusted_sources)
         self._all = {p: sorted(ev, key=lambda e: (e.date, e.row_ids)) for p, ev in timelines.items()}
-        self._trusted = {p: [e for e in ev if e.source in ("gold", "consensus") and "op" not in e.value]
+        self._trusted = {p: [e for e in ev if e.source in self.trusted_sources and "op" not in e.value]
                          for p, ev in self._all.items()}
         self.gold_rows = {r for ev in self._all.values() for e in ev if e.source == "gold" for r in e.row_ids}
 
     # ---- construction --------------------------------------------------------------------------
     @classmethod
-    def from_kb(cls, kb: KB, trust_extracted: bool = False) -> "FactInventory":
+    def from_kb(cls, kb: KB, trust_extracted: bool = False, trust_classified: bool = False) -> "FactInventory":
         timelines: dict[tuple[str, str], list[Evidence]] = {}
         for (s, a) in kb.pairs():
             tl = kb.timeline(s, a)
@@ -52,18 +56,37 @@ class FactInventory:
             if trust_extracted:
                 ev += _consensus(ev)
             timelines[(s, a)] = ev
-        return cls(timelines, kb.lex)
+        trusted = ("gold", "consensus") + (("classified",) if trust_classified else ())
+        return cls(timelines, kb.lex, kb.rows, trusted)
 
     @classmethod
     def from_records(cls, records: list[dict], lexicon: dict | Lexicon) -> "FactInventory":
         """records: {subject, attribute, value, date, source='gold', row_id='r<i>'} (test fixtures)."""
         lex = lexicon if isinstance(lexicon, Lexicon) else Lexicon(lexicon)
         timelines: dict[tuple[str, str], list[Evidence]] = defaultdict(list)
+        rows = {}
         for i, r in enumerate(records):
             s = lex.canonical(r["subject"]) or r["subject"]
+            rid = r.get("row_id", f"r{i}")
             timelines[(s, r["attribute"])].append(Evidence(
-                r["date"], r["value"], nz.key(r["value"]), r.get("source", "gold"), (r.get("row_id", f"r{i}"),)))
-        return cls(dict(timelines), lex)
+                r["date"], r["value"], nz.key(r["value"]), r.get("source", "gold"), (rid,)))
+            rows[rid] = {"text": r.get("text", ""), "date": r["date"], "label": "true", "origin": "fixture"}
+        return cls(dict(timelines), lex, rows)
+
+    def sources(self, row_ids, limit: int = 8) -> list[dict]:
+        """The sentences behind a claim, newest first (internal debug only, never in output.csv)."""
+        seen, out = set(), []
+        for rid in sorted(set(row_ids), key=lambda r: (self.rows.get(r, {}).get("date", ""), r), reverse=True):
+            if rid in seen:
+                continue
+            seen.add(rid)
+            info = self.rows.get(rid, {})
+            out.append({"row_id": rid, "date": info.get("date"), "text": info.get("text"),
+                        "label": info.get("label"), "origin": info.get("origin"),
+                        **({"classified": info["classified"]} if "classified" in info else {})})
+            if len(out) >= limit:
+                break
+        return out
 
     # ---- queries -------------------------------------------------------------------------------
     def pairs(self) -> list[tuple[str, str]]:
