@@ -179,3 +179,12 @@ def test_fact_whose_sentence_names_subject_and_value_is_a_reformulation(V):
             "value": {"kind": "quantity", "value": 301000000000, "unit": "page"}}
     v = V.check(claim("f3", "fact", "The index size of Hooly Search is 301,000,000,000 pages.", form))
     assert v.checks["novelty"] == FAIL
+
+
+def test_event_only_names_count_as_named():
+    lex = {"subjects": [{"name": "Zeta Plan", "aliases": [], "attributes": ["price"]}], "events": ["Zeta Summit"]}
+    recs = [{"subject": "Zeta Plan", "attribute": "price", "date": "2026-05-01", "row_id": "r1",
+             "text": "At Zeta Summit, Zeta Plan cost €9 per month.",
+             "value": {"kind": "money", "value": 9, "currency": "EUR", "per": "month"}}]
+    v = ClaimValidator(FactInventory.from_records(recs, lex))
+    assert v._named_in("r1") >= {"Zeta Plan", "Zeta Summit"}

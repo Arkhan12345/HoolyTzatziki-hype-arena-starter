@@ -265,7 +265,13 @@ class ClaimValidator:
         if rid not in cache:
             from app.validate.rules import named_entities
 
-            cache[rid] = {c for _, _, c in named_entities(self.inv.rows.get(rid, {}).get("text") or "", self.lex)}
+            text = self.inv.rows.get(rid, {}).get("text") or ""
+            names = {c for _, _, c in named_entities(text, self.lex)}
+            for ev in self.lex.events:  # events that are not also subjects of the lexicon
+                if ev and ev not in names and re.search(r"(?<![\w/])" + r"\s*".join(map(re.escape, ev.split()))
+                                                        + r"(?![\w/])", text, re.I):
+                    names.add(self.canon(ev))
+            cache[rid] = names
         return cache[rid]
 
     def provenance(self, rows: list[str]) -> tuple[str, list]:
