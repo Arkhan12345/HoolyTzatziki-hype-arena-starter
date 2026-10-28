@@ -12,6 +12,7 @@ app/__init__.py · app/contracts.py · empty package skeleton: app/{io,kb,extrac
 .claude/settings.json (shared hooks + permissions) · CLAUDE.md · STATUS.md · README.md (team section only, keep upstream text) · team/README.md
 pitch/PITCH.md · pitch/QA.md · pitch/VIDEO_SCRIPT.md · pitch/JOURNAL.md (append) · pitch/metrics.json (create as {})
 tests/test_contracts.py
+CONDITIONAL (only after Arckan's "neuro handoff" Request): train/neuro/ · train/neuro/LOG.md · models/neuro/
 PR description (gh pr create) on 29 Oct
 ```
 Anything else → a Request line in STATUS.md to its owner.
@@ -23,7 +24,7 @@ Install or enable these before pasting the prompt. Anything marked *(if availabl
 - **Model:** Opus via `/model`. Effort **high** for design/rules work, **medium** for routine edits.
 - **CLIs:** `gh` (logged in with `gh auth login`), `git`, Python 3.12, Docker Desktop. On Windows, run `scripts/check.sh` from Git Bash or WSL.
 - **Shared harness:** X commits `.claude/settings.json`, so every session gets the same setup. It holds:
-  - a **SessionStart hook** that runs `git pull --rebase --autostash && git log --oneline -10 && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
+  - a **SessionStart hook** that runs `git fetch origin && git log --oneline -10 origin/main && git branch -r && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
   - a **permissions allowlist** for `git pull/add/commit/push`, `python -m pytest`, `npm run *`, `docker build/run`, `sh scripts/check.sh` (fewer prompts, faster parallel work). Afterwards, run `/fewer-permission-prompts` to add the rest.
 - **Context7 MCP** for up-to-date library docs: `claude mcp add context7 -- npx -y @upstash/context7-mcp`.
 - **Built-ins to use:**
@@ -77,9 +78,12 @@ HARD RUNTIME CONTRACT (break one = zero score)
 STACK
 Python 3.12 · pandas/csv · scikit-learn · lightgbm · jsonschema · joblib · FastAPI + uvicorn (demo API)
 Frontend: React + Vite + TypeScript + Tailwind + shadcn/ui, components from Watermelon UI and Cult UI.
-Optional (P3, after T2 only): torch-CPU + ncps (liquid CfC network) behind USE_NEURO=1.
+Neuro track (dev-time, ships only if it wins): torch-CPU + ncps (CfC/LTC) + snntorch + nir in
+requirements-neuro.txt, Docker build arg WITH_NEURO=1. Full model plan: docs/MODELS.md.
 
-MODEL (agreed): Hybrid temporal Knowledge Base + classic ML
+MODEL (agreed, v2): temporal KB + truth discovery + a fairly-compared MODEL ZOO
+ (classic: LogReg/SVM/KNN/NB/RF/ExtraTrees/LightGBM/MLP/stacks; liquid: CfC/LTC; spiking: SNN/LSM).
+ The leaderboard winner ships; fallback = the LightGBM+LogReg stack. Options: README.md. Pipeline:
  text ─► extractor (lexicon aliases + value regexes + TF-IDF/LR attribute classifier + same-page
  coreference) ─► facts (subject, attribute, value) ─► temporal KB (practice gold + votes across the
  universe + per-page trust) ─► features ─► LightGBM ─► calibrated label+confidence
@@ -99,6 +103,7 @@ FOLDER OWNERSHIP (only the owner edits; others write a request in STATUS.md → 
      app/validate/  app/api/  scripts/ (new files only; never edit upstream check.sh/input.py/
      check_output.py)  tests/runtime/
  P3: app/extract/  app/classify/  app/neuro/  models/  eda/  train/  tests/model/  requirements-train.txt
+     requirements-neuro.txt   (train/neuro/ + models/neuro/ move to X ONLY after Arckan's handoff Request)
  P4: frontend/
  Shared append-only: pitch/JOURNAL.md (everyone appends), STATUS.md (each edits ONLY own row/requests),
  pitch/metrics.json (P3 writes model metrics, P2 writes runtime metrics under its own key).
@@ -137,14 +142,22 @@ ORDER & TIMELINE (now ≈ 11:00, 28 Oct)
 TEAMWORK RULES (non-negotiable)
  1. Parallel, never blocked: if a teammate's piece isn't there yet, code against the stub/interface
     and keep going. Never sit waiting for a commit. Never ask a teammate to stop or wait for you.
- 2. Pull often, read others' work: at the start of every task run
-      git pull --rebase && git log --oneline -15 && cat STATUS.md
-    and adapt to what teammates pushed (new interfaces, new data, requests addressed to you).
- 3. Commit small and often: every working step, at least every 30 min. Message: "<P#-role>: <what>"
-    (e.g. "P3-ai: attribute classifier v1, 0.91 acc"). Always `git pull --rebase` before `git push`.
- 4. Never break main: before pushing run `python -m pytest -q` (backend) or `npm run build`
-    (frontend). Big/risky changes → branch feat/<role>-<topic>, merge to main once green
-    (rebase, then fast-forward). Delete the branch after.
+ 2. Stay current, read others' work: at the start of every task run
+      git fetch origin && git merge origin/main && git log --oneline -15 origin/main && cat STATUS.md
+    and adapt to what teammates merged (new interfaces, new data, requests addressed to you).
+ 3. ALL WORK IS ON BRANCHES. One branch per task, named <name>/<topic> (X/contracts, ioan/dockerfile,
+    arckan/extractor, vald/run-page). Never commit directly to main.
+    X's branches always start with X/ (X/skeleton, X/contracts, X/pitch, X/neuro-<topic>).
+    Commit small and often on your branch (every working step, at least every 30 min), message
+    "<P#-role>: <what>" (e.g. "P3-ai: attribute classifier v1, 0.91 acc"), and push the branch after
+    every commit (git push -u origin HEAD) so teammates can see progress (git fetch; git log origin/<branch>).
+ 4. Merge to main often so nobody is held back: as soon as a step works (python -m pytest -q or
+    npm run build green, branch up to date with origin/main), open a PR to OUR repo and merge it yourself:
+      gh pr create --repo Arkhan12345/HoolyTzatziki-hype-arena-starter --base main --fill
+      gh pr merge --merge --delete-branch
+    At least every 1-2 h. X reviews merged PRs asynchronously and never blocks a merge. main must
+    always run. Need a teammate's unmerged work right now? Ask them to merge it; only as a last resort
+    git merge origin/<their-branch> into your branch.
  5. Ownership: edit only your folders. Need something elsewhere? Add a line under "Requests" in
     STATUS.md: "@P2 from P3: need KB.lookup to return history sorted by date". Owners check requests
     every pull and answer by committing.
@@ -177,6 +190,9 @@ guess, an integration check at every milestone, and a pitch that writes itself a
 
 TASKS, IN ORDER
 1. [T0, ≤45 min — push ASAP, in 2–3 small commits]
+   0. Work on branch X/skeleton; merge it to main via PR the moment it passes tests (teammates wait
+      on nothing, but the sooner it lands the better). Enable a light branch rule on main
+      (no direct pushes; PRs may be self-merged) via repo settings or ask Arkhan12345 to.
    a. Skeleton dirs with __init__.py / .gitkeep: app/{io,kb,extract,classify,generate,validate,api,
       neuro}/, models/, eda/, train/, tests/{runtime,model}/, frontend/ (empty .gitkeep only),
       docs/, pitch/.
@@ -195,8 +211,8 @@ TASKS, IN ORDER
       QA.md (empty headings).
    f. docs/ already holds REQUIREMENTS.md, ARCHITECTURE.md, EDA.md (first commit) — keep them current
       and start docs/DECISIONS.md (one line per decision).
-   g. .claude/settings.json: SessionStart hook (git pull --rebase --autostash; git log --oneline -10;
-      cat STATUS.md) + permissions allowlist (see RECOMMENDED SETUP above).
+   g. .claude/settings.json: SessionStart hook (git fetch origin; git log --oneline -10 origin/main;
+      git branch -r; cat STATUS.md) + permissions allowlist (see RECOMMENDED SETUP above).
    h. tests/test_contracts.py: imports contracts and checks the stubs return the right shapes.
 2. [T0→T1] Review teammates' first pushes against contracts.py; answer every "Requests" line
    addressed to you within one pull cycle. Interface changes: additive only, old signature kept.
@@ -217,11 +233,22 @@ TASKS, IN ORDER
    6 Live demo (sample.csv in the frontend)
    7 Results: label accuracy / macro-F1 / calibration, 1,000 claims all validator-clean, runtime
    8 Confidence = part of the answer (calibration plot)
-   9 Classic vs Liquid (CfC) vs Spiking experiment — what neuromorphic bought us (honest)
+   9 Leaderboard: classic zoo vs liquid (CfC/LTC) vs spiking (SNN/LSM) - macro-F1, ECE, speed,
+     energy (synops); what neuromorphic bought us (honest); SHAP of the winner
    10 Team + what we'd do next
 5. [T3→09:00] pitch/QA.md: likely jury questions (why not an LLM, how do you handle lying pages,
    how is confidence calibrated, what if an entity is unseen, runtime/scaling, failure modes).
    Video script (≤3 min): diagram → run sample.csv live → labels + confidence → claims → metrics.
+5b. [CONDITIONAL, parallel] NEURO COMPUTE OWNER - only after Arckan writes
+   "@X from Arckan: neuro handoff, features_vN" in STATUS.md (docs/MODELS.md sections 5-6):
+   - Branch X/neuro-<topic>. pip install -r requirements-neuro.txt in a separate venv.
+   - Before every run: fetch + merge origin/main, use the NEWEST train/features/features_vN.parquet +
+     timelines_vN + SCHEMA.md fold ids (same folds as Arckan's zoo, so results are comparable).
+   - Train CfC / LTC / GRU-control (as feature and as classifier), spiking MLP (rate vs latency),
+     LSM reservoir; NIR export + synops. Run long jobs in the background; keep pitch work going.
+   - Log every run in train/neuro/LOG.md, add a row to train/results.csv, write metrics.json "neuro",
+     commit weights to models/neuro/ (< 50 MB), merge via PR. Tell Arckan via a Request when a model
+     beats the stack; he wires it in through app/neuro/__init__.py. Never block him, never edit app/.
 6. [09:00 29 Oct] `git pull upstream main` (sample/sample.csv), tell team in STATUS, run final
    check.sh. [≤10:30] README team section (how to run backend + frontend), then open the PR:
    `gh pr create --repo QA-DNA/hype-arena-starter --head Arkhan12345:main --title "Tzatziki"`
@@ -232,8 +259,8 @@ DEFINITION OF DONE: skeleton + contracts pushed by T0; check.sh passes at T1/T2/
 real numbers; PR opened before 10:30 on 29 Oct; video recorded.
 
 HOW TO WORK (Claude Code, single agent; sub-agents allowed only inside my folders)
-- Start: `git pull --rebase; git log --oneline -15; cat STATUS.md`. Acknowledge P2, P3, P4 by reading
+- Start: `git fetch origin && git merge origin/main; git log --oneline -15 origin/main; cat STATUS.md`. Acknowledge P2, P3, P4 by reading
   their latest commits before each task.
-- Commit per step ("P1-arch: …"), pull --rebase before push, append to JOURNAL.md, update my STATUS
+- Commit per step ("P1-arch: …"), push your branch after each commit, merge to main via PR when green, append to JOURNAL.md, update my STATUS
   row hourly. Never wait for anyone; never block anyone.
 ~~~

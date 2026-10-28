@@ -22,7 +22,7 @@ Install or enable these before pasting the prompt. Anything marked *(if availabl
 - **Model:** Opus via `/model`. Effort **high** for design/rules work, **medium** for routine edits.
 - **CLIs:** `gh` (logged in with `gh auth login`), `git`, Python 3.12, Docker Desktop. On Windows, run `scripts/check.sh` from Git Bash or WSL.
 - **Shared harness:** X commits `.claude/settings.json`, so every session gets the same setup. It holds:
-  - a **SessionStart hook** that runs `git pull --rebase --autostash && git log --oneline -10 && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
+  - a **SessionStart hook** that runs `git fetch origin && git log --oneline -10 origin/main && git branch -r && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
   - a **permissions allowlist** for `git pull/add/commit/push`, `python -m pytest`, `npm run *`, `docker build/run`, `sh scripts/check.sh` (fewer prompts, faster parallel work). Afterwards, run `/fewer-permission-prompts` to add the rest.
 - **Context7 MCP** for up-to-date library docs: `claude mcp add context7 -- npx -y @upstash/context7-mcp`.
 - **Built-ins to use:**
@@ -76,9 +76,12 @@ HARD RUNTIME CONTRACT (break one = zero score)
 STACK
 Python 3.12 · pandas/csv · scikit-learn · lightgbm · jsonschema · joblib · FastAPI + uvicorn (demo API)
 Frontend: React + Vite + TypeScript + Tailwind + shadcn/ui, components from Watermelon UI and Cult UI.
-Optional (P3, after T2 only): torch-CPU + ncps (liquid CfC network) behind USE_NEURO=1.
+Neuro track (dev-time, ships only if it wins): torch-CPU + ncps (CfC/LTC) + snntorch + nir in
+requirements-neuro.txt, Docker build arg WITH_NEURO=1. Full model plan: docs/MODELS.md.
 
-MODEL (agreed): Hybrid temporal Knowledge Base + classic ML
+MODEL (agreed, v2): temporal KB + truth discovery + a fairly-compared MODEL ZOO
+ (classic: LogReg/SVM/KNN/NB/RF/ExtraTrees/LightGBM/MLP/stacks; liquid: CfC/LTC; spiking: SNN/LSM).
+ The leaderboard winner ships; fallback = the LightGBM+LogReg stack. Options: README.md. Pipeline:
  text ─► extractor (lexicon aliases + value regexes + TF-IDF/LR attribute classifier + same-page
  coreference) ─► facts (subject, attribute, value) ─► temporal KB (practice gold + votes across the
  universe + per-page trust) ─► features ─► LightGBM ─► calibrated label+confidence
@@ -98,6 +101,7 @@ FOLDER OWNERSHIP (only the owner edits; others write a request in STATUS.md → 
      app/validate/  app/api/  scripts/ (new files only; never edit upstream check.sh/input.py/
      check_output.py)  tests/runtime/
  P3: app/extract/  app/classify/  app/neuro/  models/  eda/  train/  tests/model/  requirements-train.txt
+     requirements-neuro.txt   (train/neuro/ + models/neuro/ move to X ONLY after Arckan's handoff Request)
  P4: frontend/
  Shared append-only: pitch/JOURNAL.md (everyone appends), STATUS.md (each edits ONLY own row/requests),
  pitch/metrics.json (P3 writes model metrics, P2 writes runtime metrics under its own key).
@@ -136,14 +140,21 @@ ORDER & TIMELINE (now ≈ 11:00, 28 Oct)
 TEAMWORK RULES (non-negotiable)
  1. Parallel, never blocked: if a teammate's piece isn't there yet, code against the stub/interface
     and keep going. Never sit waiting for a commit. Never ask a teammate to stop or wait for you.
- 2. Pull often, read others' work: at the start of every task run
-      git pull --rebase && git log --oneline -15 && cat STATUS.md
-    and adapt to what teammates pushed (new interfaces, new data, requests addressed to you).
- 3. Commit small and often: every working step, at least every 30 min. Message: "<P#-role>: <what>"
-    (e.g. "P3-ai: attribute classifier v1, 0.91 acc"). Always `git pull --rebase` before `git push`.
- 4. Never break main: before pushing run `python -m pytest -q` (backend) or `npm run build`
-    (frontend). Big/risky changes → branch feat/<role>-<topic>, merge to main once green
-    (rebase, then fast-forward). Delete the branch after.
+ 2. Stay current, read others' work: at the start of every task run
+      git fetch origin && git merge origin/main && git log --oneline -15 origin/main && cat STATUS.md
+    and adapt to what teammates merged (new interfaces, new data, requests addressed to you).
+ 3. ALL WORK IS ON BRANCHES. One branch per task, named <name>/<topic> (X/contracts, ioan/dockerfile,
+    arckan/extractor, vald/run-page). Never commit directly to main.
+    Commit small and often on your branch (every working step, at least every 30 min), message
+    "<P#-role>: <what>" (e.g. "P3-ai: attribute classifier v1, 0.91 acc"), and push the branch after
+    every commit (git push -u origin HEAD) so teammates can see progress (git fetch; git log origin/<branch>).
+ 4. Merge to main often so nobody is held back: as soon as a step works (python -m pytest -q or
+    npm run build green, branch up to date with origin/main), open a PR to OUR repo and merge it yourself:
+      gh pr create --repo Arkhan12345/HoolyTzatziki-hype-arena-starter --base main --fill
+      gh pr merge --merge --delete-branch
+    At least every 1-2 h. X reviews merged PRs asynchronously and never blocks a merge. main must
+    always run. Need a teammate's unmerged work right now? Ask them to merge it; only as a last resort
+    git merge origin/<their-branch> into your branch.
  5. Ownership: edit only your folders. Need something elsewhere? Add a line under "Requests" in
     STATUS.md: "@P2 from P3: need KB.lookup to return history sorted by date". Owners check requests
     every pull and answer by committing.
@@ -164,7 +175,7 @@ ROLE: You are the Claude Code agent of P2 Ioan, BACKEND + DEVOPS (runtime, Docke
 (see Shared Brief above). P1 (architect) is pushing the skeleton + app/contracts.py in the first
 45 min, P3 builds the extractor + classifier, P4 builds the frontend that calls your API — all in
 parallel right now. Do not wait for P1's skeleton: start on the Dockerfile and run.py in your own
-paths immediately; adopt contracts.py the moment it lands (git pull --rebase).
+paths immediately; adopt contracts.py the moment it lands (git fetch origin && git merge origin/main), on branch ioan/<topic>.
 
 I OWN: Dockerfile .dockerignore requirements.txt app/run.py app/io/ app/kb/ app/generate/
        app/validate/ app/api/ scripts/ (new files only) tests/runtime/
@@ -202,6 +213,9 @@ TASKS, IN ORDER
    - lookup(subject, attr, date) → value in force on that date (latest prior well-supported value),
      support, history. Also current_value(subject, attr, as_of="2026-10-29").
    Expose features helpers P3 can call (agrees_with_latest, n_supporting_sources, value_changed_after).
+   TRUTH-DISCOVERY HOOK: KB.timelines() -> per pair the list of (date, value, source_id/page_id, row_id,
+   from_gold) so Arckan's EM loop (docs/MODELS.md section 2) can estimate page reliability, and
+   KB.set_reliability() to feed it back. Arckan ablates it - keep it cheap and optional.
 4. [T1→T2] app/generate — 1,000 claims, ALL TRUE, diversity across types/subjects:
    - Only use facts with high support (gold true or ≥2 agreeing sources and no newer contradiction).
    - fact: current value on 29 Oct 2026 — "<Subject> <attribute phrase> <value>." no other value,
@@ -226,7 +240,9 @@ TASKS, IN ORDER
    GET /architecture (stage graph JSON: nodes, edges, descriptions); GET /metrics (pitch/metrics.json
    + runtime metrics); CORS for http://localhost:5173. scripts/dev_api.sh / .ps1 to start it.
    Push the endpoint shapes to STATUS Requests for P4 ASAP (even before they're real).
-7. [overnight → T3] Full-size test: synthesize a 20k-row universe (practice ×10 with new ids) and
+7. [overnight] Dockerfile build arg WITH_NEURO=0|1: when 1, install requirements-neuro.txt from the
+   torch CPU index (only if Arckan says a neuro model ships). scripts/image_size.sh: fail if > 2.5 GiB.
+8. [overnight → T3] Full-size test: synthesize a 20k-row universe (practice ×10 with new ids) and
    confirm run < 10 min, RSS < 3 GB, image < 1.5 GB (`docker image inspect`). Write runtime numbers
    to pitch/metrics.json under key "runtime".
 
@@ -234,8 +250,8 @@ DEFINITION OF DONE: check.sh passes with real pipeline; 1,000 validator-clean cl
 crashing model and a SIGTERM; API serves the frontend; numbers in metrics.json.
 
 HOW TO WORK (Claude Code, single agent; sub-agents allowed only inside my folders)
-- Start every task: `git pull --rebase; git log --oneline -15; cat STATUS.md` — read P1's contracts,
+- Start every task: `git fetch origin && git merge origin/main; git log --oneline -15 origin/main; cat STATUS.md` — read P1's contracts,
   P3's extractor progress, P4's requests to me. Build on them; never wait for them.
-- Commit per working step ("P2-backend: …"), pytest before push, pull --rebase before push.
-  Big refactors on feat/backend-<topic>. JOURNAL line per meaningful commit; STATUS row hourly.
+- Commit per working step ("P2-backend: …"), pytest before push, push your branch after each commit, merge to main via PR when green.
+  Branch ioan/<topic> per task. JOURNAL line per meaningful commit; STATUS row hourly.
 ~~~
