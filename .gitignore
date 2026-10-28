@@ -1,4 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+/out/
+/tmp_*/
+# EDA (X)
 .venv-eda/
 eda/out/*.pkl
 .claude/worktrees/
-__pycache__/
