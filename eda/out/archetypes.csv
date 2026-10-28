@@ -1,0 +1,17 @@
+archetype,recommended_option,false,true,unsure,n,p_false,p_unsure
+stale_value,D,57,11,0,68,0.838,0.0
+contradicts_kb,A,98,117,3,218,0.45,0.014
+hype_joke_tail,E,3,32,10,45,0.067,0.222
+lying_page,B,5,21,0,26,0.192,0.0
+speaker_quote,B,11,124,1,136,0.081,0.007
+unverifiable_single_value,C,0,219,13,232,0.0,0.056
+unsupported_new_value,B,33,70,3,106,0.311,0.028
+change_point,D,43,314,4,361,0.119,0.011
+value_outlier,C,2,47,2,51,0.039,0.039
+hedged_or_bounded,C,3,26,0,29,0.103,0.0
+date_reasoning,D,1,30,0,31,0.032,0.0
+multi_fact,C,4,130,0,134,0.03,0.0
+pronoun_subject,F,7,139,0,146,0.048,0.0
+spec_fragment,F,2,68,1,71,0.028,0.014
+plain_kb_match,A,8,218,1,227,0.035,0.004
+default,A,0,15,1,16,0.0,0.062

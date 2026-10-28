@@ -1,0 +1,46 @@
+target = unsure  (weights shown as [not unsure, unsure] after class balancing)
+
+|--- joke_tail <= 0.50
+|   |--- pair_single_value <= 0.50
+|   |   |--- rel_before_first_known <= 0.50
+|   |   |   |--- rel_match_latest <= 0.50
+|   |   |   |   |--- weights: [297.11, 145.92] class: 0
+|   |   |   |--- rel_match_latest >  0.50
+|   |   |   |   |--- weights: [422.69, 72.96] class: 0
+|   |   |--- rel_before_first_known >  0.50
+|   |   |   |--- no_period <= 0.50
+|   |   |   |   |--- weights: [54.11, 121.60] class: 1
+|   |   |   |--- no_period >  0.50
+|   |   |   |   |--- weights: [20.93, 0.00] class: 0
+|   |--- pair_single_value >  0.50
+|   |   |--- multi_fact <= 0.50
+|   |   |   |--- never_repeated <= 0.50
+|   |   |   |   |--- weights: [88.83, 194.56] class: 1
+|   |   |   |--- never_repeated >  0.50
+|   |   |   |   |--- weights: [22.46, 145.92] class: 1
+|   |   |--- multi_fact >  0.50
+|   |   |   |--- weights: [18.89, 0.00] class: 0
+|--- joke_tail >  0.50
+|   |--- multi_fact <= 0.50
+|   |   |--- kv_line <= 0.50
+|   |   |   |--- page_first_person <= 0.50
+|   |   |   |   |--- weights: [6.64, 243.21] class: 1
+|   |   |   |--- page_first_person >  0.50
+|   |   |   |   |--- weights: [5.62, 24.32] class: 1
+|   |   |--- kv_line >  0.50
+|   |   |   |--- weights: [5.10, 0.00] class: 0
+|   |--- multi_fact >  0.50
+|   |   |--- weights: [6.13, 0.00] class: 0
+
+
+importance:
+joke_tail                 0.326
+pair_single_value         0.322
+rel_before_first_known    0.130
+multi_fact                0.084
+no_period                 0.048
+rel_match_latest          0.042
+kv_line                   0.025
+never_repeated            0.018
+page_first_person         0.004
+now_today                 0.000

@@ -1,0 +1,35 @@
+id,date,label,kb_relation,text
+p-342,2026-09-22,true,future_value,26 models supported
+p-782,2026-09-23,true,match_latest,26 models supported
+p-789,2026-10-14,true,match_latest,26 models supported
+p-345,2026-09-22,false,match_latest,A 1.6 GB update
+p-783,2026-09-23,false,match_latest,A 1.6 GB update
+p-273,2026-03-24,unsure,future_value,Captions in 11 languages
+p-732,2026-10-08,true,unseen_pair,Captions in 11 languages
+p-1179,2026-06-02,true,future_value,Hooly Chrome starts in 1.9 s.
+p-535,2026-08-05,true,match_latest,Hooly Chrome starts in 1.9 s.
+p-407,2026-03-24,true,match_latest,Hooly Gemini connects to 22 integrations
+p-336,2026-09-20,true,match_latest,Hooly Gemini connects to 22 integrations
+p-1459,2025-11-14,true,match_latest,Hooly Gemini replies in 2.1 s at the median.
+p-1474,2026-08-20,false,stale_older,Hooly Gemini replies in 2.1 s at the median.
+p-810,2026-03-24,true,match_latest,Hooly Gemini speaks 12 languages.
+p-1470,2026-08-20,true,match_latest,Hooly Gemini speaks 12 languages.
+p-153,2026-06-25,true,future_value,Hooly Pixel Fold weighs 258 g.
+p-609,2026-08-18,true,match_latest,Hooly Pixel Fold weighs 258 g.
+p-108,2026-02-25,true,match_latest,"Hooly Search has 540,000,000 users each month."
+p-1217,2026-06-16,false,stale_older,"Hooly Search has 540,000,000 users each month."
+p-527,2026-04-01,true,match_latest,"Hooly Workspace includes 10 seats, and each further seat on Hooly Workspace is €15 a month."
+p-1716,2026-04-10,true,match_latest,"Hooly Workspace includes 10 seats, and each further seat on Hooly Workspace is €15 a month."
+p-776,2026-05-01,true,match_latest,Hooly is headquartered in Lisbon from today.
+p-1093,2026-05-02,true,match_latest,Hooly is headquartered in Lisbon from today.
+p-176,2025-11-18,true,future_value,The Hooly Board has no seat set aside for Raviqa Capital.
+p-425,2025-12-11,true,match_latest,The Hooly Board has no seat set aside for Raviqa Capital.
+p-152,2026-06-25,true,future_value,"The hinge of Hooly Pixel Fold is rated for 200,000 folds."
+p-1770,2026-06-30,true,match_latest,"The hinge of Hooly Pixel Fold is rated for 200,000 folds."
+p-608,2026-08-18,unsure,match_latest,"The hinge of Hooly Pixel Fold is rated for 200,000 folds."
+p-1842,2025-10-07,true,future_value,Uploads up to 25 MB
+p-1847,2026-04-01,true,match_latest,Uploads up to 25 MB
+p-858,2025-10-07,true,future_value,"We keep your conversation history for 90 days after each session, after which it is deleted."
+p-864,2026-04-01,true,match_latest,"We keep your conversation history for 90 days after each session, after which it is deleted."
+p-1197,2026-05-07,true,future_value,Yearly billing saves 20%.
+p-928,2026-10-16,true,match_latest,Yearly billing saves 20%.

@@ -72,6 +72,13 @@ Node: 24.12 on the team laptops; Vite 6 needs Node 18, 20 or 22+. Versions below
 | @vitejs/plugin-react | 4.7.0 | build | dev |
 | eslint | 9.39.5 | lint | dev |
 
+## Research / EDA (X) — dev-only, never in the image
+
+| File | Venv | Adds on top of the runtime pins | Used by |
+| --- | --- | --- | --- |
+| `eda/requirements-eda.txt` | `.venv` (shared) | `matplotlib==3.11.2` (+ `-r requirements.txt -c constraints.txt`) | `eda/01..03, 05, 06` |
+| `eda/requirements-eda-neuro.txt` | `.venv-neuro` | `torch==2.14.1+cpu`, `ncps==1.0.1`, `snntorch==1.0.0` | `eda/04_bakeoff.py` (CfC + spiking) |
+
 ## Rules
 
 1. **Everything offline is in the image.** No `pip install`, no download, no model fetch at run time. Models go in

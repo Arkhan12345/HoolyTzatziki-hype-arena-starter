@@ -1,0 +1,73 @@
+rule,family,support,pages,true,false,unsure,p_false,p_unsure,false_ci95,lift_false,non_true_pages,confirmed
+ALL ROWS (baseline),base,1897,291,1581,277,39,0.146,0.021,"[0.13, 0.16]",1.0,171,True
+worst fact relation = match_latest,temporal,878,240,843,26,9,0.03,0.01,"[0.02, 0.04]",0.2,30,True
+worst fact relation = future_value,temporal,472,164,414,48,10,0.102,0.021,"[0.08, 0.13]",0.7,42,True
+worst fact relation = before_first_known,temporal,154,73,100,44,10,0.286,0.065,"[0.22, 0.36]",1.96,40,True
+worst fact relation = unseen_pair,temporal,107,65,96,4,7,0.037,0.065,"[0.01, 0.09]",0.26,10,True
+worst fact relation = contradicts,temporal,218,129,117,98,3,0.45,0.014,"[0.38, 0.52]",3.08,78,True
+worst fact relation = stale_older,temporal,68,43,11,57,0,0.838,0.0,"[0.73, 0.91]",5.74,38,True
+value repeated by >=1 other page (same pair),support,1505,281,1321,162,22,0.108,0.015,"[0.09, 0.12]",0.74,116,True
+value never repeated anywhere else,support,391,161,259,115,17,0.294,0.043,"[0.25, 0.34]",2.01,86,True
+value never repeated AND pair has >=3 values,support,160,103,97,59,4,0.369,0.025,"[0.30, 0.45]",2.53,48,True
+pair has a single value in the corpus,support,280,142,263,0,17,0.0,0.061,"[0.00, 0.01]",0.0,17,True
+agrees with previous mention (label-free),support,809,229,764,35,10,0.043,0.012,"[0.03, 0.06]",0.3,40,True
+disagrees with previous mention (label-free),support,642,221,448,190,4,0.296,0.006,"[0.26, 0.33]",2.03,122,True
+value >= 2x pair median,value,69,59,30,37,2,0.536,0.029,"[0.42, 0.65]",3.67,32,True
+value <= 0.5x pair median,value,122,92,94,25,3,0.205,0.025,"[0.14, 0.29]",1.4,27,True
+round number (x10),value,602,231,470,113,19,0.188,0.032,"[0.16, 0.22]",1.29,98,True
+comparison op present (over/under),value,38,30,28,10,0,0.263,0.0,"[0.15, 0.42]",1.8,9,True
+text: first_person,wording,64,41,45,14,5,0.219,0.078,"[0.14, 0.33]",1.5,15,True
+text: we_our,wording,78,60,61,16,1,0.205,0.013,"[0.13, 0.31]",1.4,15,True
+text: quote,wording,41,28,31,8,2,0.195,0.049,"[0.10, 0.34]",1.34,9,True
+text: hearsay,wording,2,2,0,0,2,0.0,1.0,"[0.00, 0.66]",0.0,2,False
+text: hedge,wording,65,53,44,20,1,0.308,0.015,"[0.21, 0.43]",2.11,20,True
+text: superlative,wording,103,85,82,15,6,0.146,0.058,"[0.09, 0.23]",1.0,18,True
+text: now_today,wording,148,113,125,19,4,0.128,0.027,"[0.08, 0.19]",0.88,23,True
+text: still,wording,21,21,19,2,0,0.095,0.0,"[0.03, 0.29]",0.65,2,True
+text: future,wording,66,57,54,11,1,0.167,0.015,"[0.10, 0.27]",1.14,11,True
+text: negation,wording,98,80,71,22,5,0.224,0.051,"[0.15, 0.32]",1.54,25,True
+text: change_verb,wording,53,48,43,8,2,0.151,0.038,"[0.08, 0.27]",1.03,10,True
+text: joke_tail,wording,57,34,34,12,11,0.211,0.193,"[0.12, 0.33]",1.44,16,True
+text: no_period,wording,435,70,368,57,10,0.131,0.023,"[0.10, 0.17]",0.9,38,True
+text: kv_line,wording,304,73,262,38,4,0.125,0.013,"[0.09, 0.17]",0.86,29,True
+text: starts_pronoun,wording,49,39,38,10,1,0.204,0.02,"[0.11, 0.34]",1.4,11,True
+text: number_words,wording,36,35,27,7,2,0.194,0.056,"[0.10, 0.35]",1.33,9,True
+hype_score >= 2,wording,53,33,33,11,9,0.208,0.17,"[0.12, 0.33]",1.42,15,True
+first person AND joke tail,combo,39,28,26,8,5,0.205,0.128,"[0.11, 0.36]",1.4,12,True
+first person AND number,combo,49,33,34,13,2,0.265,0.041,"[0.16, 0.40]",1.82,11,True
+hedge AND value never repeated,combo,16,14,5,11,0,0.688,0.0,"[0.44, 0.86]",4.71,10,True
+headline/spec line AND match_latest,combo,218,59,203,11,4,0.05,0.018,"[0.03, 0.09]",0.35,11,True
+text has date,date,149,118,128,19,2,0.128,0.013,"[0.08, 0.19]",0.87,20,True
+text date in the past (> 1 day),date,76,69,63,12,1,0.158,0.013,"[0.09, 0.26]",1.08,13,True
+text date in the future (> 1 day),date,41,33,35,5,1,0.122,0.024,"[0.05, 0.26]",0.84,6,True
+'today' but text date != page date,date,2,1,1,0,1,0.0,0.5,"[0.00, 0.66]",0.0,1,False
+subject only by pronoun/implicit,extraction,629,187,528,88,13,0.14,0.021,"[0.11, 0.17]",0.96,66,True
+n_facts >= 2,structure,430,200,351,75,4,0.174,0.009,"[0.14, 0.21]",1.19,60,True
+n_facts >= 3,structure,57,42,49,7,1,0.123,0.018,"[0.06, 0.23]",0.84,5,True
+first row of page (headline),structure,291,291,249,37,5,0.127,0.017,"[0.09, 0.17]",0.87,42,True
+single-row page,structure,30,30,22,8,0,0.267,0.0,"[0.14, 0.44]",1.83,8,True
+page first-person share >= 0.3,page,62,19,36,25,1,0.403,0.016,"[0.29, 0.53]",2.76,11,True
+template seen >= 3 times,template,54,44,45,6,3,0.111,0.056,"[0.05, 0.22]",0.76,9,True
+page genre = event_recap,genre,272,31,226,39,7,0.143,0.026,"[0.11, 0.19]",0.98,24,True
+page genre = first_person_hype,genre,62,19,36,25,1,0.403,0.016,"[0.29, 0.53]",2.76,11,True
+page genre = other_page,genre,74,28,60,14,0,0.189,0.0,"[0.12, 0.29]",1.3,11,True
+page genre = people_announcement,genre,66,11,53,12,1,0.182,0.015,"[0.11, 0.29]",1.25,7,True
+page genre = pricing_page,genre,154,31,133,21,0,0.136,0.0,"[0.09, 0.20]",0.93,15,True
+page genre = quote_interview,genre,31,5,28,3,0,0.097,0.0,"[0.03, 0.25]",0.66,3,True
+page genre = release_notes,genre,799,108,674,105,20,0.131,0.025,"[0.11, 0.16]",0.9,62,True
+page genre = spec_sheet_or_slides,genre,439,58,371,58,10,0.132,0.023,"[0.10, 0.17]",0.9,38,True
+value kinds = boolean,kind,150,114,123,20,7,0.133,0.047,"[0.09, 0.20]",0.91,26,True
+value kinds = date,kind,102,84,90,10,2,0.098,0.02,"[0.05, 0.17]",0.67,12,True
+value kinds = date|name,kind,17,15,13,4,0,0.235,0.0,"[0.10, 0.47]",1.61,4,True
+value kinds = duration,kind,147,104,127,18,2,0.122,0.014,"[0.08, 0.19]",0.84,19,True
+value kinds = duration|money,kind,16,15,14,2,0,0.125,0.0,"[0.03, 0.36]",0.86,2,True
+value kinds = duration|quantity,kind,24,21,17,7,0,0.292,0.0,"[0.15, 0.49]",2.0,7,True
+value kinds = money,kind,148,103,122,23,3,0.155,0.02,"[0.11, 0.22]",1.06,24,True
+value kinds = money|quantity,kind,50,32,43,7,0,0.14,0.0,"[0.07, 0.26]",0.96,7,True
+value kinds = name,kind,127,96,116,10,1,0.079,0.008,"[0.04, 0.14]",0.54,11,True
+value kinds = name|quantity,kind,29,29,23,5,1,0.172,0.034,"[0.08, 0.35]",1.18,6,True
+value kinds = percent,kind,172,115,144,26,2,0.151,0.012,"[0.11, 0.21]",1.04,27,True
+value kinds = percent|quantity,kind,16,16,15,0,1,0.0,0.062,"[0.00, 0.19]",0.0,1,False
+value kinds = quantity,kind,710,227,570,121,19,0.17,0.027,"[0.14, 0.20]",1.17,105,True
+value kinds = quantity|version,kind,26,23,24,1,1,0.038,0.038,"[0.01, 0.19]",0.26,2,True
+value kinds = version,kind,73,59,69,4,0,0.055,0.0,"[0.02, 0.13]",0.38,4,True
