@@ -103,9 +103,41 @@ def test_unknown_value_is_unverified_not_pass(V):
 
 
 def test_claim_without_evidence_is_unverified(V):
-    form = cmp_form("Hooly Vault", "price", "gt", "Hooly AI Pro", "price")  # Hooly Vault has no known price
-    v = V.check(claim("c1", "compare", "Hooly Vault costs more than Hooly AI Pro.", form, AMOUNT), AMOUNT)
-    assert v.verdict in (UNVERIFIED, FAIL) and v.verdict != PASS
+    # Hooly Calendar has an active_users attribute in the lexicon but no evidence for it
+    form = cmp_form("Hooly Calendar", "active_users", "gt", "Hooly Drive", "active_users")
+    c = claim("c1", "compare", "Hooly Calendar has more active users than Hooly Drive.", form, AMOUNT)
+    v = V.check(c, AMOUNT)
+    assert v.checks["contract"] == PASS and v.checks["truth"] == UNVERIFIED and v.verdict == UNVERIFIED
+
+
+def test_precise_date_needs_current_support():
+    lex = {"subjects": [{"name": "Zeta Alpha Plan", "aliases": [], "attributes": ["launched"]}], "events": []}
+    d = lambda v: {"kind": "date", "value": v}  # noqa: E731
+    recs = [{"subject": "Zeta Alpha Plan", "attribute": "launched", "date": "2026-01-20", "value": d("2026-01-12")},
+            {"subject": "Zeta Alpha Plan", "attribute": "launched", "date": "2026-03-01", "value": d("2026-02-03")},
+            {"subject": "Zeta Alpha Plan", "attribute": "launched", "date": "2026-09-01", "value": d("2026-01")}]
+    v = ClaimValidator(FactInventory.from_records(recs, lex))
+    assert v.truth("fact", {"subject": "Zeta Alpha Plan", "attribute": "launched", "value": d("2026-01-12")})[0] == UNVERIFIED
+    assert v.truth("fact", {"subject": "Zeta Alpha Plan", "attribute": "launched", "value": d("2026-01")})[0] == PASS
+
+
+def test_relation_needs_overlapping_evidence():
+    lex = {"subjects": [{"name": "Zeta Co", "aliases": [], "attributes": ["cto"]},
+                        {"name": "Ana Zed", "aliases": [], "attributes": ["joined"]}], "events": []}
+    name, d = (lambda v: {"kind": "name", "value": v}), (lambda v: {"kind": "date", "value": v})
+    recs = [{"subject": "Zeta Co", "attribute": "cto", "date": "2026-06-01", "value": name("Ana Zed")},
+            {"subject": "Zeta Co", "attribute": "cto", "date": "2026-07-01", "value": name("Ana Zed")},
+            {"subject": "Ana Zed", "attribute": "joined", "date": "2026-09-01", "value": d("2026-05-01")}]
+    form = {"subject": "Zeta Co", "link": "cto", "target": "Ana Zed", "attribute": "joined", "value": d("2026-05-01")}
+    assert ClaimValidator(FactInventory.from_records(recs, lex)).truth("relation", form)[0] == UNVERIFIED
+    recs.append({"subject": "Ana Zed", "attribute": "joined", "date": "2026-05-15", "value": d("2026-05-01")})
+    assert ClaimValidator(FactInventory.from_records(recs, lex)).truth("relation", form)[0] == PASS
+
+
+def test_malformed_form_is_a_counted_failure(V):
+    before = V.errors
+    st, why, _ = V.truth("fact", {"subject": "Hooly"})  # no attribute, no value
+    assert st == FAIL and V.errors == before + 1
 
 
 def test_text_must_say_what_the_form_says(V):

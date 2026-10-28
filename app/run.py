@@ -150,6 +150,10 @@ def main(universe_dir: str | None = None, output_dir: str | None = None, deadlin
     gen_report: dict = {}
     claims = stages.run("generate", lambda: generate(kb, lexicon, input_texts, 1000, gen_report), [])
     stages.move("generate", "validate", gen_report.get("validate_s", 0) + gen_report.get("truth_s", 0))
+    if gen_report.get("shortfall"):
+        # only distinct, PASS claims are written (mentor's rule): fewer than 1,000 rather than duplicates
+        log(f"WARNING claims: {gen_report['shortfall']} short of 1,000 distinct PASS claims")
+        stages.errors.append({"stage": "generate", "message": f"{gen_report['shortfall']} claims short of 1,000"})
     state.set(claims=claims)
     state.write("fallback")
 

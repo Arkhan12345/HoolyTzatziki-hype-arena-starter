@@ -200,7 +200,7 @@ def generate_from_inventory(inv: FactInventory, input_texts: set[str], n: int = 
         "semantic_duplicates": {"inverse_compare": rep.get("semantic_duplicates_inverse_compare"),
                                 "paraphrase_or_alias": rep.get("semantic_duplicates_paraphrase")}})
     rep.update({"by_type": dict(Counter(c.type for c in claims)), "n": len(claims), "inventory": inv.stats(),
-                "validation": vrep["selected"]})
+                "validation": {**vrep["selected"], "validator_errors": validator.errors}})
     if report is not None:
         report.update(rep)
         report["_validation_report"] = vrep

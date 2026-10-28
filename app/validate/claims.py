@@ -50,6 +50,7 @@ class ClaimValidator:
     def __init__(self, inv: FactInventory, input_texts: set[str] | None = None, as_of: str = "2026-10-29"):
         self.inv, self.lex, self.as_of = inv, inv.lex, as_of
         self.input_texts = input_texts or set()
+        self.errors = 0  # validator errors (malformed forms); reported, never silently "unverified"
 
     # ---- semantic identity ---------------------------------------------------------------------
     def canon(self, name: str) -> str:
@@ -114,8 +115,9 @@ class ClaimValidator:
               "at_event": self._t_at_event, "relation": self._t_relation}[ctype]
         try:
             return fn(f)
-        except Exception as e:  # noqa: BLE001
-            return UNVERIFIED, [f"truth error: {e!r}"[:120]], []
+        except (KeyError, TypeError, ValueError) as e:  # a malformed form: invalid, and said so
+            self.errors += 1
+            return FAIL, [f"truth: validator error {e!r}"[:120]], []
 
     def _t_fact(self, f):
         v, rows = self._in_force(f["subject"], f["attribute"], self.as_of)
@@ -124,9 +126,14 @@ class ClaimValidator:
         if self._matches(f["value"], v):
             # a more precise date must itself be stated after the last unrelated date
             if f["value"].get("kind") == "date" and not nz.same(f["value"], v):
-                ok = [e for e in self._trusted(f["subject"], f["attribute"]) if nz.same(e.value, f["value"])]
+                ev = self._trusted(f["subject"], f["attribute"])
+                cv = str(v["value"])
+                unrelated = [e.date for e in ev
+                             if not (str(e.value["value"]).startswith(cv) or cv.startswith(str(e.value["value"])))]
+                since = max(unrelated, default="")
+                ok = [e for e in ev if nz.same(e.value, f["value"]) and e.date > since]
                 if not ok:
-                    return UNVERIFIED, ["the precise date is not stated anywhere"], []
+                    return UNVERIFIED, ["the precise date is not stated since the value in force began"], []
                 rows = rows + [r for e in ok for r in e.row_ids]
             return PASS, [], rows
         return FAIL, [f"value in force is {v}, not {f['value']}"], rows
@@ -190,8 +197,11 @@ class ClaimValidator:
             if all(self._matches(f["value"], e.value) for e in inside):
                 return PASS, [], rows + [r for e in inside for r in e.row_ids]
             return FAIL, ["the target's value differs while the link named it"], rows
-        if len({e.key for e in tev}) == 1 and self._matches(f["value"], tev[0].value):
-            return PASS, [], rows + [r for e in tev for r in e.row_ids]
+        before = [e for e in tev if e.date < lo]
+        after = [e for e in tev if e.date > hi]
+        if before and after and len({e.key for e in tev}) == 1 and self._matches(f["value"], tev[0].value):
+            # the target's fact never changed and its mentions bracket the whole link period
+            return PASS, [], rows + [r for e in (before[-1], after[0]) for r in e.row_ids]
         return UNVERIFIED, ["no evidence of the value while the link named the target"], []
 
     # ---- novelty, provenance -------------------------------------------------------------------
@@ -225,7 +235,8 @@ class ClaimValidator:
         if ctype == "compare":
             sides = [(self.canon(f[k]["subject"]), f[k]["attribute"]) for k in ("left", "right")]
             for rid in sorted(by_pair[sides[0]] & by_pair[sides[1]]):
-                if COMPARISON_WORDS.search(self.inv.rows.get(rid, {}).get("text") or ""):
+                about = {p for p, _ in self.inv._by_row[rid]}
+                if about == set(sides) and COMPARISON_WORDS.search(self.inv.rows.get(rid, {}).get("text") or ""):
                     return rid
             return None
         items = self.claim_items(ctype, f)
