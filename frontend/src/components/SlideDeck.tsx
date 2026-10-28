@@ -66,7 +66,7 @@ export function SlideDeck({ slides, onExit }: { slides: Slide[]; onExit?: () => 
 
   const s = slides[i]
   return (
-    <div className="fixed inset-0 flex flex-col bg-onyx text-ink">
+    <div className="fixed inset-0 flex flex-col bg-void text-ink">
       <div className="relative flex-1 overflow-hidden" onClick={(e) => go(e.clientX > window.innerWidth / 3 ? 1 : -1)}>
         <AnimatePresence mode="wait">
           <motion.section
@@ -77,7 +77,7 @@ export function SlideDeck({ slides, onExit }: { slides: Slide[]; onExit?: () => 
             transition={{ duration: 0.3 }}
             className={cn('absolute inset-0 flex flex-col justify-center px-[8vw] py-[6vh]', presenter && 'bottom-[30vh]')}
           >
-            <div className="mb-6 font-mono text-sm text-lime">
+            <div className="mb-6 font-mono text-sm text-cyan">
               {String(i + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
             </div>
             <h1 className="text-[clamp(2rem,4.6vw,5rem)] font-black leading-[1.05] tracking-tight">{s.title}</h1>
@@ -86,10 +86,10 @@ export function SlideDeck({ slides, onExit }: { slides: Slide[]; onExit?: () => 
             </div>
           </motion.section>
         </AnimatePresence>
-        <div className="absolute bottom-0 left-0 h-1 bg-lime transition-[width] duration-300" style={{ width: `${((i + 1) / slides.length) * 100}%` }} />
+        <div className="absolute bottom-0 left-0 h-1 bg-cyan transition-[width] duration-300" style={{ width: `${((i + 1) / slides.length) * 100}%` }} />
       </div>
       {presenter && (
-        <div className="h-[30vh] overflow-auto border-t border-onyx-700 bg-onyx-900 px-[8vw] py-5">
+        <div className="h-[30vh] overflow-auto border-t border-line bg-surface-1 px-[8vw] py-5">
           <div className="text-xs font-semibold uppercase tracking-wider text-ink-faint">Speaker notes · N to hide</div>
           <p className="mt-2 whitespace-pre-wrap text-lg text-ink">{s.notes || '(no notes)'}</p>
           {slides[i + 1] && <p className="mt-4 text-sm text-ink-faint">Next: {slides[i + 1].title}</p>}

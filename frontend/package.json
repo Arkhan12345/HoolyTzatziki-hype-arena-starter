@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/copy-pitch.mjs && vite",
-    "build": "node scripts/copy-pitch.mjs && tsc -b && vite build",
+    "dev": "node scripts/sync-assets.mjs && vite",
+    "build": "node scripts/sync-assets.mjs && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "mock": "node scripts/copy-pitch.mjs && vite --mode mock"
+    "mock": "node scripts/sync-assets.mjs && vite --mode mock"
   },
   "dependencies": {
     "@xyflow/react": "^12.3.6",
