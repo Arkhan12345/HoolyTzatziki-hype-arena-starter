@@ -41,12 +41,26 @@ function formatBare(v: Value): string {
 export const pct = (x: number | null | undefined, digits = 0) =>
   x === null || x === undefined ? '—' : `${(x * 100).toFixed(digits)}%`
 
-/** Categorical order for claim types, validated for CVD on the onyx surface (dataviz validator). */
+/** Categorical order for claim types, checked with the dataviz validator on surface-1 (#0A0F1C). Always shown with a text label. */
 export const TYPE_COLORS: Record<string, string> = {
-  fact: '#4C7FE0',
-  compare: '#8A9C14',
-  change: '#9A62DA',
-  at_event: '#D0662F',
-  relation: '#1E9682',
+  fact: '#3C8DE0',
+  compare: '#C9608F',
+  change: '#0FA3B8',
+  at_event: '#8E6FE0',
+  relation: '#6E8F1F',
 }
 export const CLAIM_TYPES = Object.keys(TYPE_COLORS)
+
+export const VERDICT_COLOR: Record<string, string> = { true: '#B8F23A', false: '#EF6B73', unsure: '#F5B83D' }
+
+/** Stage statuses from the API's stage_details: "ok", "fallback: …", "not available yet (P3): …", counts. */
+export function stageHealth(status: string | undefined): 'ok' | 'degraded' | 'unknown' {
+  if (!status) return 'unknown'
+  return /not available|fallback|baseline|error|^0 valid/i.test(status) ? 'degraded' : 'ok'
+}
+
+export function fmtSeconds(s: number) {
+  if (s < 1) return `${Math.round(s * 1000)} ms`
+  if (s < 90) return `${s.toFixed(1)} s`
+  return `${Math.floor(s / 60)}m ${Math.round(s % 60)}s`
+}

@@ -39,7 +39,9 @@ export default function PitchPage() {
       .then((r) => (r.ok ? r.text() : Promise.reject()))
       .then((t) => setMd(/^##\s+Slide/im.test(t) ? t : FALLBACK))
       .catch(() => setMd(FALLBACK))
-    getMetrics().then((m) => setMetrics(m.data))
+    getMetrics()
+      .then((m) => setMetrics(m.data))
+      .catch(() => setMetrics(null))
   }, [])
 
   const slides = useMemo(() => (md ? parseSlides(fillMetrics(md, metrics)) : []), [md, metrics])

@@ -1,104 +1,125 @@
 {
+  "source": "demo data: first 20 practice rows, gold forms as facts",
   "labels": [
     {
       "id": "p-1",
       "label": "true",
-      "confidence": 0.62
+      "confidence": 0.62,
+      "gold": "true"
     },
     {
       "id": "p-2",
       "label": "true",
-      "confidence": 0.75
+      "confidence": 0.75,
+      "gold": "true"
     },
     {
       "id": "p-3",
       "label": "true",
-      "confidence": 0.88
+      "confidence": 0.88,
+      "gold": "true"
     },
     {
       "id": "p-4",
       "label": "true",
-      "confidence": 0.64
+      "confidence": 0.64,
+      "gold": "true"
     },
     {
       "id": "p-5",
       "label": "true",
-      "confidence": 0.77
+      "confidence": 0.77,
+      "gold": "true"
     },
     {
       "id": "p-6",
       "label": "true",
-      "confidence": 0.9
+      "confidence": 0.9,
+      "gold": "true"
     },
     {
       "id": "p-7",
       "label": "unsure",
-      "confidence": null
+      "confidence": null,
+      "gold": "true"
     },
     {
       "id": "p-8",
       "label": "true",
-      "confidence": 0.79
+      "confidence": 0.79,
+      "gold": "true"
     },
     {
       "id": "p-9",
       "label": "true",
-      "confidence": 0.92
+      "confidence": 0.92,
+      "gold": "true"
     },
     {
       "id": "p-10",
       "label": "true",
-      "confidence": 0.68
+      "confidence": 0.68,
+      "gold": "true"
     },
     {
       "id": "p-11",
       "label": "true",
-      "confidence": 0.81
+      "confidence": 0.81,
+      "gold": "true"
     },
     {
       "id": "p-12",
       "label": "true",
-      "confidence": 0.94
+      "confidence": 0.94,
+      "gold": "true"
     },
     {
       "id": "p-13",
       "label": "true",
-      "confidence": 0.7
+      "confidence": 0.7,
+      "gold": "true"
     },
     {
       "id": "p-14",
       "label": "false",
-      "confidence": 0.83
+      "confidence": 0.83,
+      "gold": "false"
     },
     {
       "id": "p-15",
       "label": "false",
-      "confidence": 0.96
+      "confidence": 0.96,
+      "gold": "false"
     },
     {
       "id": "p-16",
       "label": "true",
-      "confidence": 0.72
+      "confidence": 0.72,
+      "gold": "true"
     },
     {
       "id": "p-17",
       "label": "true",
-      "confidence": 0.85
+      "confidence": 0.85,
+      "gold": "true"
     },
     {
       "id": "p-18",
       "label": "true",
-      "confidence": 0.98
+      "confidence": 0.98,
+      "gold": "true"
     },
     {
       "id": "p-19",
       "label": "true",
-      "confidence": 0.74
+      "confidence": 0.74,
+      "gold": "true"
     },
     {
       "id": "p-20",
       "label": "true",
-      "confidence": 0.87
+      "confidence": 0.87,
+      "gold": "true"
     }
   ],
   "claims": [
@@ -619,6 +640,51 @@
       "text": "The Hooly Jules beta opens today, 14 April 2026.",
       "date": "2026-04-14",
       "label": ""
+    }
+  ],
+  "claims_total": 7,
+  "claims_by_type": {
+    "at_event": 1,
+    "change": 1,
+    "compare": 2,
+    "fact": 2,
+    "relation": 1
+  },
+  "stage_details": [
+    {
+      "id": "load",
+      "seconds": 0,
+      "status": "demo data"
+    },
+    {
+      "id": "extract",
+      "seconds": 0,
+      "status": "demo data"
+    },
+    {
+      "id": "kb",
+      "seconds": 0,
+      "status": "demo data"
+    },
+    {
+      "id": "classify",
+      "seconds": 0,
+      "status": "demo data"
+    },
+    {
+      "id": "generate",
+      "seconds": 0,
+      "status": "demo data"
+    },
+    {
+      "id": "validate",
+      "seconds": 0,
+      "status": "demo data"
+    },
+    {
+      "id": "write",
+      "seconds": 0,
+      "status": "demo data"
     }
   ],
   "timings": {

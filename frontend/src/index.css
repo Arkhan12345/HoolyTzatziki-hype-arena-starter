@@ -4,43 +4,154 @@
 
 :root {
   color-scheme: dark;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --dur-fast: 140ms;
+  --dur-base: 260ms;
+  --dur-slow: 520ms;
 }
 
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
-  @apply bg-onyx text-ink font-sans antialiased;
+  @apply bg-void font-sans text-ink antialiased;
+  font-feature-settings: 'ss01', 'cv11';
 }
 
 ::selection {
-  @apply bg-lime text-onyx;
+  @apply bg-cyan text-void;
 }
 
-/* React Flow on the onyx theme */
+:focus-visible {
+  outline: 2px solid #22d3ee;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------- Atmosphere ---------- */
+
+.fx-grid {
+  background-image:
+    linear-gradient(to right, rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 30%, transparent 75%);
+}
+
+.fx-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+}
+
+.fx-scanlines {
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+}
+
+/* ---------- Surfaces ---------- */
+
+@layer components {
+  .panel {
+    @apply relative rounded-xl border border-line bg-surface-1/80 shadow-panel backdrop-blur-sm;
+  }
+  .panel-glow {
+    /* cursor-reactive light; --mx/--my set by GlowPanel */
+    background-image: radial-gradient(420px circle at var(--mx, 50%) var(--my, -20%), rgba(34, 211, 238, 0.09), transparent 60%);
+  }
+  .eyebrow {
+    @apply font-mono text-2xs uppercase tracking-[0.22em] text-ink-faint;
+  }
+  .num {
+    @apply font-mono tabular-nums;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-2 px-2 py-0.5 text-xs text-ink-muted;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-surface-2/70 px-3 py-2 text-sm text-ink placeholder:text-ink-faint transition-colors focus:border-cyan/60 focus:outline-none focus:ring-2 focus:ring-cyan/20;
+  }
+}
+
+/* Animated conic border for primary panels and buttons */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.border-beam {
+  position: relative;
+  isolation: isolate;
+}
+.border-beam::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from var(--angle), transparent 0 70%, rgba(34, 211, 238, 0.9) 82%, rgba(184, 242, 58, 0.8) 90%, transparent 100%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: beam 4s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+@keyframes beam {
+  to {
+    --angle: 360deg;
+  }
+}
+
+.text-gradient {
+  background: linear-gradient(100deg, #e6eefb 10%, #a5f3fc 45%, #22d3ee 70%, #b8f23a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(27, 40, 66, 0.5) 0%, rgba(42, 61, 97, 0.7) 50%, rgba(27, 40, 66, 0.5) 100%);
+  background-size: 200% 100%;
+  @apply animate-shimmer rounded;
+}
+
+/* Thin scrollbars that match the theme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a3d61 transparent;
+}
+
+/* ---------- React Flow ---------- */
 .react-flow__attribution {
   display: none;
 }
 .react-flow__edge-textbg {
-  fill: #141414;
+  fill: #0a0f1c;
 }
 .react-flow__edge-text {
-  fill: #a1a1a1;
+  fill: #9aabc8;
   font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.react-flow__controls {
+  box-shadow: none !important;
 }
 .react-flow__controls-button {
-  background: #1e1e1e;
-  border-color: #2a2a2a;
-  fill: #fcfcfc;
+  background: #0e1526;
+  border-color: #1b2842;
+  fill: #e6eefb;
 }
 .react-flow__controls-button:hover {
-  background: #2a2a2a;
+  background: #142036;
 }
 
-/* Markdown inside pitch slides */
+/* ---------- Pitch slides ---------- */
 .slide-body > * + * {
   margin-top: 0.6em;
 }
@@ -61,15 +172,15 @@ body {
   width: 0.4em;
   height: 0.4em;
   border-radius: 2px;
-  background: #d7f13b;
+  background: #22d3ee;
 }
 .slide-body strong {
-  color: #fcfcfc;
+  color: #e6eefb;
 }
 .slide-body code {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 0.85em;
-  color: #d7f13b;
+  color: #a5f3fc;
 }
 .slide-body table {
   border-collapse: collapse;
@@ -77,7 +188,23 @@ body {
 }
 .slide-body th,
 .slide-body td {
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid #1b2842;
   padding: 0.3em 1em 0.3em 0;
   text-align: left;
+}
+
+/* ---------- Reduced motion: keep the final state, drop the movement ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .border-beam::before {
+    animation: none;
+    background: linear-gradient(rgba(34, 211, 238, 0.4), rgba(34, 211, 238, 0.4));
+  }
 }

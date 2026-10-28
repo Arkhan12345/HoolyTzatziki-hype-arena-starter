@@ -1,119 +1,155 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
-import { getArchitecture, runPipeline } from '@/api/client'
+import { demoRun, getArchitecture, getHealth, runPipeline, type RunInput } from '@/api/client'
 import type { Architecture, InputRow, RunResponse, Source, Sourced } from '@/api/types'
+import { ApiError } from '@/api/types'
 import architectureMock from '@/mocks/architecture.json'
 import { parseCsv } from '@/lib/csv'
 
-const DEFAULT_STAGES = ['load', 'extract', 'kb', 'classify', 'generate', 'validate', 'write']
+export type Health = 'checking' | 'online' | 'offline'
+export type JobKind = 'run' | 'verify' | 'generate'
+
+export interface Job {
+  kind: JobKind
+  status: 'running' | 'done' | 'error'
+  startedAt: number
+  finishedAt?: number
+  input: string
+  result?: RunResponse
+  source?: Source
+  error?: string
+  offline?: boolean
+  /** Rows as sent, so tables can show text even when the API omits `rows`. */
+  rows: InputRow[]
+}
 
 interface RunState {
+  health: Health
   architecture: Sourced<Architecture>
-  result: RunResponse | null
-  source: Source | null
-  error: string | null
-  running: boolean
-  demo: boolean
-  /** Index into `stages` of the stage lit up now; -1 before a run, stages.length when finished. */
-  current: number
-  stages: string[]
-  inputName: string | null
-  inputRows: InputRow[]
-  start: (opts?: { file?: File; demo?: boolean }) => Promise<void>
-  reset: () => void
+  jobs: Record<JobKind, Job | null>
+  /** Batch runs of this session, newest first (dashboard "recent classifications"). */
+  history: Job[]
+  /** The job the pipeline diagram follows: running now, or the last one that finished. */
+  focus: Job | null
+  /** Increments when a job finishes, to replay its measured stage timings on the diagram. */
+  replay: number
+  refreshHealth: () => void
+  run: (input: RunInput, label?: string) => Promise<void>
+  loadDemo: () => void
+  verify: (row: InputRow) => Promise<void>
+  generate: () => Promise<void>
+  clear: (kind: JobKind) => void
 }
 
 const Ctx = createContext<RunState | null>(null)
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+const inputName = (input: RunInput) => (input.kind === 'file' ? input.file.name : input.kind === 'sample' ? 'sample.csv' : `${input.rows.length} row(s)`)
 
 export function RunProvider({ children }: { children: ReactNode }) {
-  const [architecture, setArchitecture] = useState<Sourced<Architecture>>({ data: architectureMock as Architecture, source: 'mock' })
-  const [result, setResult] = useState<RunResponse | null>(null)
-  const [source, setSource] = useState<Source | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [running, setRunning] = useState(false)
-  const [demo, setDemo] = useState(false)
-  const [current, setCurrent] = useState(-1)
-  const [stages, setStages] = useState<string[]>(DEFAULT_STAGES)
-  const [inputName, setInputName] = useState<string | null>(null)
-  const [inputRows, setInputRows] = useState<InputRow[]>([])
-  const runId = useRef(0)
+  const [health, setHealth] = useState<Health>('checking')
+  const [architecture, setArchitecture] = useState<Sourced<Architecture>>({ data: architectureMock as Architecture, source: 'demo' })
+  const [jobs, setJobs] = useState<Record<JobKind, Job | null>>({ run: null, verify: null, generate: null })
+  const [history, setHistory] = useState<Job[]>([])
+  const [focus, setFocus] = useState<Job | null>(null)
+  const [replay, setReplay] = useState(0)
+  const tokens = useRef<Record<JobKind, number>>({ run: 0, verify: 0, generate: 0 })
+
+  const refreshHealth = useCallback(() => {
+    setHealth('checking')
+    getHealth().then((ok) => setHealth(ok ? 'online' : 'offline'))
+  }, [])
 
   useEffect(() => {
+    refreshHealth()
     getArchitecture().then(setArchitecture)
-  }, [])
+  }, [refreshHealth])
 
-  const start = useCallback(async ({ file, demo = false }: { file?: File; demo?: boolean } = {}) => {
-    const id = ++runId.current
-    setRunning(true)
-    setDemo(demo)
-    setError(null)
-    setResult(null)
-    setInputName(file ? file.name : 'sample.csv')
-    setInputRows([])
-    if (file) {
+  // The demo API blocks while it runs the pipeline, so a missed health check is often just a busy server: re-check quietly.
+  useEffect(() => {
+    if (health !== 'offline') return
+    const t = setInterval(() => {
+      getHealth().then((ok) => {
+        if (!ok) return
+        setHealth('online')
+        getArchitecture().then(setArchitecture)
+      })
+    }, 10_000)
+    return () => clearInterval(t)
+  }, [health])
+
+  const execute = useCallback(async (kind: JobKind, input: RunInput, label: string, claimsLimit: number) => {
+    const token = ++tokens.current[kind]
+    let rows: InputRow[] = input.kind === 'rows' ? input.rows : []
+    if (input.kind === 'file') {
       try {
-        const rows = parseCsv(await file.text()).map((r) => ({ id: r.id, text: r.text, date: r.date, label: r.label }))
-        if (id === runId.current) setInputRows(rows.filter((r) => r.id))
+        rows = parseCsv(await input.file.text())
+          .filter((r) => r.id)
+          .map((r) => ({ id: r.id, text: r.text ?? '', date: r.date ?? '', label: r.label ?? '' }))
       } catch {
-        /* the server will report a bad file */
+        rows = []
       }
     }
+    const started: Job = { kind, status: 'running', startedAt: Date.now(), input: label, rows }
+    setJobs((j) => ({ ...j, [kind]: started }))
+    setFocus(started)
 
-    // Walk the diagram while the request is in flight; hold on the last stage until the answer lands.
-    const step = demo ? 1100 : 550
-    let done = false
-    let idx = 0
-    setCurrent(0)
-    const walker = (async () => {
-      while (!done && id === runId.current) {
-        await sleep(step)
-        if (done || id !== runId.current) break
-        idx = Math.min(idx + 1, DEFAULT_STAGES.length - 1)
-        setCurrent(idx)
-      }
-    })()
-
-    const res = await runPipeline(file)
-    if (demo) while (idx < DEFAULT_STAGES.length - 1 && id === runId.current) await sleep(100)
-    done = true
-    await walker
-    if (id !== runId.current) return
-
-    const order = res.data.stages?.length ? res.data.stages : DEFAULT_STAGES
-    setStages(order)
-    setSource(res.source)
-    setError(res.error ?? null)
-    // Replay what is left quickly so every stage is seen finishing.
-    for (let i = Math.min(idx, order.length - 1); i <= order.length; i++) {
-      if (id !== runId.current) return
-      setCurrent(i)
-      await sleep(demo ? 350 : 120)
+    let done: Job
+    try {
+      const res = await runPipeline(input, claimsLimit)
+      done = { ...started, status: 'done', finishedAt: Date.now(), result: res.data, source: res.source }
+      setHealth(res.source === 'api' ? 'online' : 'offline')
+    } catch (e) {
+      const offline = e instanceof ApiError && e.offline
+      done = { ...started, status: 'error', finishedAt: Date.now(), error: e instanceof Error ? e.message : String(e), offline }
+      if (offline) setHealth('offline')
     }
-    setResult(res.data)
-    setRunning(false)
+    if (token !== tokens.current[kind]) return
+    setJobs((j) => ({ ...j, [kind]: done }))
+    setFocus(done)
+    if (done.status === 'done') {
+      setReplay((n) => n + 1)
+      if (kind === 'run') setHistory((h) => [done, ...h].slice(0, 12))
+    }
   }, [])
 
-  const reset = useCallback(() => {
-    runId.current++
-    setResult(null)
-    setRunning(false)
-    setCurrent(-1)
-    setError(null)
-    setSource(null)
-    setInputRows([])
-    setInputName(null)
+  const run = useCallback((input: RunInput, label?: string) => execute('run', input, label ?? inputName(input), 50), [execute])
+  const verify = useCallback((row: InputRow) => execute('verify', { kind: 'rows', rows: [row] }, 'single claim', 0), [execute])
+  const generate = useCallback(() => execute('generate', { kind: 'sample' }, 'claim generation', 1000), [execute])
+
+  /** Explicit, labelled demo data for when the API is down (never substituted silently). */
+  const loadDemo = useCallback(() => {
+    const now = Date.now()
+    const job: Job = { kind: 'run', status: 'done', startedAt: now, finishedAt: now, input: 'demo data', result: demoRun, source: 'demo', rows: demoRun.rows ?? [] }
+    tokens.current.run++
+    setJobs((j) => ({ ...j, run: job }))
+    setHistory((h) => [job, ...h].slice(0, 12))
+    setFocus(job)
+    setReplay((n) => n + 1)
+  }, [])
+
+  const clear = useCallback((kind: JobKind) => {
+    tokens.current[kind]++
+    setJobs((j) => ({ ...j, [kind]: null }))
   }, [])
 
   return (
-    <Ctx.Provider value={{ architecture, result, source, error, running, demo, current, stages, inputName, inputRows, start, reset }}>
+    <Ctx.Provider value={{ health, architecture, jobs, history, focus, replay, refreshHealth, run, loadDemo, verify, generate, clear }}>
       {children}
     </Ctx.Provider>
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useRun() {
   const ctx = useContext(Ctx)
   if (!ctx) throw new Error('useRun outside RunProvider')
   return ctx
+}
+
+/** Rows of a finished job, preferring what the API echoed back. */
+// eslint-disable-next-line react-refresh/only-export-components
+export function jobRows(job: Job | null): Map<string, InputRow> {
+  const m = new Map<string, InputRow>()
+  for (const r of job?.result?.rows ?? []) m.set(r.id, r)
+  for (const r of job?.rows ?? []) if (!m.has(r.id)) m.set(r.id, r)
+  return m
 }
