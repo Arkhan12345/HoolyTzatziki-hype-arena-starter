@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import itertools
 import json
+import time
 import zlib
 from collections import Counter, defaultdict
 
@@ -90,7 +91,7 @@ def _current(kb: KB, subject: str, attribute: str):
 
 # ---- candidates per type -----------------------------------------------------------------------
 def fact_candidates(kb: KB):
-    for (s, a) in list(kb.timelines):
+    for (s, a) in kb.pairs():
         if not kb.lex.has_attribute(s, a):
             continue
         v, conf = _current(kb, s, a)
@@ -104,7 +105,7 @@ def fact_candidates(kb: KB):
 
 
 def change_candidates(kb: KB):
-    for (s, a) in list(kb.timelines):
+    for (s, a) in kb.pairs():
         if not kb.lex.has_attribute(s, a):
             continue
         runs = _distinct_runs(_gold_values(kb, s, a))
@@ -152,7 +153,7 @@ def at_event_candidates(kb: KB):
         days = _event_dates(kb, event)
         if not days:
             continue
-        for (s, a) in list(kb.timelines):
+        for (s, a) in kb.pairs():
             if s == event or not kb.lex.has_attribute(s, a):
                 continue
             vals = [_value_at(kb, s, a, d) for d in days]
@@ -166,7 +167,7 @@ def at_event_candidates(kb: KB):
 
 
 def relation_candidates(kb: KB):
-    for (s, link) in list(kb.timelines):
+    for (s, link) in kb.pairs():
         if not kb.lex.has_attribute(s, link):
             continue
         ms = [m for m in _gold_values(kb, s, link) if m.value.get("kind") == "name"]
@@ -177,7 +178,7 @@ def relation_candidates(kb: KB):
                 by_target[t].append(m.date)
         for target, dates in by_target.items():
             lo, hi = min(dates), max(dates)
-            for (ts, ta) in list(kb.timelines):
+            for (ts, ta) in kb.pairs():
                 if ts != target or not kb.lex.has_attribute(ts, ta):
                     continue
                 tms = _gold_values(kb, ts, ta)
@@ -199,7 +200,7 @@ def relation_candidates(kb: KB):
 
 def compare_candidates(kb: KB):
     facts = []
-    for (s, a) in list(kb.timelines):
+    for (s, a) in kb.pairs():
         if not kb.lex.has_attribute(s, a):
             continue
         cur, conf = _current(kb, s, a)
@@ -250,7 +251,9 @@ def generate(kb: KB, lexicon: dict, input_texts: set[str], n: int = 1000, report
     seen_text, seen_form = set(input_texts), set()
     valid: list[_Cand] = []
     rejected = Counter()
+    n_cand, t_validate = 0, 0.0
     for c in candidates(kb):
+        n_cand += 1
         nt = norm_text(c.text)
         fk = json.dumps([c.type, c.form], sort_keys=True)
         if nt in seen_text:
@@ -258,7 +261,9 @@ def generate(kb: KB, lexicon: dict, input_texts: set[str], n: int = 1000, report
             continue
         probe = Claim(id="tz-probe", type=c.type, text=c.text, form=c.form, confidence=min(1, max(0.5, c.conf)))
         probe.meta = c.meta  # type: ignore[attr-defined]
+        t = time.perf_counter()
         problems = validate_claim(probe, kb.lex, None)
+        t_validate += time.perf_counter() - t
         if problems:
             rejected[problems[0].split(":")[0]] += 1
             continue
@@ -297,6 +302,6 @@ def generate(kb: KB, lexicon: dict, input_texts: set[str], n: int = 1000, report
     claims = [Claim(id=f"tz-{i + 1:04d}", type=c.type, text=c.text, form=c.form,
                     confidence=round(min(0.99, max(0.5, c.conf)), 3)) for i, c in enumerate(chosen[:n])]
     if report is not None:
-        report.update({"candidates_valid": len(valid), "rejected": dict(rejected.most_common()),
+        report.update({"candidates": n_cand, "candidates_valid": len(valid), "validate_s": t_validate, "rejected": dict(rejected.most_common()),
                        "by_type": dict(Counter(c.type for c in claims)), "n": len(claims)})
     return claims

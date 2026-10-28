@@ -76,7 +76,7 @@ class Lexicon:
 class KB:
     def __init__(self, lexicon: dict | None = None):
         self.lex = Lexicon(lexicon or {"subjects": [], "events": []})
-        self.timelines: dict[tuple[str, str], Timeline] = {}
+        self._tl: dict[tuple[str, str], Timeline] = {}
         self.row_dates: dict[str, str] = {}
         self.page_votes: dict[str, list[int]] = defaultdict(lambda: [0, 0])  # date -> [agree, disagree]
 
@@ -85,7 +85,7 @@ class KB:
         canon = self.lex.canonical(subject) or subject
         if not isinstance(value, dict) or "kind" not in value or not date:
             return
-        tl = self.timelines.setdefault((canon, attribute), Timeline(canon, attribute))
+        tl = self._tl.setdefault((canon, attribute), Timeline(canon, attribute))
         tl.mentions.append(Mention(date, value, nz.key(value), source, weight, row_id))
 
     def add_gold(self, gold_rows: list[dict]) -> None:
@@ -113,7 +113,7 @@ class KB:
         return self
 
     def _page_trust(self) -> None:
-        for tl in self.timelines.values():
+        for tl in self._tl.values():
             for m in tl.mentions:
                 if m.source != "extracted":
                     continue
@@ -124,7 +124,7 @@ class KB:
 
     # ---- query -------------------------------------------------------------------------------
     def timeline(self, subject: str, attribute: str) -> Timeline | None:
-        return self.timelines.get((self.lex.canonical(subject) or subject, attribute))
+        return self._tl.get((self.lex.canonical(subject) or subject, attribute))
 
     def lookup(self, subject: str, attr: str, date: str, sources=("gold", "extracted")):
         """Value in force on `date`: the latest prior mention, gold first.
@@ -148,13 +148,33 @@ class KB:
     def current_value(self, subject: str, attr: str, as_of: str = AS_OF):
         return self.lookup(subject, attr, as_of)
 
+    def pairs(self) -> list[tuple[str, str]]:
+        return list(self._tl)
+
+    def timelines(self) -> dict[tuple[str, str], list[dict]]:
+        """Truth-discovery hook (P3's EM): per pair, its mentions by date.
+
+        Each mention: date, value, page_id (the page = its date), row_id, from_gold, source, weight.
+        """
+        return {pair: [{"date": m.date, "value": m.value, "page_id": m.date, "row_id": m.row_id,
+                        "from_gold": m.source == "gold", "source": m.source, "weight": m.weight}
+                       for m in tl.sorted()]
+                for pair, tl in self._tl.items()}
+
+    def set_reliability(self, reliability: dict[str, float]) -> None:
+        """Feed back page reliability (page_id -> 0..1) from P3's EM; page_trust() then returns it."""
+        self.reliability = {str(k): float(v) for k, v in (reliability or {}).items()}
+
     def page_trust(self, date: str) -> float:
+        rel = getattr(self, "reliability", None)
+        if rel and date in rel:
+            return rel[date]
         a, d = self.page_votes.get(date, (0, 0))
         return (a + 1) / (a + d + 2)
 
     def stats(self) -> dict:
         n = defaultdict(int)
-        for tl in self.timelines.values():
+        for tl in self._tl.values():
             for m in tl.mentions:
                 n[m.source] += 1
-        return {"pairs": len(self.timelines), **n}
+        return {"pairs": len(self._tl), **n}

@@ -1,0 +1,10 @@
+{
+  "runtime": {
+    "measured": "2026-10-28, laptop, no Docker, scripts/local_check.py",
+    "practice_run": {"rows": 1897, "hidden": 380, "total_s": 3.5, "claims": 1000, "claims_valid": 1000},
+    "synthetic_20k": {"rows": 18970, "blank": 17073, "total_s": 4.0, "claims": 1000, "claims_valid": 1000},
+    "claims_by_type": {"change": 331, "fact": 300, "compare": 266, "at_event": 90, "relation": 13},
+    "fact_staleness_check": "15% subsample of practice: facts last seen from Sep 2026 on ~96% still current, Jun-Aug ~75%, earlier ~50% (confidence follows this)",
+    "note": "extractor and classifier not merged yet: labels are the all-true baseline (0.83 confidence)"
+  }
+}
