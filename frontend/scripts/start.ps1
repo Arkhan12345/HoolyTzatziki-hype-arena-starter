@@ -1,20 +1,27 @@
 # One command for the demo: install the UI, start P2's API (if present) on :8000, start the UI on :5173.
 # Usage (from anywhere): frontend\scripts\start.ps1      API module override: $env:API_APP = 'app.api.main:app'
+# Python: the repo's .venv if it exists (as scripts\dev_api.ps1 does), else `py -3.12`, else `python`.
 $ErrorActionPreference = 'Stop'
 $Root = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 $ApiApp = if ($env:API_APP) { $env:API_APP } else { 'app.api.main:app' }
-$Py = Get-Command python -ErrorAction SilentlyContinue
-if ($null -eq $Py) { $Py = Get-Command py -ErrorAction SilentlyContinue }
+$Port = if ($env:PORT) { $env:PORT } else { '8000' }
+
+$Py = $null
+$PyArgs = @()
+$Venv = Join-Path $Root '.venv\Scripts\python.exe'
+if (Test-Path $Venv) { $Py = $Venv }
+elseif (Get-Command py -ErrorAction SilentlyContinue) { $Py = (Get-Command py).Source; $PyArgs = @('-3.12') }
+elseif (Get-Command python -ErrorAction SilentlyContinue) { $Py = (Get-Command python).Source }
 
 Set-Location (Join-Path $Root 'frontend')
-if (-not (Test-Path node_modules)) { npm install }
+if (-not (Test-Path node_modules)) { npm ci }
 
 $Api = $null
 if ($null -ne $Py -and (Test-Path (Join-Path $Root 'app\api'))) {
-  Write-Host "Starting API ($ApiApp) on http://localhost:8000"
-  $Api = Start-Process -FilePath $Py.Source -ArgumentList '-m', 'uvicorn', $ApiApp, '--port', '8000' -WorkingDirectory $Root -PassThru -NoNewWindow
+  Write-Host "Starting API ($ApiApp) on http://127.0.0.1:$Port with $Py"
+  $Api = Start-Process -FilePath $Py -ArgumentList ($PyArgs + @('-m', 'uvicorn', $ApiApp, '--host', '127.0.0.1', '--port', $Port)) -WorkingDirectory $Root -PassThru -NoNewWindow
 } else {
-  Write-Host 'No app\api or no Python: the UI will use mock data.'
+  Write-Host 'No app\api or no Python: the UI shows the "API offline" state and can load labelled demo data.'
 }
 
 try {

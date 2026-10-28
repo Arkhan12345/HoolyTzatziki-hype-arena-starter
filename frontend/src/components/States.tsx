@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Check, Copy, PlugZap, RotateCw, TriangleAlert } from 'lucide-react'
 import { API_URL } from '@/api/client'
+import type { RunResponse } from '@/api/types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Health } from '@/state/run'
@@ -45,6 +46,25 @@ export function ErrorState({ message, offline, onRetry, extra }: { message: stri
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+/** status "partial": a stage fell back (e.g. the classifier crashed). The result is shown, with this warning. */
+export function PartialWarning({ result }: { result?: RunResponse }) {
+  if (result?.status !== 'partial') return null
+  const stages = result.errors?.length ? [...new Set(result.errors.map((e) => e.stage))].join(', ') : 'a stage'
+  return (
+    <div role="alert" className="flex items-start gap-3 rounded-xl border border-verdict-unsure/40 bg-verdict-unsure/[0.07] px-4 py-3 text-sm text-verdict-unsure">
+      <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+      <span>
+        Partial run: {stages} fell back, so those parts use their fallback.
+        {result.errors?.map((e, i) => (
+          <span key={i} className="num block text-xs opacity-80">
+            {e.stage}: {e.message}
+          </span>
+        ))}
+      </span>
     </div>
   )
 }

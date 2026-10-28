@@ -5,12 +5,18 @@ import type { Metrics } from '@/api/types'
 import { SlideDeck, parseSlides } from '@/components/SlideDeck'
 
 /**
- * pitch/PITCH.md is P1's file. scripts/copy-pitch.mjs copies it to public/pitch.md before dev/build.
- * Live numbers: write {{model.accuracy|pct}} or {{runtime.total_s}} in PITCH.md and the value comes from /metrics.
+ * pitch/PITCH.md is P5's (Matei's) file. scripts/sync-assets.mjs copies it to public/pitch.md before dev/build.
+ * Live numbers: write {{model.accuracy|pct}} or {{runtime.practice_run.total_s}} in PITCH.md. A key is looked up in
+ * GET /metrics (the latest run) first, then in pitch/metrics.json, which /metrics carries as `offline.data`.
+ * A key neither has, or a null, renders as "—".
  */
+const at = (root: unknown, path: string) =>
+  path.split('.').reduce<unknown>((o, k) => (o && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined), root)
+
 function fillMetrics(md: string, metrics: Metrics | null) {
   return md.replace(/\{\{\s*([\w.]+)\s*(?:\|\s*(\w+))?\s*\}\}/g, (whole, path: string, filter?: string) => {
-    const v = path.split('.').reduce<unknown>((o, k) => (o && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined), metrics)
+    const live = at(metrics, path)
+    const v = live !== undefined && live !== null ? live : at(metrics?.offline?.data, path)
     if (v === undefined || v === null) return metrics ? '—' : whole
     if (typeof v === 'number') {
       if (filter === 'pct') return `${(v * 100).toFixed(1)}%`
@@ -23,10 +29,11 @@ function fillMetrics(md: string, metrics: Metrics | null) {
 const FALLBACK = `## Slide 1: Hype or Truth
 Team Tzatziki: pitch/PITCH.md has not landed yet.
 
-> notes: P1 writes pitch/PITCH.md. Each "## Slide N" heading is one slide.
+> notes: Matei (P5) writes pitch/PITCH.md. Each "## Slide N — title" heading is one slide.
 
-## Slide 2: Accuracy so far
+## Slide 2: Numbers so far
 Label accuracy **{{model.accuracy|pct}}** against a baseline of {{model.baseline.accuracy|pct}}.
+The practice run took {{runtime.practice_run.total_s}} s for {{runtime.practice_run.rows}} rows.
 `
 
 export default function PitchPage() {

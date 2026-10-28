@@ -30,6 +30,7 @@ export default function App() {
             <Routes>
               <Route element={<Layout />}>
                 <Route index element={<Dashboard />} />
+                <Route path="run" element={<Dashboard />} />
                 <Route path="verify" element={<VerifyPage />} />
                 <Route path="explorer" element={<ExplorerPage />} />
                 <Route path="generate" element={<GeneratePage />} />

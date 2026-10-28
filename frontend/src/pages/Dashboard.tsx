@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight, Cpu, Database, FileUp, FlaskConical, Play, ScanSearch, Sparkles, TriangleAlert, Workflow } from 'lucide-react'
+import { ArrowRight, Cpu, Database, FileUp, FlaskConical, Play, ScanSearch, Sparkles, Workflow } from 'lucide-react'
 import { MOCK } from '@/api/client'
 import type { Verdict } from '@/api/types'
 import { AnimatedNumber } from '@/components/fx/AnimatedNumber'
@@ -11,11 +11,11 @@ import { ConfidenceHistogram, VerdictDistribution } from '@/components/data/Dist
 import { TerminalLog } from '@/components/data/TerminalLog'
 import { VerdictBadge } from '@/components/data/VerdictBadge'
 import { GoldCheck } from '@/components/data/GoldCheck'
-import { FactChip } from '@/components/FactChip'
+import { FactChip, TypeBadge } from '@/components/FactChip'
 import { PipelineFlow, usePipelineStatus } from '@/components/PipelineFlow'
-import { EmptyState, ErrorState, HealthPill, NotComputed } from '@/components/States'
+import { EmptyState, ErrorState, HealthPill, NotComputed, PartialWarning } from '@/components/States'
 import { Button } from '@/components/ui/button'
-import { cn, fmtSeconds, stageHealth, stageLabel, type StageTone } from '@/lib/utils'
+import { CLAIM_TYPES, TYPE_COLORS, cn, fmtSeconds, stageHealth, stageLabel, type StageTone } from '@/lib/utils'
 import { jobPredictions, useRun } from '@/state/run'
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -171,14 +171,7 @@ export default function Dashboard() {
             />
           </div>
 
-          {result?.status === 'partial' && (
-            <div role="alert" className="flex items-start gap-3 rounded-xl border border-verdict-unsure/40 bg-verdict-unsure/[0.07] px-4 py-3 text-sm text-verdict-unsure">
-              <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-              <span>
-                Partial run: {result.errors?.length ? result.errors.map((e) => e.stage).join(', ') : 'a stage'} fell back. The results below are shown, but those stages used their fallback.
-              </span>
-            </div>
-          )}
+          <PartialWarning result={result} />
 
           <div className="grid gap-5 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
             <div className="space-y-5">
@@ -212,6 +205,48 @@ export default function Dashboard() {
               <TerminalLog job={job} />
             </div>
           </div>
+
+          {/* claims of this run (handoff §6.3): by type + the first ones; the full 1,000 are paged on /generate */}
+          {result && (
+            <Panel>
+              <PanelHeader
+                eyebrow="generated with this run"
+                title={`${(result.claims_total ?? result.claims.length).toLocaleString()} new claims`}
+                right={
+                  <Link to="/generate" className="inline-flex items-center gap-1 text-xs text-cyan hover:underline">
+                    All claims <ArrowRight className="size-3" />
+                  </Link>
+                }
+              />
+              <div className="grid gap-5 p-5 pt-3 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
+                <ul className="space-y-2">
+                  {CLAIM_TYPES.map((t) => {
+                    const n = result.claims_by_type?.[t] ?? 0
+                    const tot = result.claims_total || 1
+                    return (
+                      <li key={t} className="grid grid-cols-[84px_1fr_44px] items-center gap-3 text-xs">
+                        <TypeBadge type={t} />
+                        <div className="h-1.5 rounded-full bg-surface-3">
+                          <div className="h-full rounded-full" style={{ width: `${(n / tot) * 100}%`, background: TYPE_COLORS[t] }} />
+                        </div>
+                        <span className="num text-right text-ink-muted">{n}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+                <ul className="divide-y divide-line/70">
+                  {result.claims.slice(0, 5).map((c) => (
+                    <li key={c.id} className="flex items-start gap-3 py-2 first:pt-0">
+                      <TypeBadge type={c.type} />
+                      <span className="min-w-0 flex-1 text-sm leading-snug">{c.text}</span>
+                      <ConfidenceBar value={c.confidence} />
+                    </li>
+                  ))}
+                  {!result.claims.length && <li className="text-sm text-ink-muted">No claims came back with this run.</li>}
+                </ul>
+              </div>
+            </Panel>
+          )}
 
           {/* recent classifications */}
           <Panel>
@@ -250,6 +285,15 @@ export default function Dashboard() {
                             {p.facts.map((f, k) => (
                               <FactChip key={k} fact={f} />
                             ))}
+                          </span>
+                        )}
+                        {p.evidence && p.evidence.length > 0 && (
+                          <span className="num mt-1 block text-2xs">
+                            <span className="text-ink-faint">KB: </span>
+                            <span className="text-verdict-true">{p.evidence.filter((e) => e.agrees === true).length} support</span>
+                            <span className="text-ink-faint"> · </span>
+                            <span className="text-verdict-false">{p.evidence.filter((e) => e.agrees === false).length} contradict</span>
+                            <span className="text-ink-faint"> · {p.evidence.filter((e) => e.agrees === null).length} no value in force</span>
                           </span>
                         )}
                         {p.explanation && <span className="mt-1 block text-2xs leading-relaxed text-ink-faint">{p.explanation}</span>}

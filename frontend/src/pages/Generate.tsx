@@ -8,7 +8,7 @@ import { TerminalLog } from '@/components/data/TerminalLog'
 import { TypeBadge } from '@/components/FactChip'
 import { AnimatedNumber } from '@/components/fx/AnimatedNumber'
 import { Panel, PanelHeader } from '@/components/fx/Panel'
-import { CopyButton, EmptyState, ErrorState, NotComputed, PageHeader } from '@/components/States'
+import { CopyButton, EmptyState, ErrorState, NotComputed, PageHeader, PartialWarning } from '@/components/States'
 import { Button } from '@/components/ui/button'
 import { CLAIM_TYPES, TYPE_COLORS, cn } from '@/lib/utils'
 import { useColors } from '@/lib/theme'
@@ -19,7 +19,9 @@ const PAGE = 50
 
 export default function GeneratePage() {
   const { jobs, generate } = useRun()
-  const job = jobs.generate
+  // Every run generates the 1,000 claims, so without a run of its own this page shows the dashboard's last run.
+  const fromDashboard = !jobs.generate && jobs.run?.status === 'done' && !!jobs.run.result?.run_id
+  const job = fromDashboard ? jobs.run : jobs.generate
   const r = job?.status === 'done' ? job.result : undefined
   const runId = r?.run_id
   const mc = r?.metrics?.claims
@@ -71,6 +73,12 @@ export default function GeneratePage() {
         }
       />
 
+      {fromDashboard && (
+        <p className="num rounded-lg border border-line bg-surface-2/60 px-3 py-2 text-xs text-ink-muted">
+          Showing the claims of the dashboard's last run ({r?.run_id}). “Run generator” starts a run of its own.
+        </p>
+      )}
+      <PartialWarning result={r} />
       {job?.status === 'error' && <ErrorState message={job.error ?? ''} offline={job.offline} onRetry={generate} />}
 
       {!job && (

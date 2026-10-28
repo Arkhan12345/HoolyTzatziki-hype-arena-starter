@@ -10,7 +10,7 @@ import { ValueTimeline } from '@/components/data/ValueTimeline'
 import { VerdictBadge } from '@/components/data/VerdictBadge'
 import { GoldCheck } from '@/components/data/GoldCheck'
 import { Panel, PanelHeader } from '@/components/fx/Panel'
-import { EmptyState, ErrorState, NotComputed, PageHeader } from '@/components/States'
+import { EmptyState, ErrorState, NotComputed, PageHeader, PartialWarning } from '@/components/States'
 import { Button } from '@/components/ui/button'
 import { Tabs } from '@/components/ui/tabs'
 import { cn, formatValue, stageHealth, stageLabel } from '@/lib/utils'
@@ -202,6 +202,7 @@ export default function VerifyPage() {
               </motion.div>
             ) : (
               <motion.div key={job.startedAt} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-5">
+                <PartialWarning result={job.result} />
                 <Result job={job} practice={practice} lexicon={lexicon} />
               </motion.div>
             )}
