@@ -329,7 +329,7 @@ def test_every_type_with_a_pass_candidate_is_represented():
 def test_at_event_kept_to_two_per_fact():
     from app.generate.select import select
 
-    pool = [_fake(i, "at_event", 0.9, subject="Zeta", attribute="eu_hosted") for i in range(5)] + \
+    pool = [_v(_fake(i, "at_event", 0.9, subject="Zeta", attribute="eu_hosted")) for i in range(5)] + \
            [_fake(10 + i, "change", 0.88) for i in range(5)]
     chosen = select(pool, 7, {})
     assert sum(c.type == "at_event" for c in chosen) == 2
@@ -346,3 +346,29 @@ def test_yes_no_at_event_reads_naturally_and_validates():
     text = at_event_text("Hooly Gemini", "eu_hosted", "Hooly Cloud Next 2026", form["value"])
     assert text == "Hooly Gemini was EU hosted at Hooly Cloud Next 2026."
     assert v.check(claim("a1", "at_event", text, form)).checks["contract"] == PASS
+
+
+def test_scoped_yes_no_never_says_never():
+    from app.generate.templates import at_event_text, relation_text
+
+    no = {"kind": "boolean", "value": False}
+    assert "never" not in at_event_text("Hooly", "raised_series_b", "Hooly I/O 2026", no)
+    assert "never" not in relation_text("Hooly", "cto", "had_major_outage", no)
+
+
+def test_cap_holds_while_balancing_types_and_counts_values_apart():
+    from app.generate.select import select
+
+    pool = [_fake(i, "at_event", 0.9, subject="Zeta", attribute="eu_hosted") for i in range(5)]
+    for c in pool:
+        c.form["value"] = {"kind": "boolean", "value": True}
+    other = _fake(50, "at_event", 0.9, subject="Zeta", attribute="eu_hosted")
+    other.form["value"] = {"kind": "boolean", "value": False}  # another value: another fact, own cap
+    chosen = select(pool + [other] + [_fake(10 + i, "change", 0.88) for i in range(30)], 30, {})
+    same = [c for c in chosen if c.type == "at_event" and c.form["value"]["value"] is True]
+    assert len(same) == 2 and other in chosen
+
+
+def _v(c):
+    c.form["value"] = {"kind": "boolean", "value": True}
+    return c

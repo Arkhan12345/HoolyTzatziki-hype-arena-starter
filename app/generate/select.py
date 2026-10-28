@@ -93,12 +93,15 @@ def rank(valid: list[Candidate]) -> tuple[list[Candidate], list[Candidate]]:
         tiers[_tier(c)].append(c)
     ordered = [c for t in sorted(tiers) for c in _spread(tiers[t])]
     # the same fact told at every event says little: keep its first AT_EVENT_PER_FACT, push the rest last
+    # (a different value at another event is another fact, so the value is part of the key). The rest are
+    # marked "capped": they come last and are only used if nothing else can fill the n claims.
     seen, head, tail = Counter(), [], []
     for c in ordered:
         if c.type == "at_event":
-            k = (c.form["subject"], c.form["attribute"])
+            k = (c.form["subject"], c.form["attribute"], json.dumps(c.form["value"], sort_keys=True))
             seen[k] += 1
             if seen[k] > AT_EVENT_PER_FACT:
+                c.meta["capped"] = True
                 tail.append(c)
                 continue
         head.append(c)
@@ -145,7 +148,7 @@ def _is_inverse(c: Candidate) -> bool:
 def _prefer_all_types(distinct: list[Candidate], n: int) -> list[Candidate]:
     """Best n by confidence; then make room for types with strong PASS candidates but < MIN_PER_TYPE taken."""
     chosen = list(distinct[:n])
-    rest = distinct[n:]
+    rest = [c for c in distinct[n:] if not c.meta.get("capped")]  # type balancing never breaks the cap
     counts = Counter(c.type for c in chosen)
     for t in ("fact", "compare", "change", "at_event", "relation"):
         need = MIN_PER_TYPE - counts[t]
