@@ -152,3 +152,110 @@ flowchart TD
 ```
 
 Everyone appends one line per meaningful commit to `pitch/JOURNAL.md`; X turns it into the live pitch.
+
+---
+
+## Proposed architecture options (for review)
+
+*Added by Team Tzatziki for the review: pick one option to commit to. Every option shares the same front end
+(NLP → facts → knowledge base) and the same back end (claim generator → validator → `output.csv`).
+They differ only in **how a row gets its label**. Each option builds on the one before it.*
+
+| | Option | What decides the label | Extra compute | Risk | Ships if |
+|---|---|---|---|---|---|
+| **A** | Classic core | KB features → LightGBM + LogReg stack | low | low | always (fallback) |
+| **B** | A + truth discovery | A + EM page / source trust | low | low | CV beats A |
+| **C** | B + classic model zoo | best of SVM / KNN / NB / RF / ExtraTrees / LightGBM / XGBoost / MLP, stacked | medium (dev-time) | medium | CV beats B |
+| **D** | C + liquid feature | C + CfC / LTC "is this value still current?" feature | medium | medium | CV beats C, inference < 2 min |
+| **E** | Neuro ensemble | C + CfC / LTC classifier + spiking MLP / LSM as ensemble members | high (X may take over training) | high | CV beats D and fits 2 CPUs / 3 GiB |
+| **F** | Gated NLP fallback | any option + MiniLM encoder for extraction | low | **rules** | extraction F1 < 0.80 **and** QA DNA says OK |
+
+### Shared by all options
+
+```mermaid
+flowchart TD
+  IN[/"universe.csv"/] --> NLP["NLP extractor"]
+  NLP --> KB["Knowledge base by date"]
+  KB --> LABEL{{"Labelling: option A to E"}}
+  KB --> GEN["Claim generator"]
+  GEN --> VAL["Validator"]
+  LABEL --> OUT[/"output.csv"/]
+  VAL --> OUT
+```
+
+### Option A: classic core (the safe fallback)
+
+```mermaid
+flowchart TD
+  F["Facts + KB features"] --> L1["LightGBM"]
+  F --> L2["LogReg"]
+  L1 --> S["Stack"]
+  L2 --> S
+  S --> C["Calibration"]
+  C --> OUT["Label + confidence"]
+```
+
+### Option B: add truth discovery
+
+```mermaid
+flowchart TD
+  KB["KB timelines"] --> EM["EM loop<br/>page trust + value truth"]
+  EM --> F["Features + trust scores"]
+  F --> A["Option A stack"]
+  A --> OUT["Label + confidence"]
+```
+
+### Option C: classic model zoo
+
+```mermaid
+flowchart TD
+  F["Features from B"] --> M1["SVM<br/>soft / hard margin"]
+  F --> M2["KNN"]
+  F --> M3["Trees<br/>RF · ExtraTrees · LightGBM · XGBoost"]
+  F --> M4["LogReg · NB · MLP"]
+  M1 --> E["Stack or vote<br/>best 3–5"]
+  M2 --> E
+  M3 --> E
+  M4 --> E
+  E --> OUT["Label + confidence"]
+```
+
+### Option D: liquid network as a feature
+
+```mermaid
+flowchart TD
+  TL["Timeline of each fact"] --> CFC["CfC / LTC"]
+  CFC --> P["Value still current?"]
+  P --> F["Features from B"]
+  F --> Z["Option C zoo"]
+  Z --> OUT["Label + confidence"]
+```
+
+### Option E: neuro ensemble
+
+```mermaid
+flowchart TD
+  F["Features + timelines"] --> C["Classic zoo"]
+  F --> L["Liquid classifier<br/>CfC / LTC"]
+  F --> S["Spiking<br/>SNN / LSM"]
+  C --> E["Ensemble"]
+  L --> E
+  S --> E
+  E --> OUT["Label + confidence"]
+```
+
+### How we pick
+
+```mermaid
+flowchart TD
+  A["Ship A by T2"] --> B{"B beats A?"}
+  B -- yes --> C{"C beats B?"}
+  B -- no --> A2["Keep A"]
+  C -- yes --> D{"D or E beats C<br/>and fits runtime?"}
+  C -- no --> B2["Keep B"]
+  D -- yes --> DE["Ship D or E"]
+  D -- no --> C2["Keep C"]
+```
+
+Every option is scored with the same folds (grouped by page, plus a time-forward split) on macro-F1, ECE and runtime,
+and recorded in `train/results.csv`. Details: [`docs/MODELS.md`](docs/MODELS.md).

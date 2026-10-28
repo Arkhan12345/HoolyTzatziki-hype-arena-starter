@@ -22,7 +22,7 @@ Install or enable these before pasting the prompt. Anything marked *(if availabl
 - **Model:** Opus via `/model`. Effort **high** for design/rules work, **medium** for routine edits.
 - **CLIs:** `gh` (logged in with `gh auth login`), `git`, Python 3.12, Docker Desktop. On Windows, run `scripts/check.sh` from Git Bash or WSL.
 - **Shared harness:** X commits `.claude/settings.json`, so every session gets the same setup. It holds:
-  - a **SessionStart hook** that runs `git pull --rebase --autostash && git log --oneline -10 && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
+  - a **SessionStart hook** that runs `git fetch origin && git log --oneline -10 origin/main && git branch -r && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
   - a **permissions allowlist** for `git pull/add/commit/push`, `python -m pytest`, `npm run *`, `docker build/run`, `sh scripts/check.sh` (fewer prompts, faster parallel work). Afterwards, run `/fewer-permission-prompts` to add the rest.
 - **Context7 MCP** for up-to-date library docs: `claude mcp add context7 -- npx -y @upstash/context7-mcp`.
 - **Built-ins to use:**
@@ -77,9 +77,12 @@ HARD RUNTIME CONTRACT (break one = zero score)
 STACK
 Python 3.12 · pandas/csv · scikit-learn · lightgbm · jsonschema · joblib · FastAPI + uvicorn (demo API)
 Frontend: React + Vite + TypeScript + Tailwind + shadcn/ui, components from Watermelon UI and Cult UI.
-Optional (P3, after T2 only): torch-CPU + ncps (liquid CfC network) behind USE_NEURO=1.
+Neuro track (dev-time, ships only if it wins): torch-CPU + ncps (CfC/LTC) + snntorch + nir in
+requirements-neuro.txt, Docker build arg WITH_NEURO=1. Full model plan: docs/MODELS.md.
 
-MODEL (agreed): Hybrid temporal Knowledge Base + classic ML
+MODEL (agreed, v2): temporal KB + truth discovery + a fairly-compared MODEL ZOO
+ (classic: LogReg/SVM/KNN/NB/RF/ExtraTrees/LightGBM/MLP/stacks; liquid: CfC/LTC; spiking: SNN/LSM).
+ The leaderboard winner ships; fallback = the LightGBM+LogReg stack. Options: README.md. Pipeline:
  text ─► extractor (lexicon aliases + value regexes + TF-IDF/LR attribute classifier + same-page
  coreference) ─► facts (subject, attribute, value) ─► temporal KB (practice gold + votes across the
  universe + per-page trust) ─► features ─► LightGBM ─► calibrated label+confidence
@@ -99,6 +102,7 @@ FOLDER OWNERSHIP (only the owner edits; others write a request in STATUS.md → 
      app/validate/  app/api/  scripts/ (new files only; never edit upstream check.sh/input.py/
      check_output.py)  tests/runtime/
  P3: app/extract/  app/classify/  app/neuro/  models/  eda/  train/  tests/model/  requirements-train.txt
+     requirements-neuro.txt   (train/neuro/ + models/neuro/ move to X ONLY after Arckan's handoff Request)
  P4: frontend/
  Shared append-only: pitch/JOURNAL.md (everyone appends), STATUS.md (each edits ONLY own row/requests),
  pitch/metrics.json (P3 writes model metrics, P2 writes runtime metrics under its own key).
@@ -137,14 +141,21 @@ ORDER & TIMELINE (now ≈ 11:00, 28 Oct)
 TEAMWORK RULES (non-negotiable)
  1. Parallel, never blocked: if a teammate's piece isn't there yet, code against the stub/interface
     and keep going. Never sit waiting for a commit. Never ask a teammate to stop or wait for you.
- 2. Pull often, read others' work: at the start of every task run
-      git pull --rebase && git log --oneline -15 && cat STATUS.md
-    and adapt to what teammates pushed (new interfaces, new data, requests addressed to you).
- 3. Commit small and often: every working step, at least every 30 min. Message: "<P#-role>: <what>"
-    (e.g. "P3-ai: attribute classifier v1, 0.91 acc"). Always `git pull --rebase` before `git push`.
- 4. Never break main: before pushing run `python -m pytest -q` (backend) or `npm run build`
-    (frontend). Big/risky changes → branch feat/<role>-<topic>, merge to main once green
-    (rebase, then fast-forward). Delete the branch after.
+ 2. Stay current, read others' work: at the start of every task run
+      git fetch origin && git merge origin/main && git log --oneline -15 origin/main && cat STATUS.md
+    and adapt to what teammates merged (new interfaces, new data, requests addressed to you).
+ 3. ALL WORK IS ON BRANCHES. One branch per task, named <name>/<topic> (x/contracts, ioan/dockerfile,
+    arckan/extractor, vald/run-page). Never commit directly to main.
+    Commit small and often on your branch (every working step, at least every 30 min), message
+    "<P#-role>: <what>" (e.g. "P3-ai: attribute classifier v1, 0.91 acc"), and push the branch after
+    every commit (git push -u origin HEAD) so teammates can see progress (git fetch; git log origin/<branch>).
+ 4. Merge to main often so nobody is held back: as soon as a step works (python -m pytest -q or
+    npm run build green, branch up to date with origin/main), open a PR to OUR repo and merge it yourself:
+      gh pr create --repo Arkhan12345/HoolyTzatziki-hype-arena-starter --base main --fill
+      gh pr merge --merge --delete-branch
+    At least every 1-2 h. X reviews merged PRs asynchronously and never blocks a merge. main must
+    always run. Need a teammate's unmerged work right now? Ask them to merge it; only as a last resort
+    git merge origin/<their-branch> into your branch.
  5. Ownership: edit only your folders. Need something elsewhere? Add a line under "Requests" in
     STATUS.md: "@P2 from P3: need KB.lookup to return history sorted by date". Owners check requests
     every pull and answer by committing.
@@ -199,7 +210,10 @@ TASKS, IN ORDER
    form JSON collapsible, confidence). Loading / empty / error states; never a blank screen.
 4. [T2] /metrics: label accuracy & macro-F1 vs baseline, confusion matrix, calibration curve,
    claims by type, runtime per stage — from GET /metrics (pitch/metrics.json). Include the
-   "Classic vs Liquid (CfC) vs Spiking" comparison card when metrics.json has key "neuro".
+   LEADERBOARD: sortable table from metrics.json "leaderboard" (model, track classic/liquid/spiking,
+   features with/without truth discovery, CV scheme, macro-F1, accuracy, ECE, inference time, size,
+   ships?) with the shipped model highlighted, filters by track, a "Classic vs Liquid vs Spiking" bar
+   chart (best of each track) and a SHAP top-features chart when present.
 5. [T2→T3] /pitch: render pitch/PITCH.md (fetched from API or imported at build time via a
    symlink-free copy step in a frontend script) as full-screen slides: each "## Slide N" = one
    slide, arrow keys to navigate, "> notes:" hidden in presenter mode (press N). Pull live numbers
@@ -214,8 +228,8 @@ DEFINITION OF DONE: npm run build passes; diagram + live run of sample.csv worki
 API; metrics + pitch pages show live numbers; one-command start documented.
 
 HOW TO WORK (Claude Code, single agent; sub-agents allowed only inside frontend/)
-- Start every task: `git pull --rebase; git log --oneline -15; cat STATUS.md` — check P2's API
+- Start every task: `git fetch origin && git merge origin/main; git log --oneline -15 origin/main; cat STATUS.md` — check P2's API
   shape changes and P1's PITCH.md updates, adopt them. Never wait for the backend: keep mocks.
-- Commit per screen/component ("P4-frontend: …"), `npm run build` before push, pull --rebase before
-  push; bigger reworks on feat/frontend-<topic>. JOURNAL line per visible feature; STATUS hourly.
+- Commit per screen/component ("P4-frontend: …"), `npm run build` before push; branch
+  vald/<topic>, push after each commit, merge to main via PR when green. JOURNAL line per visible feature; STATUS hourly.
 ~~~

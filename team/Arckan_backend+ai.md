@@ -9,10 +9,13 @@ You (Claude) may READ every file in the repo. You may only CREATE or MODIFY thes
 eda/eda.py · eda/report.md
 app/extract/{gazetteer,values,attributes,coref}.py · app/extract/__init__.py (exports extract)
 app/classify/{features,model,calibrate}.py · app/classify/__init__.py (exports classify)
-train/train.py · models/*.joblib (< 50 MB total) · requirements-train.txt
+train/train.py · train/experiments.py (model-zoo registry) · train/cv.py (fold schemes) · train/results.csv
+train/features/features_vN.parquet · train/features/timelines_vN.parquet · train/features/SCHEMA.md
+models/*.joblib (< 50 MB total) · requirements-train.txt · requirements-neuro.txt · docs/MODELS.md (keep current)
 tests/model/test_extract.py · tests/model/test_classify.py
-app/neuro/{timeline,cfc,bench}.py (OPTIONAL, after T2)
-pitch/metrics.json (keys "baseline","extraction","model","calibration","neuro") · pitch/JOURNAL.md (append) · STATUS.md (own row + requests)
+app/neuro/__init__.py (neuro_features / neuro_predict - always yours) · app/neuro/{timeline,cfc,snn,lsm}.py
+train/neuro/ · models/neuro/ (yours until you hand off to X)
+pitch/metrics.json (keys "baseline","extraction","model","calibration","leaderboard","neuro") · pitch/JOURNAL.md (append) · STATUS.md (own row + requests)
 ```
 Anything else → a Request line in STATUS.md to its owner.
 
@@ -23,7 +26,7 @@ Install or enable these before pasting the prompt. Anything marked *(if availabl
 - **Model:** Opus via `/model`. Effort **high** for design/rules work, **medium** for routine edits.
 - **CLIs:** `gh` (logged in with `gh auth login`), `git`, Python 3.12, Docker Desktop. On Windows, run `scripts/check.sh` from Git Bash or WSL.
 - **Shared harness:** X commits `.claude/settings.json`, so every session gets the same setup. It holds:
-  - a **SessionStart hook** that runs `git pull --rebase --autostash && git log --oneline -10 && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
+  - a **SessionStart hook** that runs `git fetch origin && git log --oneline -10 origin/main && git branch -r && cat STATUS.md`, so the agent sees teammates' commits every time it starts;
   - a **permissions allowlist** for `git pull/add/commit/push`, `python -m pytest`, `npm run *`, `docker build/run`, `sh scripts/check.sh` (fewer prompts, faster parallel work). Afterwards, run `/fewer-permission-prompts` to add the rest.
 - **Context7 MCP** for up-to-date library docs: `claude mcp add context7 -- npx -y @upstash/context7-mcp`.
 - **Built-ins to use:**
@@ -78,9 +81,12 @@ HARD RUNTIME CONTRACT (break one = zero score)
 STACK
 Python 3.12 · pandas/csv · scikit-learn · lightgbm · jsonschema · joblib · FastAPI + uvicorn (demo API)
 Frontend: React + Vite + TypeScript + Tailwind + shadcn/ui, components from Watermelon UI and Cult UI.
-Optional (P3, after T2 only): torch-CPU + ncps (liquid CfC network) behind USE_NEURO=1.
+Neuro track (dev-time, ships only if it wins): torch-CPU + ncps (CfC/LTC) + snntorch + nir in
+requirements-neuro.txt, Docker build arg WITH_NEURO=1. Full model plan: docs/MODELS.md.
 
-MODEL (agreed): Hybrid temporal Knowledge Base + classic ML
+MODEL (agreed, v2): temporal KB + truth discovery + a fairly-compared MODEL ZOO
+ (classic: LogReg/SVM/KNN/NB/RF/ExtraTrees/LightGBM/MLP/stacks; liquid: CfC/LTC; spiking: SNN/LSM).
+ The leaderboard winner ships; fallback = the LightGBM+LogReg stack. Options: README.md. Pipeline:
  text ─► extractor (lexicon aliases + value regexes + TF-IDF/LR attribute classifier + same-page
  coreference) ─► facts (subject, attribute, value) ─► temporal KB (practice gold + votes across the
  universe + per-page trust) ─► features ─► LightGBM ─► calibrated label+confidence
@@ -100,6 +106,7 @@ FOLDER OWNERSHIP (only the owner edits; others write a request in STATUS.md → 
      app/validate/  app/api/  scripts/ (new files only; never edit upstream check.sh/input.py/
      check_output.py)  tests/runtime/
  P3: app/extract/  app/classify/  app/neuro/  models/  eda/  train/  tests/model/  requirements-train.txt
+     requirements-neuro.txt   (train/neuro/ + models/neuro/ move to X ONLY after Arckan's handoff Request)
  P4: frontend/
  Shared append-only: pitch/JOURNAL.md (everyone appends), STATUS.md (each edits ONLY own row/requests),
  pitch/metrics.json (P3 writes model metrics, P2 writes runtime metrics under its own key).
@@ -138,14 +145,21 @@ ORDER & TIMELINE (now ≈ 11:00, 28 Oct)
 TEAMWORK RULES (non-negotiable)
  1. Parallel, never blocked: if a teammate's piece isn't there yet, code against the stub/interface
     and keep going. Never sit waiting for a commit. Never ask a teammate to stop or wait for you.
- 2. Pull often, read others' work: at the start of every task run
-      git pull --rebase && git log --oneline -15 && cat STATUS.md
-    and adapt to what teammates pushed (new interfaces, new data, requests addressed to you).
- 3. Commit small and often: every working step, at least every 30 min. Message: "<P#-role>: <what>"
-    (e.g. "P3-ai: attribute classifier v1, 0.91 acc"). Always `git pull --rebase` before `git push`.
- 4. Never break main: before pushing run `python -m pytest -q` (backend) or `npm run build`
-    (frontend). Big/risky changes → branch feat/<role>-<topic>, merge to main once green
-    (rebase, then fast-forward). Delete the branch after.
+ 2. Stay current, read others' work: at the start of every task run
+      git fetch origin && git merge origin/main && git log --oneline -15 origin/main && cat STATUS.md
+    and adapt to what teammates merged (new interfaces, new data, requests addressed to you).
+ 3. ALL WORK IS ON BRANCHES. One branch per task, named <name>/<topic> (x/contracts, ioan/dockerfile,
+    arckan/extractor, vald/run-page). Never commit directly to main.
+    Commit small and often on your branch (every working step, at least every 30 min), message
+    "<P#-role>: <what>" (e.g. "P3-ai: attribute classifier v1, 0.91 acc"), and push the branch after
+    every commit (git push -u origin HEAD) so teammates can see progress (git fetch; git log origin/<branch>).
+ 4. Merge to main often so nobody is held back: as soon as a step works (python -m pytest -q or
+    npm run build green, branch up to date with origin/main), open a PR to OUR repo and merge it yourself:
+      gh pr create --repo Arkhan12345/HoolyTzatziki-hype-arena-starter --base main --fill
+      gh pr merge --merge --delete-branch
+    At least every 1-2 h. X reviews merged PRs asynchronously and never blocks a merge. main must
+    always run. Need a teammate's unmerged work right now? Ask them to merge it; only as a last resort
+    git merge origin/<their-branch> into your branch.
  5. Ownership: edit only your folders. Need something elsewhere? Add a line under "Requests" in
     STATUS.md: "@P2 from P3: need KB.lookup to return history sorted by date". Owners check requests
     every pull and answer by committing.
@@ -205,44 +219,52 @@ TASKS, IN ORDER
       nearby ids) whose attribute set fits the value kind.
    Measure extraction precision/recall vs gold forms (grouped CV) → metrics.json "extraction".
    Push v0 early even if weak — P2's KB and P4's UI need real facts flowing.
-3. [T1→T2] app/classify — features per row (via P2's KB helpers; until they land, compute your own
-   in-module from gold forms): matches value in force at row date, contradicts it, value newer than
-   anything known, n agreeing / disagreeing sources across universe, page trust, page false-rate cue
-   words, value kind, n facts, extraction confidence, has comparison op, speaker-quote markers.
-   Model: LightGBM (fallback LogisticRegression), grouped CV by page/date on practice.
-   IMPORTANT for honest eval: when evaluating, build the KB WITHOUT the held-out fold's labels
-   (check.sh hides every 5th row and our image contains practice.csv, so its score is optimistic).
-4. [T2] Calibration: isotonic / Platt on out-of-fold predictions → confidence = P(predicted label) in
-   [0.5, 1]. "unsure" only when max prob < threshold tuned on OOF (rare). Calibration curve + ECE
-   into metrics.json "calibration" (P4 plots it, P1 pitches it).
-5. [T2] Train script train/train.py → models/*.joblib (small, < 50 MB total); inference on 20k rows
-   < 5 min on 2 CPUs (time it, report in metrics.json). Tests in tests/model/ (shapes, determinism,
-   confidence range). Tell P2 via Requests exactly what pip packages/versions inference needs.
-6. [T2 → T3] Error analysis loop: top confusions → new regexes / features → retrain. Help P2's
-   generator by exposing `confidence_for_fact(subject, attr, value, date)` so only high-confidence
-   facts become claims.
-7. [OPTIONAL, only after T2 is green, timebox 2 h] NEUROMORPHIC EXPERIMENT in app/neuro/:
-   Reference code (read-only, never import from it — copy minimal pieces into app/neuro/):
-   C:\Users\alexandru.mirea\PycharmProjects\neuromorphic-gestures
-     learn/_lib/models.py  build("cfc"|"ltc"|"gru"|"snn_mlp", in_shape, n_classes), SeqNet
-     learn/_lib/trainer.py fit/predict ; learn/_lib/common.py rate_encode/latency_encode/snn_classifier
-     learn/_lib/compare.py benchmark tables
-   (Not on that laptop? It's a liquid-network/SNN lesson repo using ncps CfC + snnTorch; write the
-   ~60 lines yourself with `pip install ncps` + torch CPU.)
-   Idea: for each (subject, attribute) build an irregular-time event sequence (Δdays, agrees-with-KB,
-   page trust, kind) → CfC predicts "value still current at date t" → one extra LightGBM feature
-   `cfc_current_prob`. Spiking MLP (snnTorch) over the tabular features = benchmark row only.
-   Ship behind USE_NEURO=1 ONLY if grouped CV improves AND inference < 2 min AND torch-CPU fits the
-   image (ask P2 to add `torch --index-url https://download.pytorch.org/whl/cpu` + ncps). Either way
-   write the comparison table (Classic vs Liquid vs Spiking: accuracy, F1, ECE, latency, params) to
-   metrics.json "neuro" — P4 shows it, P1 pitches it honestly.
+3. [T1→T2] Truth-discovery + classify features: via P2's KB hook (timelines with source ids) add an EM
+   loop (TruthFinder / Dawid-Skene style) -> p_value_true, page_reliability; plus: matches value in force
+   at row date, contradicts it, newer than known, support for/against, page false-rate, cue words,
+   value kind, n facts, extraction confidence, comparison op. Until the KB lands, compute in-module.
+   Publish train/features/features_vN.parquet + timelines_vN.parquet + SCHEMA.md (with fold ids) on
+   every feature improvement (merge to main) - X may train neuro models on them in parallel.
+4. [T2] SHIP THE STACK FIRST: LightGBM + LogReg -> OOF LogReg meta-learner -> calibration (isotonic vs
+   Platt vs temperature, pick by ECE) -> confidence in [0.5,1], unsure below an OOF-tuned threshold.
+   train/train.py -> models/*.joblib; inference < 5 min on 20k rows / 2 CPUs. tests/model/.
+   Tell P2 (Ioan) via Requests the exact pip packages/versions inference needs.
+5. [T2 -> overnight] MODEL ZOO on the same features + folds (train/experiments.py registry; every run
+   appends a row to train/results.csv -> metrics.json "leaderboard"):
+   LogReg L1/L2/elastic-net; SVM linear + RBF with a C sweep (small C = soft margin, large C ~ hard
+   margin), Platt probs; KNN (k 3-51, uniform vs distance, scaled); Complement NB on text;
+   RandomForest; ExtraTrees; LightGBM; XGBoost or CatBoost (one); sklearn MLP; soft voting vs
+   stacking of the best 3-5 ("big ensemble").
+   CV techniques (train/cv.py): GroupKFold by page (default), StratifiedGroupKFold, TIME-FORWARD split
+   (train earlier dates -> test later), repeated 3x5, NESTED CV after tuning. KB/TD features rebuilt
+   without held-out labels. Tuning: Optuna or HalvingRandomSearchCV with a capped budget. Imbalance:
+   class weights vs SMOTE. ABLATION: every model with and without truth-discovery features.
+   Explain the winner: permutation importance + SHAP -> plots for X's pitch.
+6. [T2 -> T3] Error-analysis loop (top confusions -> new regexes/features -> new features_vN); expose
+   confidence_for_fact(subject, attr, value, date) for P2's claim selection. Ship rule (docs/MODELS.md
+   section 7): best macro-F1 (ties -> lower ECE) that passes the runtime gate; fallback = the stack.
+7. [overnight] NEURO TRACK - both as a FEATURE and as a full CLASSIFIER (docs/MODELS.md section 5):
+   CfC / LTC / GRU-control on per-pair irregular timelines (feature cfc_current_prob) and row-level
+   (ensemble member); spiking MLP (snnTorch, rate vs latency encoding); LSM reservoir; NIR export +
+   synops energy estimate. Same folds, rows into train/results.csv. Deps in requirements-neuro.txt
+   (torch CPU index URL, ncps, snntorch, nir); ask Ioan for WITH_NEURO=1 only if a neuro model wins.
+   Reference code (read-only; copy minimal pieces into app/neuro/ or train/neuro/, never import it):
+   C:\Users\alexandru.mirea\PycharmProjects\neuromorphic-gestures\learn\_lib\ (models.py build("cfc"|
+   "ltc"|"gru"|"snn_mlp"|"lsm"), trainer.py fit, common.py rate_encode/latency_encode, compare.py synops)
+   and export_nir.py. Not on your laptop? Write the ~60 lines with ncps + snntorch yourself.
+   HANDOFF TO X: if a neuro run takes > 15 min on your laptop, or you are behind T2, write
+   "@X from Arckan: neuro handoff, features_vN" in STATUS.md. From then on X owns train/neuro/ +
+   models/neuro/ and trains in parallel on your latest features_vN; you keep app/neuro/__init__.py
+   (neuro_features / neuro_predict) and wire X's model in when it wins. Never wait for X.
+8. [gated] MiniLM fallback: ONLY if extraction F1 < 0.80 after CRF + universe word2vec AND QA DNA
+   confirmed it is allowed (ask via X). ONNX, < 100 MB, behind a flag.
 
 DEFINITION OF DONE: extract + classify plugged into app/run.py via contracts; beats baseline by a
 clear margin in grouped CV; calibrated confidence; models/ committed; metrics.json filled.
 
 HOW TO WORK (Claude Code, single agent; sub-agents allowed only inside my folders)
-- Start every task: `git pull --rebase; git log --oneline -15; cat STATUS.md` — read P2's KB API and
+- Start every task: `git fetch origin && git merge origin/main; git log --oneline -15 origin/main; cat STATUS.md` — read P2's KB API and
   P1's contracts changes; answer Requests to me. Never wait: stub what you need locally.
-- Commit per step ("P3-ai: …") with the metric in the message; pytest before push; pull --rebase
-  before push; experiments on feat/ai-<topic>. JOURNAL line per meaningful result; STATUS hourly.
+- Commit per step ("P3-ai: …") with the metric in the message; pytest before push; branch
+  arckan/<topic>, push after each commit, merge to main via PR when green. JOURNAL line per meaningful result; STATUS hourly.
 ~~~

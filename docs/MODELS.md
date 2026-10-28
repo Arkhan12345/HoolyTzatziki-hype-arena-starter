@@ -1,106 +1,111 @@
-# Models & approach — Hype or Truth (Team Tzatziki)
+# Models & approach v2 — Hype or Truth (Team Tzatziki)
 
-> Owner: **Arckan** (P3) builds; **Ioan** (P2) owns the KB/generator side; **X** pitches it; **Vald** shows the comparison.
-> Constraints every model must respect: **no LLM inside the system**, offline, 2 CPUs, 6 GiB RAM, image ≤ 3 GiB,
-> whole run ≤ 30 min on ~20k rows, only ~1,900 labelled rows. Evidence = the Hooly universe only.
+> **Owners:** Arckan (P3) builds the models. Ioan (P2) owns the KB and the truth-discovery hook. X (P1) pitches, and takes over neuro
+> training if it needs too much compute (see §6). Vald (P4) shows the leaderboard.
+> **Constraints on what ships:** no LLM inside the system, offline, 2 CPUs, 6 GiB, image ≤ 3 GiB, the whole run ≤ 30 min on ~20k rows, and only
+> ~1,900 labelled rows. Everything else in this file is **dev-time experimentation**: we test many methods, but only the winning config ships.
 
 ## The approach in one sentence
-**Read facts out of text (NLP), put them on a timeline and estimate which sources are trustworthy (truth
-discovery), then let a small calibrated classifier decide true/false — and generate claims only from facts the
-timeline firmly supports.** Neural / neuromorphic models are added as *extra signals*, never as the backbone.
+Read facts out of the text (NLP), put them on a timeline and estimate which sources are trustworthy (truth discovery), then
+let the best model from a wide, fairly compared **model zoo** (classic, liquid, spiking) decide true/false with calibrated
+confidence. Claims are generated only from facts the timeline firmly supports.
 
 ```mermaid
 flowchart TD
-  T["Row text + date"] --> N["NLP layer<br/>gazetteer · value regex · CRF tagger · attribute classifier · coreference"]
-  N --> F["Facts"]
-  F --> TD["Truth discovery<br/>timeline + source/page reliability (EM)"]
-  TD --> FE["Feature table"]
-  F --> FE
-  T --> TX["Text model<br/>TF-IDF + LogReg"] --> FE
-  TD --> CFC["Liquid net (CfC)<br/>value still current?"] -.-> FE
-  FE --> LGB["LightGBM (main)"] --> ENS["Stack / average + isotonic calibration"]
-  FE --> LR["LogReg (sanity)"] --> ENS
-  FE -. benchmark .-> SNN["Spiking MLP / LSM"]
-  ENS --> L["label + confidence"]
-  TD --> G["Claim generator (templates)"] --> V["Validator"]
+  T["Row text + date"] --> N["NLP: text to facts"]
+  N --> TD["Timeline + truth discovery"]
+  TD --> FT[("Feature table vN")]
+  N --> FT
+  FT --> Z1["Classic zoo"]
+  FT --> Z2["Liquid nets"]
+  FT --> Z3["Spiking nets"]
+  Z1 --> LB["Leaderboard (same CV for all)"]
+  Z2 --> LB
+  Z3 --> LB
+  LB --> W["Winner + calibration ships"]
 ```
 
----
-
-## 1. NLP layer — text → facts (biggest lever: everything downstream depends on it)
-| Step | Model (in order of priority) | Why | When |
-|---|---|---|---|
-| Subject spotting | **Lexicon gazetteer**, longest match, case-insensitive (Aho-Corasick or regex alternation) | Lexicon is closed (62 subjects + 48 aliases); exact rules beat ML | T1 |
-| Value spotting | **Regex per kind** written from `value-forms.md` (money, quantity+unit, percent, duration, date, version, yes/no via negation; detect approximations/ranges/comparisons) | Formats are specified exactly; rules are precise and explainable | T1 |
-| Value span refinement | **CRF sequence tagger** (`sklearn-crfsuite`, BIO tags for SUBJ/VALUE/UNIT) trained on practice forms aligned to text | Catches odd phrasings the regex misses; tiny, fast on CPU | overnight |
-| Attribute | **TF-IDF (word 1–2 + char 3–5, value masked) → LogisticRegression / LinearSVC**, restricted to the subject's lexicon attributes; features + value kind + unit noun | 321 attributes, short sentences; linear models are strong here and calibrate well | T1→T2 |
-| Attribute (alt.) | **word2vec / fastText trained from scratch on the universe text** (gensim), averaged vectors → LogReg | Learns Hooly synonyms ("crew" ≈ team_size) without any outside knowledge | overnight |
-| Coreference ("He", "Its", "The platform") | **Rule: nearest prior subject on same page compatible with attribute**, then a **LogReg ranker** over candidate antecedents (distance, kind fit, attribute fit) | 754 facts need it; page = same date + adjacent ids | T2 |
-| Multi-fact rows | Split on clause boundaries; one fact per value found | 23% of rows hold ≥ 2 facts; any false value ⇒ row false | T2 |
-
-**Metric:** fact-level precision / recall vs gold `form` (grouped CV). Target ≥ 0.85 F1 on (subject, attribute, value).
-
-> ⚠️ **Pretrained transformers (BERT, MiniLM, spaCy-trf):** a small encoder is arguably *not* an LLM, but the rules
-> say "may not be an LLM" and "don't rely on facts a pretrained model knows". **Default: don't ship one.** Only consider
-> a tiny sentence encoder (ONNX, < 100 MB) for attribute matching if extraction F1 is stuck — and ask the organisers first.
-
-## 2. Classic ML — facts → label + confidence
-| Model | Role | Notes |
+## 1. NLP layer: text → facts
+| Step | Model | When |
 |---|---|---|
-| **Majority "true" baseline** | floor | 83.3% accuracy — anything worse is broken |
-| **TF-IDF + LogReg on text only** | baseline + one stacked feature | captures "hype" cues ("more than any competitor", speaker quotes) |
-| **Truth discovery (TruthFinder / Dawid-Skene-style EM)** | KB core (Ioan + Arckan) | iteratively estimates *value truth* per (subject, attribute, date window) and *reliability* per page/source; output = `p_value_true`, `page_reliability` features |
-| **LightGBM** (main) | final classifier | features: agrees with value in force, contradicts it, newer-than-known, support for/against, page reliability, text-model prob, kind, n facts, extraction conf, cue words, (CfC prob). Small trees: `num_leaves 15–31`, `min_data_in_leaf 20`, class weights for false |
-| **LogisticRegression** on the same features | sanity + ensemble member | interpretable, robust when LightGBM overfits |
-| **ExtraTrees / CatBoost** *(optional)* | ensemble member | only if CV shows gain; CatBoost adds ~100 MB |
-| **Stacking / mean of probs → isotonic calibration** | confidence | confidence = calibrated P(label) clipped to [0.5, 1]; `unsure` only below an OOF-tuned threshold (rare, 2% in practice) |
+| Subject spotting | Lexicon gazetteer, longest match | T1 |
+| Values | Regex per kind, written from `value-forms.md` | T1 |
+| Attribute | TF-IDF (word + char, value masked) → LogReg / LinearSVC, restricted to the subject's attributes | T1→T2 |
+| Coreference | Rule: nearest compatible subject on the same page → LogReg antecedent ranker | T2 |
+| Span refinement | CRF tagger (`sklearn-crfsuite`) | overnight |
+| Synonyms | word2vec/fastText trained **from scratch on the universe** (gensim) | overnight |
+| **Gated fallback** | MiniLM sentence encoder (ONNX, < 100 MB). **Only if** extraction F1 < 0.80 after CRF + word2vec, **and** only after QA DNA confirms it's allowed | only if stuck |
 
-**Validation:** GroupKFold by page/date; KB rebuilt **without** held-out labels each fold. Report accuracy,
-**macro-F1** (false class matters), **ECE** + reliability curve, runtime.
+Metric: fact-level P/R/F1 vs the gold `form`, grouped CV.
 
-## 3. Claim generation — no ML needed to *write*, ML to *choose*
-Templates per type exactly per `claim-forms.md` / `value-forms.md` (Ioan). ML's job is **selection**: rank candidate
-claims by `p_value_true` from truth discovery × LightGBM-style confidence that the fact holds on the as-of date;
-take the top 1,000 that pass the validator, with type/subject diversity quotas. Confidence = that score (≥ 0.6).
+## 2. Truth discovery (built, then ablated)
+Ioan's KB exposes per-pair timelines with source ids (page = date + adjacent ids). Arckan adds an **EM loop**
+(TruthFinder / Dawid-Skene style) that alternates between estimating value truth and estimating page reliability. Its outputs are
+`p_value_true` and `page_reliability`.
+**Ablation:** every model on the leaderboard is run **with and without** these features. They stay only if CV improves.
 
-## 4. Liquid neural networks (LNN) — the time-aware signal
-Our data *is* irregular time series: each (subject, attribute) is a stream of mentions at uneven dates.
-| Model | Input | Output | Verdict |
-|---|---|---|---|
-| **CfC (closed-form continuous-time, `ncps`)** | per pair: sequence of (Δdays since last mention, agrees-with-KB, page reliability, value-changed flag, kind one-hot) | P(value still current at date t) → feature `cfc_current_prob` | **Recommended experiment** — handles irregular Δt natively, tiny (≈ 5–20k params), fast on CPU |
-| **LTC (liquid time-constant)** | same | same | compare to CfC; slower (ODE solver), keep only if better |
-| **GRU baseline** | same | same | control: shows whether "liquid" adds anything over a plain RNN |
-
-Reuse: `neuromorphic-gestures/learn/_lib/models.py` (`build("cfc"|"ltc"|"gru", …)`, `SeqNet`), `trainer.fit`.
-Ship behind `USE_NEURO=1` **only if** grouped CV improves macro-F1/ECE and inference < 2 min. torch-CPU + ncps ≈ 250 MB.
-
-## 5. Spiking neural networks (SNN) & neuromorphic — benchmark + pitch, not backbone
-| Model | Input | Use |
-|---|---|---|
-| **Spiking MLP (snnTorch LIF, surrogate gradients)** | the LightGBM feature table, **rate- or latency-encoded** (`common.rate_encode`) | benchmark row: accuracy vs LightGBM, **synaptic ops / energy estimate** (`compare.py` `synops`) |
-| **Liquid State Machine (reservoir of spiking neurons + linear readout)** | per-pair event stream as spikes (one spike per mention, channels for agree/contradict) | cheap temporal benchmark; readout = LogReg — trains in seconds |
-| **NIR export** (`export_nir.py`) | the trained SNN | pitch: "this verifier is chip-ready (Loihi/SpiNNaker-class), ~N× fewer ops than dense" |
-
-**Why not the backbone:** the task is symbolic lookup + reasoning over time; ~1,900 labels; a 2-CPU x86 box gets
-no speed-up from spikes. **Why do it anyway:** honest comparison table + energy story = strong, differentiating
-pitch slide ("Classic vs Liquid vs Spiking").
-
-## 6. Order of work (Arckan, with Ioan on the KB)
-| Milestone | Deliver |
+## 3. Classic model zoo (same features, same folds, one registry `train/experiments.py`)
+| Family | Models & settings |
 |---|---|
-| **T1 16:00** | baselines (majority, TF-IDF+LogReg); gazetteer + regex extractor v0; extraction F1 reported |
-| **T2 22:00** | attribute classifier + coreference; truth-discovery features (with Ioan's KB); LightGBM + LogReg + isotonic → shipped |
-| **overnight** | CRF tagger, universe word2vec, ensemble; **then** CfC/LTC/GRU feature (2 h box); SNN + LSM benchmark (1 h box); NIR export |
-| **T3 08:30** | freeze best config; `pitch/metrics.json` has keys `baseline`, `extraction`, `model`, `calibration`, `neuro` |
+| Linear | LogReg L1 / L2 / elastic-net; **SVM linear + RBF, C sweep** (small C = soft margin, large C ≈ hard margin), Platt for probabilities |
+| Neighbours / Bayes | **KNN** (k = 3…51, uniform vs distance weights, scaled features); Complement Naive Bayes on text |
+| Trees | RandomForest, ExtraTrees, **LightGBM**, XGBoost *or* CatBoost (one, if the image size allows) |
+| Neural (classic) | sklearn MLPClassifier |
+| Ensembles | **Stack:** LightGBM + LogReg → OOF LogReg meta-learner; **big ensemble:** + SVM + ExtraTrees + KNN (+ boosted #2), soft voting vs stacking |
 
-## 7. Comparison table to fill (→ `pitch/metrics.json` → Vald's /metrics → X's slide)
-| Model | Macro-F1 | Accuracy | ECE | Inference 20k rows | Params / size | Ships? |
-|---|---|---|---|---|---|---|
-| Majority "true" | | 0.833 | — | 0 s | 0 | no |
-| TF-IDF + LogReg (text only) | | | | | | stacked feature |
-| KB + LogReg | | | | | | ensemble |
-| **KB + LightGBM (+ calibration)** | | | | | | **yes (default)** |
-| + CfC feature | | | | | | if better |
-| LTC / GRU feature | | | | | | control |
-| Spiking MLP | | | | | synops | benchmark |
-| LSM reservoir | | | | | | benchmark |
+## 4. Validation & tuning techniques
+- **Splits:**
+  - GroupKFold by page (default).
+  - StratifiedGroupKFold.
+  - **Time-forward split:** train on earlier dates, test on later ones, which matches how truth changes over time.
+  - Repeated CV (3×5) for stable means ± std.
+  - **Nested CV** for honest scores after tuning.
+- **No leaks:** the KB and truth-discovery features are rebuilt **without the held-out fold's labels**.
+- **Tuning:** Optuna (dev-time only) or HalvingRandomSearchCV, with the budget capped per model.
+- **Imbalance:** class weights vs SMOTE (compared).
+- **Calibration:** isotonic vs Platt vs temperature, chosen by **ECE**. Confidence is clipped to [0.5, 1]; `unsure` only below an OOF-tuned threshold.
+- **Explainability:** feature-group ablation, permutation importance, SHAP on the winner (for the pitch).
+- **Metrics:** macro-F1 (main), accuracy, ECE, Brier, inference time on 20k rows, model size.
+
+## 5. Neuro track: liquid + spiking (both "feature" and "full classifier")
+| Model | As a feature | As a classifier (ensemble member) |
+|---|---|---|
+| **CfC** (`ncps`) | per-pair irregular timeline (Δdays, agree, page trust, changed, kind) → `cfc_current_prob` | row-level: the row's pair timeline up to its date + row features → true/false |
+| **LTC** | same as CfC (slower ODE; keep only if better) | same |
+| **GRU** | control: does "liquid" beat a plain RNN? | control |
+| **Spiking MLP** (snnTorch LIF, surrogate gradients) | — | feature table, rate vs latency encoding |
+| **LSM reservoir** (spiking reservoir + linear readout) | per-pair spike streams → readout prob | readout = classifier |
+| **NIR export + synops** | — | pitch: "chip-ready", energy vs dense |
+
+The reference code is `neuromorphic-gestures/learn/_lib/` (`models.build("cfc"|"ltc"|"gru"|"snn_mlp"|"lsm")`, `trainer.fit`,
+`common.rate_encode`, `compare.synops`) and `export_nir.py`. **Copy the minimal pieces; never import from outside the repo.**
+Dependencies go in `requirements-neuro.txt` (torch-CPU, ncps, snntorch, nir). They ship only via the Docker build arg `WITH_NEURO=1` if a neuro model wins.
+
+## 6. Neuro compute handoff (Arckan ↔ X, in parallel)
+1. **Arckan publishes a frozen feature table** whenever features improve: `train/features/features_vN.parquet`,
+   `train/features/timelines_vN.parquet` and `train/features/SCHEMA.md` (columns, fold ids, label encoding).
+2. **Default:** Arckan runs neuro in `train/neuro/`.
+3. **Trigger:** a neuro run takes > 15 min on his laptop, **or** Arckan is behind T2. Arckan writes in STATUS.md:
+   `@X from Arckan: neuro handoff, features_vN`.
+4. **After the handoff**, X owns `train/neuro/` and `models/neuro/`, and Arckan keeps `app/neuro/__init__.py`
+   (`neuro_features(rows, kb)`, `neuro_predict(rows, kb)`).
+5. **Sync:** X pulls the latest `features_vN` before every run, logs each run in `train/neuro/LOG.md`, adds a row to
+   `train/results.csv` (same CV folds), and commits weights to `models/neuro/` (< 50 MB). Arckan wires a neuro model in when it
+   wins. **Nobody waits:** X always trains on the newest table available.
+
+## 7. Leaderboard → ship decision
+`train/results.csv` → `pitch/metrics.json["leaderboard"]` → Vald's `/metrics` (sortable) → X's slide.
+
+| model | track | features (± TD) | CV scheme | macro-F1 | acc | ECE | infer 20k | size | ships? |
+|---|---|---|---|---|---|---|---|---|---|
+
+**Ship rule:** the best macro-F1 (ties → lower ECE) **that passes the runtime gate**: inference < 5 min on 2 CPUs, image ≤ 3 GiB,
+time-forward CV no worse than −2 points vs grouped CV. The fallback is always the LightGBM + LogReg stack.
+
+## 8. Order of work
+| Milestone | Arckan | X (after handoff) |
+|---|---|---|
+| T1 16:00 | baselines, extractor v0, extraction F1, `features_v1` | — |
+| T2 22:00 | full extractor, TD features, **stack** shipped, zoo started | — |
+| overnight | zoo + CV techniques + tuning, TD ablation, CfC/LTC/GRU feature | CfC/LTC classifier, SNN, LSM, NIR (if handed off) |
+| T3 08:30 | freeze the winner, leaderboard final | neuro rows final in the leaderboard |
