@@ -27,6 +27,8 @@ from app.validate.rules import norm_text
 
 MIN_PER_TYPE = 25
 SOFT_MIN_CONF = 0.85
+AT_EVENT_PER_FACT = 2  # "X was EU hosted at A / at B / at C ..." repeats one fact: the rest go to the back
+TYPES = ("fact", "compare", "change", "at_event", "relation")
 
 
 def all_candidates(inv: FactInventory, report: dict | None = None):
@@ -90,7 +92,17 @@ def rank(valid: list[Candidate]) -> tuple[list[Candidate], list[Candidate]]:
     for c in distinct:
         tiers[_tier(c)].append(c)
     ordered = [c for t in sorted(tiers) for c in _spread(tiers[t])]
-    return ordered, _spread(dups)
+    # the same fact told at every event says little: keep its first AT_EVENT_PER_FACT, push the rest last
+    seen, head, tail = Counter(), [], []
+    for c in ordered:
+        if c.type == "at_event":
+            k = (c.form["subject"], c.form["attribute"])
+            seen[k] += 1
+            if seen[k] > AT_EVENT_PER_FACT:
+                tail.append(c)
+                continue
+        head.append(c)
+    return head + tail, _spread(dups)
 
 
 def _tier(c: Candidate) -> tuple[bool, bool]:
@@ -150,6 +162,22 @@ def _prefer_all_types(distinct: list[Candidate], n: int) -> list[Candidate]:
                     chosen.append(c)
                     counts[t] += 1
                     break
+    # at least one claim of every type: if a type is still missing, its best PASS candidate (any
+    # confidence) replaces the last-ranked claim of a type that keeps at least one
+    for t in TYPES:
+        if counts[t]:
+            continue
+        best = next((c for c in rest if c.type == t and c not in chosen), None)
+        if best is None:
+            continue  # no PASS candidate of this type: nothing true and new to say, nothing is forced
+        for i in range(len(chosen) - 1, -1, -1):
+            d = chosen[i]
+            if counts[d.type] > 1:
+                chosen.pop(i)
+                counts[d.type] -= 1
+                chosen.append(best)
+                counts[t] += 1
+                break
     return sorted(chosen, key=lambda c: (_tier(c), -c.confidence))
 
 
@@ -164,6 +192,7 @@ def select(valid: list[Candidate], n: int, report: dict, gold_rows: set[str] | N
         "distinct_by_type": dict(Counter(c.type for c in distinct)),
         "selected_semantic_duplicates": 0,  # never: one claim per piece of information
         "shortfall": max(0, n - len(chosen)),
+        "missing_types": [t for t in TYPES if not any(c.type == t for c in chosen)],
         "fallback": {"selected_novelty_weak": sum(1 for c in chosen if c.meta.get("novelty_weak")),
                      "selected_below_soft_min_conf": sum(1 for c in chosen if c.confidence < SOFT_MIN_CONF),
                      "available_novelty_weak": sum(1 for c in distinct if c.meta.get("novelty_weak"))},
