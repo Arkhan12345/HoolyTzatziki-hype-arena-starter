@@ -1,7 +1,7 @@
 # EDA v2: data rules, new parameters, per-row model advice, bake-off (Team Tzatziki, X)
 
 > Follows [`EDA.md`](EDA.md).
-> - Short rule sheet: [`data/RULES.md`](../data/RULES.md).
+> - Short rule sheet: [`docs/RULES.md`](RULES.md).
 > - Scripts: `eda/01_parse.py` → `02_rules.py` → `03_recommend.py` → `04_bakeoff.py`, run in `.venv-eda`. Versions are pinned to the runtime image: Python 3.12, numpy 2.1.3, pandas 2.2.3, scikit-learn 1.5.2, lightgbm 4.5.0, plus torch-cpu, ncps and snntorch for dev only.
 > - Outputs go to `eda/out/`.
 
@@ -16,7 +16,7 @@ We have ~1,900 labelled rows to label ~18,000 rows. A model that memorises words
 - **A fixed name pool and templates.** 16 masked sentence templates repeat ≥ 3 times, and the same people keep their roles across pages. This is Faker-like generation.
 
 ## 3. Rules found
-Full numbers are in `data/RULES.md` and `eda/out/rules.csv`.
+Full numbers are in `docs/RULES.md` and `eda/out/rules.csv`.
 
 | Family | Key rule | Effect |
 |---|---|---|

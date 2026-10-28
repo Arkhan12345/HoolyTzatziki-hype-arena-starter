@@ -7,5 +7,6 @@ __pycache__/
 /tmp_*/
 # EDA (X)
 .venv-eda/
+.venv-neuro/
 eda/out/*.pkl
 .claude/worktrees/

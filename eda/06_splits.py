@@ -1,4 +1,4 @@
-"""Step 6: one shared split file for the whole team -> data/splits.csv
+"""Step 6: one shared split file for the whole team -> eda/splits.csv
 
 No copied folders: every script loads practice.csv, joins this file on `id` and filters in memory.
 Columns:
@@ -44,7 +44,7 @@ def main():
     df["time_split"] = np.where(d < "2026-07-01", "train", "test")
 
     out = df[["id", "page", "date", "label", "holdout", "fold_group", "fold_row5", "time_split"]]
-    out.to_csv(ROOT / "data" / "splits.csv", index=False)
+    out.to_csv(ROOT / "eda" / "splits.csv", index=False)
 
     pd.set_option("display.width", 200)
     print("holdout:", out.groupby("holdout").label.value_counts().unstack().to_string(), sep="\n")

@@ -1,4 +1,4 @@
-"""Step 5: put every rule into data/RULES.md.
+"""Step 5: put every rule into docs/RULES.md.
 
 The hand-written sections above the AUTO marker stay as they are; everything between the markers is
 regenerated from eda/out: all tested rules, the decision-tree combination rules as IF/THEN paths,
@@ -12,7 +12,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "eda" / "out"
-DOC = ROOT / "data" / "RULES.md"
+DOC = ROOT / "docs" / "RULES.md"
 START, END = "<!-- AUTO:START (eda/05_rules_doc.py) -->", "<!-- AUTO:END -->"
 
 

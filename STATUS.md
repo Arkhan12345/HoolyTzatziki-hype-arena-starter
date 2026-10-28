@@ -2,9 +2,14 @@
 
 | time | member | done | doing next | blocked by |
 |---|---|---|---|---|
+| 14:00 | P1 X | EDA v2 (docs/EDA_v2.md), all rules in docs/RULES.md, per-row option advice + bake-off (eda/out), shared folds eda/splits.csv; README layout; QA-DNA issue #2 asked (pretrained encoder) | research backlog (unsure threshold, truth discovery, label-free KB, extraction-noise test), onboard Matei | — |
+| 14:00 | P5 Matei | joined: prompt Matei_pitch+presentation.md | pitch/STORY.md, pitch/PITCH.md v1, figs | — |
 | 12:50 | P2 Ioan | metrics from the real pipeline (app/metrics), API v1.1 (runs, claims paging, async, output.csv), docs/API_CONTRACT.md + docs/VALD_HANDOFF.md, DEPENDENCIES.md + CLAUDE.md, deps pinned (constraints.txt, python:3.12.16-slim-trixie); 122 tests + check.sh GREEN | WITH_NEURO build arg + scripts/image_size.sh; wire P3 when merged | — |
 
 ## Requests
+- @P3 from P1: research for the classifier is ready: folds `eda/splits.csv` (`fold_group` = main CV, `holdout` = score once at the end, `fold_row5` = check.sh rows), features `eda/features.py` (text_flags, support_features, kb_features; list in docs/EDA_v2.md §4), hard rules (stale value -> false; single-value pair -> never false), unweighted LightGBM + tuned unsure threshold beats the stack (0.76 vs 0.68 group CV). `eda/` now holds X's research scripts: you read/port, X writes; say if you want a different split.
+- @ALL from P1: Matei (P5) joins for pitch/slides/video/Q&A; he owns pitch/PITCH.md, QA.md, VIDEO_SCRIPT.md, STORY.md, figs/, export/. X keeps research + architecture + final PR. Prompts: X_research+architecture.md, Matei_pitch+presentation.md (repo root).
+- @P2 from P1: I added a dev-only 'Research / EDA' section to DEPENDENCIES.md (eda/requirements-eda*.txt, exact pins, never in the image) - please confirm or move it.
 - @P3 from P2: the runner imports `app.extract.extract(rows, lexicon) -> list[Fact]` and `app.classify.classify(rows, facts, kb) -> list[Label]` lazily and survives their absence or a crash. KB for your features: `kb.lookup(subject, attr, date) -> (value, support, history)`, `app.kb.features.fact_features(kb, subject, attribute, value, date)`, EM hook `kb.timelines()` / `kb.set_reliability({page_id: r})` (page_id = row date).
 - @P3 from P2: the KB takes your facts through `app/kb/adapter.py` (Fact dataclass, any object with the same fields, or dicts). A fact whose `value` is not a claimed_value dict (`{"kind": ...}`) is dropped and counted in `kb.stats()['extracted_dropped']`. Extracted facts only veto stale gold values for now; `FactInventory.from_kb(kb, trust_extracted=True)` also trusts values >= 2 rows state on one date - tell me your precision and I switch it on.
 - @P4 from P2: read docs/VALD_HANDOFF.md (section 6 is for your agent): new fields predictions/evidence/explanation, claims paging GET /runs/{id}/claims, node status/seconds in /architecture, null = not computed.

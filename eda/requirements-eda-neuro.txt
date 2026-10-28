@@ -1,0 +1,7 @@
+# EDA bake-off with liquid + spiking nets (04_bakeoff.py), dev-only, separate venv (DEPENDENCIES.md rule 7/8):
+#   python -m venv .venv-neuro && .venv-neuro/Scripts/python -m pip install -r eda/requirements-eda-neuro.txt
+--extra-index-url https://download.pytorch.org/whl/cpu
+-r requirements-eda.txt
+torch==2.14.1+cpu
+ncps==1.0.1
+snntorch==1.0.0
