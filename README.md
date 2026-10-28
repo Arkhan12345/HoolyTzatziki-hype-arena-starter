@@ -57,6 +57,59 @@ A run that passes here can still fail ours on what the practice data does not ho
 *Added by Team Tzatziki. Everything above this line is the original starter text.*
 More detail: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md), [`docs/EDA.md`](docs/EDA.md), [`team/README.md`](team/README.md).
 
+### Repository layout
+
+`[S]` comes from the QA-DNA starter: don't edit it, because the arena reads it as is. `[T]` is ours and already on `main`. `[C]` is coming: it's on a team branch and not on `main` yet.
+
+```
+hype-arena-starter/
+├── README.md                [S]+[T] starter text on top, team sections below the divider
+├── contracts/               [S] the rules: input, run, output, claim and value forms
+│   ├── README.md                how the arena runs us (Docker, user 10001, offline, 30 min, /output)
+│   ├── claim-forms.md           the 5 claim types and the text each one must have
+│   ├── value-forms.md           how each value kind (date, money, quantity…) is written
+│   ├── entry.schema.json        JSON schema of one output claim
+│   ├── claimed_value.schema.json  JSON schema of one value
+│   └── examples/{entry,claimed_value}/{good,bad}/   schema test cases
+├── data/                    [S] what we learn from
+│   ├── practice.csv             1,897 labelled rows (id, text, date, label, form)
+│   └── lexicon.json             subjects, aliases, attributes, events
+├── scripts/                 [S] arena checker
+│   ├── check.sh                 builds the image and runs it like the arena, on practice rows
+│   ├── input.py                 hides every 5th label to make the run's input
+│   └── check_output.py          checks output.csv (columns, ids, 1,000 claims, label count)
+├── docs/                    [T] design: ARCHITECTURE, REQUIREMENTS, EDA, MODELS
+├── team/                    [T] one prompt per member + team rules (branches, commits, merges)
+├── frontend/                [T] Vite + React UI: architecture diagram, live run, metrics, pitch
+├── Dockerfile               [C] python:3.12-slim image the arena runs (origin/john)
+├── requirements.txt         [C] pinned runtime deps: numpy, pandas, scikit-learn, lightgbm, fastapi
+├── app/                     [C] the system: run.py, io/, kb/, generate/, validate/, api/
+├── tests/runtime/           [C] tests for run, generator, validator, API
+├── models/                  [C] trained model files shipped in the image
+├── pitch/                   [C] JOURNAL.md (one line per commit) + metrics.json for the UI
+├── STATUS.md                [C] who does what, plus requests between members
+├── eda/                     [C] EDA scripts: rules, features, per-row model advice, bake-off (X/model-strategy-v2)
+└── sample/sample.csv        [S] 20 unlabelled rows added on 29 Oct at 09:00
+```
+
+| Path | From | Owner | What it is for |
+|---|---|---|---|
+| `contracts/` | starter | — (read-only) | The contract: what we get, how we run, what we hand in, plus schemas and examples |
+| `data/` | starter | — (read-only) | Practice rows with labels and gold facts, and the lexicon of names |
+| `scripts/` | starter (+ team scripts later) | — / Ioan | `check.sh` runs our image like the arena does; the team adds local helpers |
+| `sample/` | starter, 29 Oct 09:00 | — | The 20 rows our video shows running live |
+| `README.md` | starter + team | X | The starter text, then our pipeline, layout and options |
+| `docs/` | team | X | Architecture, requirements, EDA, model strategy |
+| `team/` | team | X | Per-member prompts and team rules |
+| `frontend/` | team | Vald | The page the jury sees, started with `frontend/scripts/start.*` |
+| `Dockerfile`, `requirements.txt` | team (coming) | Ioan | The image the arena builds and runs |
+| `app/` | team (coming) | Ioan + Arckan | The pipeline: extract → KB → classify → generate → validate → write |
+| `tests/` | team (coming) | Ioan | Runtime tests |
+| `models/` | team (coming) | Arckan | Trained weights baked into the image |
+| `pitch/` | team (coming) | everyone / X | Journal and metrics for the pitch page |
+| `STATUS.md` | team (coming) | everyone | Status board and requests |
+| `eda/` | team (coming) | X | EDA and model-selection experiments (dev-time only, not in the image) |
+
 ### The pipeline
 
 ```mermaid
