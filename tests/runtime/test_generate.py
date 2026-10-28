@@ -207,3 +207,18 @@ def test_every_selected_claim_has_its_sentences(world):
     for c in world[4]:
         assert c.meta["sources"], c.text
         assert all(s["text"] and s["origin"] == "practice" and s["label"] == "true" for s in c.meta["sources"])
+
+
+def test_compare_generators_script_runs_both_strategies(tmp_path):
+    import subprocess
+    import sys
+
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "compare_generators.py"), "--mock", "--noise", "0.1",
+                        "--out", str(tmp_path)], cwd=ROOT, capture_output=True, text=True, encoding="utf-8",
+                       env={**os.environ, "PYTHONPATH": ROOT, "PYTHONIOENCODING": "utf-8"})
+    assert r.returncode == 0, r.stderr[-2000:]
+    cmp = json.loads((tmp_path / "comparison.json").read_text(encoding="utf-8"))
+    assert cmp["A_gold"]["selected"] == cmp["B_classified"]["selected"] == 1000
+    assert "MOCK" in cmp["setting"]["b_source"]
+    recs = [json.loads(x) for x in (tmp_path / "claims_B.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert all(r["verdict"] in ("holds", "unconfirmed", "contradicted") and r["sources"] for r in recs)
