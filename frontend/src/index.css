@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-onyx text-ink font-sans antialiased;
+}
+
+::selection {
+  @apply bg-lime text-onyx;
+}
+
+/* React Flow on the onyx theme */
+.react-flow__attribution {
+  display: none;
+}
+.react-flow__edge-textbg {
+  fill: #141414;
+}
+.react-flow__edge-text {
+  fill: #a1a1a1;
+  font-size: 11px;
+}
+.react-flow__controls-button {
+  background: #1e1e1e;
+  border-color: #2a2a2a;
+  fill: #fcfcfc;
+}
+.react-flow__controls-button:hover {
+  background: #2a2a2a;
+}
+
+/* Markdown inside pitch slides */
+.slide-body > * + * {
+  margin-top: 0.6em;
+}
+.slide-body ul {
+  list-style: none;
+  padding: 0;
+}
+.slide-body li {
+  position: relative;
+  padding-left: 1.2em;
+  margin-top: 0.35em;
+}
+.slide-body li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.4em;
+  height: 0.4em;
+  border-radius: 2px;
+  background: #d7f13b;
+}
+.slide-body strong {
+  color: #fcfcfc;
+}
+.slide-body code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.85em;
+  color: #d7f13b;
+}
+.slide-body table {
+  border-collapse: collapse;
+  font-size: 0.8em;
+}
+.slide-body th,
+.slide-body td {
+  border-bottom: 1px solid #2a2a2a;
+  padding: 0.3em 1em 0.3em 0;
+  text-align: left;
+}

@@ -17,7 +17,7 @@ An LLM may help build the system but may not be it.
 | 4 | Fullstack + Frontend | Vald | [`Vald_fullstack+frontend.md`](Vald_fullstack+frontend.md) | `frontend/` |
 
 Shared reference docs (in `docs/` since the first commit):
-[`docs/REQUIREMENTS.md`](../docs/REQUIREMENTS.md) · [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) · [`docs/EDA.md`](../docs/EDA.md)
+[`docs/REQUIREMENTS.md`](../docs/REQUIREMENTS.md) · [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) · [`docs/EDA.md`](../docs/EDA.md) · [`docs/MODELS.md`](../docs/MODELS.md) · architecture options: [`README.md`](../README.md#proposed-architecture-options-for-review)
 
 ## How to start (every member, on your own laptop)
 
@@ -35,11 +35,12 @@ Shared reference docs (in `docs/` since the first commit):
 
 ## Team rhythm (also in every prompt and in `CLAUDE.md`)
 
-- **Before each task:** `git pull --rebase`, `git log --oneline -15`, `cat STATUS.md`. Read what teammates pushed.
-- **Commits:** small, at least every 30 min. Message format: `P#-role: what`. Run tests or the build before pushing, and `pull --rebase` before every push.
+- **All work is on branches:** one branch per task, named `<name>/<topic>` (`X/contracts`, `ioan/dockerfile`, `arckan/extractor`, `vald/run-page`). Nobody commits directly to `main`.
+- **Commits:** small, every working step and at least every 30 min, as `P#-role: what`. **Push the branch after every commit** so teammates can see the progress.
+- **Merging:** as soon as a step is green (tests or build), merge it to `main` through a PR to **our** repo and merge it yourself (`gh pr create --repo Arkhan12345/HoolyTzatziki-hype-arena-starter --base main --fill`, then `gh pr merge --merge --delete-branch`). Do this at least every 1–2 h. X reviews afterwards and never blocks a merge.
+- **Before each task:** `git fetch origin && git merge origin/main`, `git log origin/main`, `cat STATUS.md`.
 - **Ownership:** only edit your own folders. Anything you need from someone else goes in a `STATUS.md` → Requests line.
-- **Big or risky work:** use `feat/<role>-<topic>`, and merge into main only when it's green.
-- **Journal:** one line in `pitch/JOURNAL.md` per meaningful commit. This is the living pitch.
+- **Journal:** one line in `pitch/JOURNAL.md` per meaningful merge. This is the living pitch.
 - **Status:** update your `STATUS.md` row every hour.
 
 ## Milestones
