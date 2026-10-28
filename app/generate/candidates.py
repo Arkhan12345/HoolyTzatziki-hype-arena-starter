@@ -118,6 +118,15 @@ def value_at(inv: FactInventory, s: str, a: str, day: str):
     return None, 0.0, ()
 
 
+def _days_between(a: str, b: str) -> int:
+    from datetime import date
+
+    try:
+        return (date.fromisoformat(b[:10]) - date.fromisoformat(a[:10])).days
+    except ValueError:
+        return -1
+
+
 def event_days(inv: FactInventory, event: str) -> list[str]:
     return sorted({e.value["value"] for e in inv.trusted(event, "date") if len(str(e.value["value"])) == 10})
 
@@ -171,8 +180,14 @@ def at_event_candidates(inv: FactInventory):
                 continue
             v = vals[0][0]
             # holdout: ~43% not confirmed by the full data (rescheduled events have dates we did not
-            # see), so at_event only fills in when the safer types run out
+            # see), so at_event only fills in when the safer types run out ...
             conf = min(0.6, min(c for _, c, _ in vals) - (0.03 if len(days) > 1 else 0))
+            # ... unless the fact never changed and its mentions bracket every event day by a week:
+            # then any day the event moved to (inside that span) held the same value
+            ev = inv.trusted(s, a)
+            if len(ev) >= 2 and len({e.key for e in ev}) == 1 and _days_between(ev[0].date, days[0]) >= 7 \
+                    and _days_between(days[-1], ev[-1].date) >= 7:
+                conf = 0.9
             text = T.at_event_text(s, a, event, v)
             if text:
                 yield Candidate("at_event", text, {"subject": s, "attribute": a, "event": event, "value": v},
@@ -202,6 +217,10 @@ def relation_candidates(inv: FactInventory):
                     continue
                 if len({e.key for e in tev}) == 1:  # holdout: few and often wrong -> below compare/fact
                     v, conf, used = tev[-1].value, 0.75, tev
+                    # the link always named this target and the target's fact never changed: robust
+                    all_links = [e for e in inv.trusted(s, link) if e.value.get("kind") == "name"]
+                    if len(tev) >= 2 and len(links) >= 2 and len(links) == len(all_links):
+                        conf = 0.9
                 else:
                     used = [e for e in tev if lo <= e.date <= hi]
                     if not used or len({e.key for e in used}) != 1:
