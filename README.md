@@ -60,51 +60,40 @@ More detail: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/REQUIREMENTS
 ### The pipeline
 
 ```mermaid
-flowchart LR
-  U[/"universe.csv + lexicon.json"/] --> EX
+flowchart TD
+  U[/"universe.csv + lexicon.json"/]
+  GOLD[/"practice.csv gold facts"/]
 
-  subgraph EX["1 · Extractor (Arckan)"]
-    direction TB
-    X1["Subject gazetteer<br/>lexicon names + aliases"]
-    X2["Value regexes<br/>money · quantity · percent · date · duration · version · yes/no"]
-    X3["Attribute classifier<br/>TF-IDF + LogisticRegression"]
-    X4["Page coreference<br/>He / Its / The platform"]
-    X1 --> X2 --> X3 --> X4
+  subgraph EX["1 · Extractor — Arckan"]
+    direction LR
+    X1["Subject names<br/>+ aliases"] --> X2["Value<br/>regexes"] --> X3["Attribute<br/>classifier"] --> X4["Pronoun<br/>resolution"]
   end
 
-  EX --> F[("Facts<br/>subject · attribute · value · date")]
-  GOLD[/"practice.csv gold forms<br/>(baked into the image)"/] --> KB
-  F --> KB
-
-  subgraph KB["2 · Temporal knowledge base (Ioan)"]
-    direction TB
-    K1["Timeline per subject + attribute"]
-    K2["Support votes across ~20k rows"]
-    K3["Page trust score"]
+  subgraph KB["2 · Knowledge base by date — Ioan"]
+    direction LR
+    K1["Timeline per<br/>subject + attribute"] --- K2["Support<br/>votes"] --- K3["Page<br/>trust"]
   end
 
+  subgraph CL["3 · Truth classifier — Arckan"]
+    direction LR
+    C1["Features"] --> C2["LightGBM"] --> C3["Calibrated<br/>confidence"]
+    N1["CfC liquid net<br/>(optional)"] -.-> C1
+  end
+
+  subgraph GV["4 · Claims — Ioan"]
+    direction LR
+    G1["Generator<br/>5 claim types"] --> G2["Validator<br/>schema + rules"]
+    G2 -. "invalid" .-> G1
+  end
+
+  U --> EX --> KB
+  GOLD --> KB
   KB --> CL
-  F --> CL
-  subgraph CL["3 · Truth classifier (Arckan)"]
-    direction TB
-    C1["Features: agrees with value in force on the row's date,<br/>contradicts it, support, page trust, value kind"]
-    C2["LightGBM"]
-    C3["Isotonic calibration<br/>confidence 0.5 – 1.0"]
-    N1["Optional: CfC liquid network<br/>'value still current?' feature"]
-    C1 --> C2 --> C3
-    N1 -.-> C1
-  end
-
-  KB --> GEN["4 · Claim generator (Ioan)<br/>fact · compare · change · at_event · relation"]
-  GEN --> VAL["5 · Validator (Ioan)<br/>entry.schema.json · lexicon · claim-forms rules · not a copy"]
-  VAL -- "invalid: regenerate" --> GEN
-
-  C3 -- "~18,000 labels" --> W["6 · Writer (Ioan)<br/>temp file, then rename"]
-  VAL -- "exactly 1,000 true claims" --> W
+  KB --> GV
+  CL -- "~18,000 labels" --> W["5 · Writer — temp file, then rename"]
+  GV -- "exactly 1,000 claims" --> W
   W --> OUT[/"/output/output.csv"/]
-
-  OUT -.-> API["FastAPI demo API<br/>/run · /architecture · /metrics"]
-  API -.-> FE["Frontend (Vald)<br/>diagram · live run on sample.csv · metrics · /pitch"]
+  OUT -.-> API["Demo API — Ioan"] -.-> FE["Frontend — Vald<br/>diagram · live run · metrics · pitch"]
 ```
 
 ### One run inside Docker (offline, 2 CPUs, 6 GiB, 30 min)
@@ -149,14 +138,17 @@ flowchart TD
 ### Who builds what (4 Claude Code agents in parallel)
 
 ```mermaid
-flowchart LR
-  X["X · architecture + pitch<br/>contracts.py · docs · STATUS · CLAUDE.md · pitch/"]
-  I["Ioan · backend + devops<br/>Dockerfile · run.py · KB · generator · validator · API"]
-  A["Arckan · backend + AI<br/>extractor · classifier · calibration · models · EDA"]
-  V["Vald · fullstack + frontend<br/>diagram · live run · metrics · /pitch"]
-  X -- "interfaces and stubs" --> I & A & V
-  A -- "extract() and classify()" --> I
-  I -- "/run /architecture /metrics" --> V
+flowchart TD
+  X["X · architecture + pitch<br/>contracts · docs · STATUS · pitch"]
+  A["Arckan · backend + AI<br/>extractor · classifier · models"]
+  I["Ioan · backend + devops<br/>Docker · run · KB · claims · API"]
+  V["Vald · fullstack + frontend<br/>diagram · live run · metrics · pitch page"]
+
+  X -- "interfaces + stubs" --> A
+  X -- "interfaces + stubs" --> I
+  A -- "extract + classify" --> I
+  I -- "API" --> V
   A -- "metrics.json" --> V
-  I & A & V -- "JOURNAL.md lines" --> X
 ```
+
+Everyone appends one line per meaningful commit to `pitch/JOURNAL.md`; X turns it into the live pitch.
