@@ -213,6 +213,12 @@ def _lexicon_problems(ctype, form, lex: Lexicon) -> list[str]:
         ev = lex.canonical(form["event"])
         if not ev or ev not in lex.event_set:
             p.append(f"unknown event {form['event']!r}")
+    # The referee resolves names through the lexicon's names and aliases (value-forms.md, Name):
+    # a name value it cannot resolve may read as nothing, so only lexicon names are claimed.
+    for k in ("value", "from", "to"):
+        v = form.get(k)
+        if isinstance(v, dict) and v.get("kind") == "name" and not lex.canonical(v.get("value", "")):
+            p.append(f"name value not in the lexicon: {v.get('value')!r}")
     return p
 
 

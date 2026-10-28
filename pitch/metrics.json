@@ -16,9 +16,9 @@
       "claims_valid": 1000
     },
     "claims_by_type": {
-      "compare": 483,
-      "fact": 194,
-      "change": 295,
+      "compare": 510,
+      "fact": 181,
+      "change": 281,
       "at_event": 28
     },
     "fact_staleness_check": "15% subsample of practice: facts last seen from Sep 2026 on ~96% still current, Jun-Aug ~75%, earlier ~50% (confidence follows this)",
@@ -50,19 +50,20 @@
     "claim_capacity": {
       "source": "scripts/claim_capacity.py on practice gold, 2026-10-28",
       "candidates": 10711,
-      "valid_new": 10190,
-      "distinct_semantic": 5796,
+      "valid_new": 10017,
+      "distinct_semantic": 5652,
       "semantic_duplicates": 4394,
       "distinct_by_type": {
         "compare": 3981,
-        "at_event": 977,
-        "fact": 415,
-        "change": 400,
-        "relation": 23
+        "at_event": 879,
+        "fact": 386,
+        "change": 386,
+        "relation": 20
       },
       "robust_distinct_compares": 3674,
       "min_confidence_selected": 0.93,
-      "hypothesis_1000_compare": "feasible: 3,981 distinct compares, top 1,000 at confidence >= 0.93"
+      "hypothesis_1000_compare": "feasible: 3,981 distinct compares, top 1,000 at confidence >= 0.93",
+      "name_values_outside_lexicon": "rejected (173 candidates), 0 selected"
     }
   }
 }

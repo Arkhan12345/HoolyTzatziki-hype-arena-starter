@@ -126,3 +126,66 @@ def test_change_table(text, ok):
 def test_copy_of_input_is_rejected():
     c = Claim("e1", "fact", "Hooly AI Pro costs €59 per month.", PRICE, 0.9)
     assert "copy of an input row" in validate_claim(c, LEX, {"hooly ai pro costs €59 per month"})
+
+
+AT_EVENT = {"subject": "Hooly Gemini", "attribute": "languages", "event": "Hooly I/O 2026",
+            "value": {"kind": "quantity", "value": 12, "unit": "language"}}
+
+
+@pytest.mark.parametrize("text,ok", [
+    ("Hooly Gemini spoke 12 languages at Hooly I/O 2026.", True),
+    # the referee also reads "a dozen" and a bare alias here; our validator only knows our own rendering
+    pytest.param("At Hooly I/O, Hooly Gemini spoke a dozen languages.", True, marks=pytest.mark.xfail(strict=True)),
+    ("Hooly Gemini supported 12 languages on the day of Hooly I/O 2026.", True),
+    ("Hooly Gemini spoke 12 languages at the time of Hooly I/O 2026.", True),
+    ("Hooly Gemini spoke 12 languages before Hooly I/O 2026.", False),
+    ("Hooly Gemini spoke 12 languages in March.", False),
+    ("At Hooly I/O 2026, Hooly spoke 12 languages.", False),
+    ("Hooly Gemini spoke 12 languages at Hooly I/O 2026, up from 6 languages.", False),
+    ("In March 2026, at Hooly I/O 2026, Hooly Gemini spoke 12 languages.", False),
+])
+def test_at_event_table(text, ok):
+    assert (validate_claim(Claim("e4", "at_event", text, AT_EVENT, 0.9), LEX, set()) == []) == ok
+
+
+RELATION = {"subject": "Hooly", "link": "cto", "target": "Bertram Gilfoil", "attribute": "joined",
+            "value": {"kind": "date", "value": "2026-07-01"}}
+
+
+@pytest.mark.parametrize("text,ok", [
+    ("The CTO of Hooly joined on 1 July 2026.", True),
+    # ISO dates read for the referee; we never write them, so the validator rejects them (safe side)
+    pytest.param("Hooly's CTO started on 2026-07-01.", True, marks=pytest.mark.xfail(strict=True)),
+    ("Hooly's chief technology officer joined on 1 July 2026.", False),
+    ("Bertram Gilfoil joined Hooly on 1 July 2026.", False),
+    ("The CTO joined on 1 July 2026.", False),
+    ("The CTO of Hooly, who left on 3 May 2027, joined on 1 July 2026.", False),
+    ("The CTO of Hooly joined on 1 July 2026, after Richard Hendrix.", False),
+])
+def test_relation_table(text, ok):
+    assert (validate_claim(Claim("e5", "relation", text, RELATION, 0.9), LEX, set()) == []) == ok
+
+
+DATES = {"left": {"subject": "Hooly I/O 2026", "attribute": "date"},
+         "right": {"subject": "The May 2026 outage", "attribute": "date"}}
+
+
+@pytest.mark.parametrize("text,op,ok", [
+    ("Hooly I/O 2026 took place before the May 2026 outage.", "lt", True),
+    ("Hooly I/O 2026 came earlier than the outage.", "lt", True),
+    ("Hooly I/O took place on the same day as the outage.", "eq", True),
+    ("Hooly I/O 2026 was more than the May 2026 outage.", "gt", False),
+    ("Hooly I/O 2026 took place two weeks before the May 2026 outage.", "lt", False),
+    ("Hooly I/O 2026 took place before the outage, in March 2026.", "lt", False),
+])
+def test_compare_dates_table(text, op, ok):
+    c = Claim("e6", "compare", text, dict(DATES, op=op), 0.9)
+    c.meta = {"between": "date"}
+    assert (validate_claim(c, LEX, set()) == []) == ok
+
+
+@pytest.mark.parametrize("name,ok", [("Bertram Gilfoil", True), ("bertram gilfoil", True), ("Lisbon", False)])
+def test_name_values_must_resolve_in_the_lexicon(name, ok):
+    form = {"subject": "Hooly", "attribute": "cto", "value": {"kind": "name", "value": name}}
+    c = Claim("e7", "fact", f"The cto of Hooly is {name}.", form, 0.9)
+    assert (validate_claim(c, LEX, set()) == []) == ok
