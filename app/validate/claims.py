@@ -277,8 +277,9 @@ class ClaimValidator:
 
         ix = self.text_index()
 
-        def near(rid, canon, positions):
-            return any(abs(a - b) <= self.NEAR for a in ix.name_pos(rid, canon) for b in positions)
+        def near(rid, canon, positions):  # same sentence and close together
+            return any(abs(a - b) <= self.NEAR and ix.sentence(rid, a) == ix.sentence(rid, b)
+                       for a in ix.name_pos(rid, canon) for b in positions)
 
         def rows_stating(value):
             if value.get("kind") == "name":
@@ -297,9 +298,20 @@ class ClaimValidator:
                 words = [m.start() for m in CMP.finditer(text)]
                 if not words:
                     continue
-                if any(min(x, y) <= w <= max(x, y) for x in pa for y in pb for w in words):
-                    return "strong", rid
-                best = best or rid
+                for x in pa:
+                    for y in pb:
+                        if ix.sentence(rid, x) != ix.sentence(rid, y):
+                            continue
+                        lo, hi = min(x, y), max(x, y)
+                        if not any(lo <= w <= hi for w in words):
+                            continue
+                        best = best or rid
+                        # strong only when that sentence compares this attribute ("costs more" for prices)
+                        seg = text[max(0, lo - 40):hi + 80]
+                        if attr_spans(f["left"]["attribute"], seg) or (
+                                f["left"]["attribute"] == f["right"]["attribute"] == "price"
+                                and re.search(r"\b(costs?|cheaper|pricier|expensive)\b", seg, re.I)):
+                            return "strong", rid
             return ("weak", best) if best else (None, None)
 
         subj = self.canon(f["subject"])
@@ -312,10 +324,20 @@ class ClaimValidator:
             cand = {r for r in cand if target in {c for c, _ in ix.names[r]}
                     or attr_spans(f["link"], ix.text[r])}
         if values[0].get("kind") == "boolean":
-            hits = [r for r in sorted(cand) if attr_spans(f["attribute"], ix.text[r])]
-            for rid in hits:
-                if near(rid, subj, [s for s, _ in attr_spans(f["attribute"], ix.text[rid])]):
-                    return "strong", rid
+            from app.validate.rules import _has_negation
+
+            hits = []
+            for rid in sorted(cand):
+                text = ix.text[rid]
+                for s, e in attr_spans(f["attribute"], text):
+                    sid = ix.sentence(rid, s)
+                    bounds = [0] + ix.breaks.get(rid, []) + [len(text)]
+                    says_no = _has_negation(text[bounds[sid]:bounds[sid + 1]])
+                    if says_no != (values[0]["value"] is False):
+                        continue  # the sentence states the opposite: not a restatement
+                    hits.append(rid)
+                    if near(rid, subj, [s]):
+                        return "strong", rid
             return ("weak", hits[0]) if hits else (None, None)
         weak = None
         for value in values:

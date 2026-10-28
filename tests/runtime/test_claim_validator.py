@@ -262,10 +262,46 @@ def test_fallback_ladder_never_lets_fail_or_duplicates_in():
         c.meta = {"vkey": ("k", i), **({"novelty_weak": True} if weak else {})}
         return c
 
-    pool = [cand(1, 0.97), cand(2, 0.97, weak=True), cand(3, 0.6), cand(4, 0.6, weak=True)]
+    pool = [cand(4, 0.6, weak=True), cand(3, 0.6), cand(2, 0.97, weak=True), cand(1, 0.97)]  # worst first
     report = {}
-    chosen = select(pool + [cand(1, 0.5)], 3, report)  # the second ("k", 1) is a duplicate
-    assert [c.text for c in chosen] == ["t1", "t2", "t3"]  # strong+new, strong+weak, then less confident
-    assert report["fallback"]["selected_novelty_weak"] == 1 and report["semantic_duplicates"] == 1
+    chosen = select(pool + [cand(1, 0.5)], 4, report)  # the second ("k", 1) is a duplicate
+    assert [c.text for c in chosen] == ["t1", "t2", "t3", "t4"]  # ladder order, whatever the input order
+    assert report["fallback"]["selected_novelty_weak"] == 2 and report["semantic_duplicates"] == 1
     report = {}
     assert len(select(pool, 10, report)) == 4 and report["shortfall"] == 6
+
+
+@pytest.mark.parametrize("text,key", [
+    ("three hundred engineers", ("number", 300.0)), ("two thousand users", ("number", 2000.0)),
+    ("for a week", ("time", 604800.0)), ("in a decade", ("calendar", 120.0)), ("usd 12", ("money", "USD", 12.0)),
+    ("Jul 12, 2026", ("date", "2026-07-12")), ("12 users", ("number", 12.0)),
+])
+def test_value_forms_are_indexed(text, key):
+    from app.validate.textindex import value_keys
+
+    assert key in {k for k, _ in value_keys(text)}
+
+
+@pytest.mark.parametrize("text", ["at least 12 users", "about 12 users", "12+ users", "over 12 users"])
+def test_qualified_values_are_other_values(text):
+    from app.validate.textindex import value_keys
+
+    assert ("number", 12.0) not in {k for k, _ in value_keys(text)}
+
+
+def test_strong_match_fails_novelty_through_check():
+    v = zeta("Zeta Drone flies on twelve propellers.")
+    form = {"subject": "Zeta Drone", "attribute": "propellers", "value": Q(12, "propeller")}
+    verdict = v.check(claim("f10", "fact", "Zeta Drone has 12 propellers.", form))
+    assert verdict.verdict == FAIL and verdict.checks["novelty"] == FAIL
+
+
+def test_subject_and_value_in_different_sentences_is_not_strong():
+    form = {"subject": "Zeta Drone", "attribute": "propellers", "value": Q(12, "propeller")}
+    assert zeta("Meet Zeta Drone. It has 12 propellers.").text_restates("fact", form)[0] != "strong"
+
+
+def test_yes_no_sentence_with_the_opposite_polarity_is_not_a_restatement():
+    yes = {"subject": "Zeta Drone", "attribute": "night_mode", "value": {"kind": "boolean", "value": True}}
+    assert zeta("Zeta Drone has no night mode.").text_restates("fact", yes)[0] is None
+    assert zeta("Zeta Drone has night mode.").text_restates("fact", yes)[0] == "strong"

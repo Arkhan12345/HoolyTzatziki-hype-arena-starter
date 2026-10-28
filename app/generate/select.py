@@ -81,16 +81,21 @@ def rank(valid: list[Candidate]) -> tuple[list[Candidate], list[Candidate]]:
         groups[c.meta.get("vkey") or c.semantic_key].append(c)
     distinct, dups = [], []
     for g in groups.values():
-        g.sort(key=lambda c: (c.meta.get("novelty_weak", False), -c.confidence, c.meta.get("template", 0), c.text))
+        g.sort(key=lambda c: (_tier(c), -c.confidence, c.meta.get("template", 0), c.text))
         distinct.append(g[0])
         dups.extend(g[1:])
     # fallback ladder: confident and clearly new, then confident with a weak "a sentence might say it",
     # then the less confident ones in the same order. FAIL / UNVERIFIED / duplicates never enter.
     tiers = defaultdict(list)
     for c in distinct:
-        tiers[(c.confidence < SOFT_MIN_CONF, bool(c.meta.get("novelty_weak")))].append(c)
+        tiers[_tier(c)].append(c)
     ordered = [c for t in sorted(tiers) for c in _spread(tiers[t])]
     return ordered, _spread(dups)
+
+
+def _tier(c: Candidate) -> tuple[bool, bool]:
+    """Fallback ladder position: (less confident, possibly restated); lower is better."""
+    return (c.confidence < SOFT_MIN_CONF, bool(c.meta.get("novelty_weak")))
 
 
 def _spread(cs: list[Candidate]) -> list[Candidate]:
@@ -135,16 +140,17 @@ def _prefer_all_types(distinct: list[Candidate], n: int) -> list[Candidate]:
         if need <= 0:
             continue
         for c in [c for c in rest if c.type == t and c.confidence >= SOFT_MIN_CONF][:need]:
-            # drop the least confident claim of a type that stays above its minimum
+            # drop the last-ranked claim of a type that stays above its minimum, never one from a
+            # better fallback tier than the claim that replaces it
             for i in range(len(chosen) - 1, -1, -1):
                 d = chosen[i]
-                if counts[d.type] > MIN_PER_TYPE:
+                if counts[d.type] > MIN_PER_TYPE and _tier(d) >= _tier(c):
                     chosen.pop(i)
                     counts[d.type] -= 1
                     chosen.append(c)
                     counts[t] += 1
                     break
-    return sorted(chosen, key=lambda c: -c.confidence)
+    return sorted(chosen, key=lambda c: (_tier(c), -c.confidence))
 
 
 def select(valid: list[Candidate], n: int, report: dict, gold_rows: set[str] | None = None) -> list[Candidate]:

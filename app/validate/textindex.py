@@ -60,9 +60,13 @@ _NUM = r"(?<![\w.,])(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:[.,]\d+)?)"
 _WORDNUM = r"\b(" + "|".join(sorted(map(re.escape, WORD_NUM), key=len, reverse=True)) + r")\b"
 _SCALE = r"(?:\s*(thousand|million|billion|bn|k|M)\b)?"
 _TAIL = r"[\s-]?([A-Za-z\"″]+|%)?"
-NUMBER_RE = re.compile(r"(?:(US\$|[€$£])\s?|\b(" + "|".join(ISO_CODES) + r")\s?)?" + _NUM + _SCALE
+NUMBER_RE = re.compile(r"(?:(US\$|[€$£])\s?|\b((?i:" + "|".join(ISO_CODES) + r"))\s?)?" + _NUM + _SCALE
                        + r"(?:\s*(%|percent\b|per cent\b))?" + _TAIL)
-WORDNUM_RE = re.compile(_WORDNUM + r"(?:[\s-]+([A-Za-z]+))?", re.I)
+WORDNUM_RE = re.compile(_WORDNUM + r"(?:\s+(hundred|thousand|million|billion))?(?:[\s-]+([A-Za-z]+))?", re.I)
+# "a"/"an" counts as one only after these words (value-forms, Duration); elsewhere it is a rate
+ARTICLE_DUR_RE = re.compile(r"\b(under|within|in|for|over|than|at least|at most|to|only|just|about|around)\s+an?\s+"
+                            r"(millisecond|second|sec|minute|min|hour|hr|day|week|wk|fortnight|month|mo|year|yr|decade)\b",
+                            re.I)
 DATE_RES = [
     (re.compile(r"\b(\d{4})-(\d{2})(?:-(\d{2}))?\b"), "iso"),
     (re.compile(r"\b(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?(?:\s+of)?\s*" + MONTH_RE + r",?\s+(\d{4})\b", re.I), "dmy"),
@@ -74,6 +78,12 @@ VERSION_RES = [re.compile(r"\b(?:v|version|ver\.)\s?(\d+(?:\.\d+){0,3})\b", re.I
                re.compile(r"(?<![\d.,])(\d+\.\d+(?:\.\d+){0,2})(?![\d,])")]
 COMPARE_WORDS = re.compile(r"\b(more|less|fewer|higher|lower|greater|larger|bigger|smaller|longer|shorter|cheaper|"
                            r"pricier|than|same as|as much as|as many as|equal to|before|after|earlier|later)\b", re.I)
+
+
+def _qualified(text: str, start: int, end: int) -> bool:
+    from app.validate.rules import _qualifier_problems
+
+    return bool(_qualifier_problems(text[max(0, start - 40):start], text[end:end + 25]))
 
 
 def _to_float(num: str) -> float | None:
@@ -100,6 +110,8 @@ def value_keys(text: str) -> list[tuple[tuple, int]]:
         if scale:
             n *= SCALE.get(scale.lower() if scale != "M" else "m", 1)
         pos = m.start()
+        if _qualified(text, m.start(), m.end()):
+            continue  # "at least 12", "about 12", "12+": another value than 12 (value-forms, Comparisons)
         out.append((("number", round(n, 6)), pos))
         cur = (CURRENCY.get((sym or "").lower()) or code or "").upper()
         t = (tail or "")
@@ -116,6 +128,8 @@ def value_keys(text: str) -> list[tuple[tuple, int]]:
             dim, f = PHYSICAL[unit]
             out.append(((dim, round(n * f, 6)), pos))
         dur = DUR_WORDS.get(t.lower()) if t and not (t == "m") else None
+        if t.lower() in ("decade", "decades"):
+            out.append((("calendar", round(n * 120, 6)), pos))
         if t.lower() in ("fortnight", "fortnights"):
             out.append((("time", round(n * 14 * 86400, 6)), pos))
         if dur:
@@ -125,10 +139,12 @@ def value_keys(text: str) -> list[tuple[tuple, int]]:
             out.append((("version", num), pos))
     for m in WORDNUM_RE.finditer(text):
         n = WORD_NUM.get(m.group(1).lower())
-        if n is None:
+        if n is None or _qualified(text, m.start(), m.end()):
             continue
+        if m.group(2):
+            n = n * {"hundred": 100, "thousand": 1e3, "million": 1e6, "billion": 1e9}[m.group(2).lower()]
         out.append((("number", float(n)), m.start()))
-        t = (m.group(2) or "").lower()
+        t = (m.group(3) or "").lower()
         if t in DUR_WORDS:
             kind, f = DURATION[DUR_WORDS[t]]
             out.append(((kind, round(n * f, 6)), m.start()))
@@ -138,6 +154,15 @@ def value_keys(text: str) -> list[tuple[tuple, int]]:
             out.append((("percent", float(n)), m.start()))
     for m in re.finditer(r"\b(a|one)\s+fortnight\b", text, re.I):
         out.append((("time", 14 * 86400.0), m.start()))
+    for m in ARTICLE_DUR_RE.finditer(text):
+        unit = m.group(2).lower()
+        if unit == "fortnight":
+            continue  # counted above
+        if unit == "decade":
+            out.append((("calendar", 120.0), m.start(2)))
+            continue
+        kind, f = DURATION[DUR_WORDS[unit]]
+        out.append(((kind, float(f)), m.start(2)))
     for rx, kind in DATE_RES:
         for m in rx.finditer(text):
             g = m.groups()
@@ -182,7 +207,9 @@ class RowTextIndex:
         self.by_name: dict[str, set[str]] = defaultdict(set)
         self.by_value: dict[tuple, set[str]] = defaultdict(set)
         self.by_year: dict[str, set[str]] = defaultdict(set)
+        self.breaks: dict[str, list[int]] = {}
         for rid, text in self.text.items():
+            self.breaks[rid] = [m.end() for m in re.finditer(r"[.!?](?=\s)|\n\s*\n", text)]
             nm = [(self._canon[m.lastgroup], m.start()) for m in self.names_re.finditer(text)] if self.names_re else []
             vk = value_keys(text)
             self.names[rid], self.values[rid] = nm, vk
@@ -194,6 +221,11 @@ class RowTextIndex:
                     self.by_year[k[1][:4]].add(rid)
 
     # ---- lookups -------------------------------------------------------------------------------
+    def sentence(self, rid: str, pos: int) -> int:
+        import bisect
+
+        return bisect.bisect_right(self.breaks.get(rid, []), pos)
+
     def rows_with_value(self, key: tuple) -> set[str]:
         if key[0] != "date":
             return self.by_value.get(key, set())
