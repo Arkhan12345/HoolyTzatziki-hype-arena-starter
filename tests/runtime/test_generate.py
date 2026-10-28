@@ -292,9 +292,40 @@ def test_change_claims_are_consecutive_steps(world):
 
 
 def test_sources_say_which_fact_each_sentence_gives(world):
+    from app.generate.candidates import current
+    from app.generate.select import claim_pairs
+
+    inv = FactInventory.from_kb(world[2])
     for c in world[4]:
+        pairs = set(claim_pairs(c.type, c.form))
+        if c.type == "fact":
+            used = {(c.form["subject"], c.form["attribute"]): [c.form["value"]]}
+        elif c.type == "change":
+            used = {(c.form["subject"], c.form["attribute"]): [c.form["from"], c.form["to"]]}
+        elif c.type == "compare":
+            used = {p: [current(inv, *p)[0]] for p in pairs}
+        else:
+            used = None
         for s in c.meta["sources"]:
             assert s["states"], (c.text, s["row_id"])
-            if c.type == "compare":
-                sides = {(c.form[k]["subject"], c.form[k]["attribute"]) for k in ("left", "right")}
-                assert all((st["subject"], st["attribute"]) in sides for st in s["states"])
+            keys = [(st["subject"], st["attribute"], nz.key(st["value"])) for st in s["states"]]
+            assert len(keys) == len(set(keys)), ("repeated state", c.text, s["row_id"])
+            for st in s["states"]:
+                assert (st["subject"], st["attribute"]) in pairs, (c.text, st)
+                if used is not None:
+                    # a less precise date of the same day ("January 2026" for 12 January 2026) also backs it
+                    assert any(nz.same(st["value"], v) or nz.date_prefix_related(st["value"], v)
+                               for v in used[(st["subject"], st["attribute"])]), (c.text, st)
+
+
+def test_at_event_sources_include_the_event_date():
+    from app.generate.candidates import at_event_candidates
+
+    rows = read_practice(os.path.join(ROOT, "data", "practice.csv"))
+    lex = read_lexicon(os.path.join(ROOT, "data", "lexicon.json"))
+    inv = FactInventory.from_kb(KB(lex).build([], rows))
+    c = next(iter(at_event_candidates(inv)))
+    from app.generate.select import claim_pairs
+
+    srcs = inv.sources(c.evidence, limit=50, pairs=claim_pairs(c.type, c.form))
+    assert any(st["attribute"] == "date" and st["subject"] == c.form["event"] for s in srcs for st in s["states"])

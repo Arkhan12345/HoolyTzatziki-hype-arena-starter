@@ -88,8 +88,12 @@ class FactInventory:
                 continue
             seen.add(rid)
             info = self.rows.get(rid, {})
-            states = [{"subject": p[0], "attribute": p[1], "value": v} for p, v in self._by_row.get(rid, [])
-                      if pairs is None or p in pairs]
+            states, seen_state = [], set()
+            for p, v in self._by_row.get(rid, []):
+                k = (p, nz.key(v))
+                if (pairs is None or p in pairs) and k not in seen_state:
+                    seen_state.add(k)
+                    states.append({"subject": p[0], "attribute": p[1], "value": v})
             out.append({"row_id": rid, "date": info.get("date"), "text": info.get("text"),
                         "label": info.get("label"), "origin": info.get("origin"), "states": states,
                         **({"classified": info["classified"]} if "classified" in info else {})})

@@ -176,7 +176,10 @@ def at_event_candidates(inv: FactInventory):
             text = T.at_event_text(s, a, event, v)
             if text:
                 yield Candidate("at_event", text, {"subject": s, "attribute": a, "event": event, "value": v},
-                                conf, ("at_event", s, a, event, nz.key(v)), tuple(r for _, _, e in vals for r in e),
+                                conf, ("at_event", s, a, event, nz.key(v)),
+                                tuple(r for _, _, e in vals for r in e)  # the fact on the event's day(s)
+                                + tuple(r for e in inv.trusted(event, "date") if len(str(e.value["value"])) == 10
+                                        for r in e.row_ids),  # and the sentences that date the event
                                 {"event_days": days})
 
 
