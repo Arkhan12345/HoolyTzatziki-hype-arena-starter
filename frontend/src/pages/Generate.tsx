@@ -4,6 +4,7 @@ import { ChevronRight, Download, Search, Sparkles } from 'lucide-react'
 import { getClaims, outputCsvUrl } from '@/api/client'
 import type { Claim, ClaimsPage } from '@/api/types'
 import { ConfidenceBar } from '@/components/data/ConfidenceBar'
+import { VerdictBadge } from '@/components/data/VerdictBadge'
 import { TerminalLog } from '@/components/data/TerminalLog'
 import { TypeBadge } from '@/components/FactChip'
 import { AnimatedNumber } from '@/components/fx/AnimatedNumber'
@@ -264,7 +265,8 @@ function ClaimRow({ c, i, open, onToggle }: { c: Claim; i: number; open: boolean
             <ChevronRight className={cn('size-3 transition-transform', open && 'rotate-90')} /> form &amp; sources <span className="num">{c.id}</span>
           </button>
         </div>
-        <ConfidenceBar value={c.confidence} />
+        <VerdictBadge verdict="true" size="sm" className="mt-0.5 shrink-0" />
+        <ConfidenceBar value={c.confidence} verdict="true" />
       </div>
       <AnimatePresence initial={false}>
         {open && (

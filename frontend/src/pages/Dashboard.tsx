@@ -239,7 +239,8 @@ export default function Dashboard() {
                     <li key={c.id} className="flex items-start gap-3 py-2 first:pt-0">
                       <TypeBadge type={c.type} />
                       <span className="min-w-0 flex-1 text-sm leading-snug">{c.text}</span>
-                      <ConfidenceBar value={c.confidence} />
+                      <VerdictBadge verdict="true" size="sm" className="mt-0.5 shrink-0" />
+                      <ConfidenceBar value={c.confidence} verdict="true" />
                     </li>
                   ))}
                   {!result.claims.length && <li className="text-sm text-ink-muted">No claims came back with this run.</li>}
