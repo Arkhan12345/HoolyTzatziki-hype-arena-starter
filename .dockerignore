@@ -1,0 +1,17 @@
+.git
+.venv
+.claude
+**/__pycache__
+**/*.pyc
+.pytest_cache
+frontend/
+eda/
+train/
+tests/
+pitch/
+docs/
+team/
+sample/
+node_modules
+*.ipynb
+.env
