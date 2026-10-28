@@ -19,9 +19,9 @@ Anything else (docs, eda, app, frontend, models) → a Request line in STATUS.md
 
 ## ENVIRONMENT (follow DEPENDENCIES.md)
 - Read `DEPENDENCIES.md`. No new runtime packages, ever. For charts use the shared venv:
-  `python -m venv .venv` → `.venv/Scripts/python -m pip install -r requirements.txt -c constraints.txt -r eda/requirements-eda.txt` (pandas, matplotlib, exact pins).
+  `python -m venv .venv` → `.venv/Scripts/python -m pip install -r eda/requirements-eda.txt` (pulls in the image's exact pins + matplotlib).
 - Frontend preview of your deck: `cd frontend && npm ci && npm run dev` → `/pitch` (Node 22+; `scripts/copy-pitch.mjs` copies `pitch/PITCH.md` into the app). Do not edit `frontend/`; ask Vald (P4) via STATUS.
-- Live numbers in slides: write `{{model.accuracy|pct}}`, `{{runtime.total_s}}` etc. in PITCH.md; the values come from `pitch/metrics.json` through `/metrics`. Never hard-code a number that metrics.json will hold.
+- Live numbers in slides: write `{{key.path}}` (optionally `|pct`) in PITCH.md; the values come from `pitch/metrics.json` through `/metrics` (syntax: `frontend/src/pages/Pitch.tsx`). Today metrics.json only has `runtime.*` (e.g. `runtime.practice_run.total_s`, `runtime.claims_by_type.compare`, `runtime.claim_holdout.*`); `model.*` appears when Arckan's classifier lands. Use only keys that exist, check `/pitch` renders them, and never hard-code a number metrics.json will hold.
 
 ## SHARED BRIEF (short)
 ~~~text
@@ -55,7 +55,9 @@ Never block or wait for anyone. One JOURNAL line per merge: HH:MM | P5 | what | 
   - Without the date-aware knowledge base, LightGBM loses 0.075.
   - Liquid and spiking nets catch more unsure rows (28–40% vs ~0) but calibrate worse.
 - **Chosen architecture** (`README.md` options, `docs/ARCHITECTURE.md`): text → extractor → temporal knowledge base → LightGBM + two hard rules → calibrated label; KB → claim generator → validator → exactly 1,000 claims. Option A ships; B (page trust) and D (liquid feature) are being tested; E (spiking) is our energy/neuromorphic story; F (pretrained encoder) waits on QA DNA issue #2.
-- **Runtime** (`pitch/metrics.json` → `runtime`, `pitch/JOURNAL.md`): image 689 MB of 3 GiB, ~4 s for 19k rows, 1,000/1,000 claims validator-clean, check.sh green in Docker.
+- **Runtime + claims** (`pitch/metrics.json` → `runtime`, `pitch/JOURNAL.md`): image 689 MB of 3 GiB, ~4 s for 19k rows, 1,000/1,000 claims validator-clean and each traceable to its source sentences, measured claim precision (generate from half the pages, judge on all) put expected wrong claims at 0.5%, check.sh green in Docker.
+- **Classifier:** not merged yet, so live labels are still the all-true baseline. Write the results slide with `{{model.*}}` keys and a fallback sentence until the numbers land.
+- **Open with QA DNA:** issue #2 (is a fine-tuned small encoder allowed?): unanswered. In Q&A say we use no pretrained model until they confirm.
 
 ## MISSION
 A 5-minute pitch and a 3-minute video that a jury believes: every claim backed by a number from our files, the architecture shown as it really runs, and the data story ("the date decides truth") told so simply that a non-ML judge repeats it.
@@ -63,7 +65,7 @@ A 5-minute pitch and a 3-minute video that a jury believes: every claim backed b
 ## TASKS, IN ORDER
 1. **[first 30 min] `pitch/STORY.md`:** one-paragraph story + a numbers table (number | meaning | source file | owner). Every number in slides, video and Q&A comes from this table. Mark numbers that will change (model scores) as `{{…}}` keys.
 2. **[≤ 1 h] `pitch/PITCH.md` v1** in the frontend's format (`## Slide N — title`, body, `> notes:` speaker notes, ~45 s per slide):
-   1 Title + one-liner · 2 The problem (a universe where facts change and pages lie) · 3 What the data taught us (fake strike, single-value pairs, lying pages, generator) · 4 Architecture (Vald's diagram; extractor → temporal KB → LightGBM + rules → generator → validator) · 5 Why no LLM inside and why that's better (explainable, offline, 2 CPUs, auditable) · 6 Live demo (sample.csv) · 7 Results (`{{model.*}}`, claims 1,000/1,000, runtime) · 8 Confidence is part of the answer (calibration) · 9 Model leaderboard: classic vs liquid vs spiking (honest: trees win; neuro wins on unsure, energy) · 10 Team + next steps.
+   1 Title + one-liner · 2 The problem (a universe where facts change and pages lie) · 3 What the data taught us (fake strike, single-value pairs, lying pages, generator) · 4 Architecture (Vald's diagram; extractor → temporal KB → LightGBM + rules → generator → validator) · 5 Why no LLM inside and why that's better (explainable, offline, 2 CPUs, auditable) · 6 Live demo (sample.csv) · 7 Results (`{{model.*}}` once they exist, claims 1,000/1,000 + measured claim precision, runtime) · 8 Confidence is part of the answer (calibration) · 9 Model leaderboard: classic vs liquid vs spiking (honest: trees win; neuro wins on unsure, energy) · 10 Team + next steps.
    Merge it to main early so `/pitch` stops showing the placeholder.
 3. **[≤ 1 h] Figures in `pitch/figs/`:** label mix, fake-strike timeline example, leaderboard bar (from `eda/out/bakeoff.csv`), ablation bar (`eda/out/ablation.csv`), architecture (screenshot from `/architecture`). Reuse `eda/out/figs/*.png` where good enough. Same colours across all charts.
 4. **`pitch/QA.md`:** 15 likely jury questions with 2–3-line answers + the source file. Include: why not an LLM; is a pretrained encoder allowed (issue #2 status); how lying pages are handled; how confidence is calibrated; what if an entity is unseen; overfitting with 1,900 labels (grouped CV, holdout pages, rules over memorisation); runtime and scaling to 20k+; failure modes; why neuromorphic at all.
