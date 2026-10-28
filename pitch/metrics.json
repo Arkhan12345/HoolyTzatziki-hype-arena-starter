@@ -16,10 +16,9 @@
       "claims_valid": 1000
     },
     "claims_by_type": {
-      "compare": 510,
-      "fact": 181,
-      "change": 281,
-      "at_event": 28
+      "change": 386,
+      "compare": 519,
+      "fact": 95
     },
     "fact_staleness_check": "15% subsample of practice: facts last seen from Sep 2026 on ~96% still current, Jun-Aug ~75%, earlier ~50% (confidence follows this)",
     "note": "extractor and classifier not merged yet: labels are the all-true baseline (0.83 confidence)",
@@ -64,6 +63,17 @@
       "min_confidence_selected": 0.93,
       "hypothesis_1000_compare": "feasible: 3,981 distinct compares, top 1,000 at confidence >= 0.93",
       "name_values_outside_lexicon": "rejected (173 candidates), 0 selected"
+    },
+    "claim_holdout": {
+      "source": "scripts/claim_holdout.py, practice pages hidden at random, 3 seeds, judged on all of practice",
+      "hide_50pct": {
+        "wrong_rate": 0.0053,
+        "change": 0.0,
+        "compare": 0.0029,
+        "fact": 0.0292
+      },
+      "hide_90pct_note": "only ~220 rows kept, too few safe candidates: overall 9.2%, at_event 42% unconfirmed (rescheduled events), so at_event is capped at 0.6",
+      "confidence_by_type": "change 0.97-0.98; compare robust+recent 0.97, older dates 0.93, older amounts 0.90; fact 0.6-0.97 by recency; relation 0.70-0.75; at_event <= 0.6"
     }
   }
 }
