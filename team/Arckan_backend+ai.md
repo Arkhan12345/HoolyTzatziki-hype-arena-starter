@@ -1,6 +1,6 @@
 # Arckan · P3 · Backend + AI (the model) — Team Tzatziki · Hype or Truth
 
-> **How to use:** open Claude Code in your clone of https://github.com/Arkhan12345/HoolyTzatziki-hype-arena-starter and paste this WHOLE file as the first message (Shared Brief + your role prompt). Read `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/EDA.md` and `team/README.md` first.
+> **How to use:** open Claude Code in your clone of https://github.com/Arkhan12345/HoolyTzatziki-hype-arena-starter and paste this WHOLE file as the first message (Shared Brief + your role prompt). Read `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/EDA.md`, **`docs/MODELS.md` (your model plan — follow its order)** and `team/README.md` first.
 
 ## FILES THIS PROMPT CREATES / MODIFIES
 You (Claude) may READ every file in the repo. You may only CREATE or MODIFY these:
@@ -173,6 +173,10 @@ I DO NOT EDIT: app/run.py, app/kb, app/generate, app/validate, app/api, Dockerfi
        app/contracts.py (P1), contracts/ data/ sample/.
 RULE: the shipped system is NOT an LLM and uses no network. You MAY use an LLM (yourself) during
 development to write code, rules, patterns, or synthetic training text — saved as files in the repo.
+
+MODEL PLAN: docs/MODELS.md is the agreed series of models (NLP extraction → truth discovery →
+LightGBM + LogReg + isotonic; then CfC/LTC/GRU feature; SNN + LSM benchmark). Follow its milestone order
+and fill its comparison table into pitch/metrics.json.
 
 KEY EDA FACTS (docs/EDA.md)
 1,897 practice rows: true 83%, false 15%, unsure 2%. 62 subjects, 321 attributes, 13 events.

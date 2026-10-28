@@ -1,6 +1,6 @@
 # X · P1 · Architecture + Pitch + Structure — Team Tzatziki · Hype or Truth
 
-> **How to use:** open Claude Code in your clone of https://github.com/Arkhan12345/HoolyTzatziki-hype-arena-starter and paste this WHOLE file as the first message (Shared Brief + your role prompt). Read `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/EDA.md` and `team/README.md` first.
+> **How to use:** open Claude Code in your clone of https://github.com/Arkhan12345/HoolyTzatziki-hype-arena-starter and paste this WHOLE file as the first message (Shared Brief + your role prompt). Read `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/EDA.md`, `docs/MODELS.md` and `team/README.md` first.
 
 ## FILES THIS PROMPT CREATES / MODIFIES
 You (Claude) may READ every file in the repo. You may only CREATE or MODIFY these:
