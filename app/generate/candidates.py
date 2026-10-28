@@ -141,7 +141,9 @@ def change_candidates(inv: FactInventory):
     for (s, a) in inv.pairs():
         rs = runs(inv.trusted(s, a))
         seen = set()
-        for i, j in itertools.combinations(range(len(rs)), 2):
+        # consecutive steps only: "went from 68.0 to 71.0" is true per the contract but hides 69.0, 70.0
+        # (and that 72.0 came after), so each claim states one real step of the timeline
+        for i, j in ((k, k + 1) for k in range(len(rs) - 1)):
             ki, vi, _, last_i, ri = rs[i]
             kj, vj, first_j, _, rj = rs[j]
             if ki == kj or (ki, kj) in seen or first_j <= last_i:
@@ -153,8 +155,7 @@ def change_candidates(inv: FactInventory):
             if text:
                 # holdout (scripts/claim_holdout.py): 0 of ~540 change claims contradicted, 50% or 90% hidden
                 yield Candidate("change", text, {"subject": s, "attribute": a, "from": vi, "to": vj},
-                                0.98 if j == i + 1 else 0.97, ("change", s, a, ki, kj), ri + rj,
-                                {"consecutive": j == i + 1})
+                                0.98, ("change", s, a, ki, kj), ri + rj, {"consecutive": True})
 
 
 def at_event_candidates(inv: FactInventory):
@@ -248,7 +249,16 @@ def compare_candidates(inv: FactInventory):
                 # lower version than Hooly Maps" says nothing a reader wants. Robust ones are still the
                 # safest filler (holdout: ~0% wrong), so they rank after every sensible claim but before
                 # the riskier old facts and at_event; on the full practice set they are not needed.
-                conf = 0.88 if robust else 0.55
+                # among fillers: a timeline (founding vs launch date) reads best, then same-kind amounts,
+                # last the version numbers of two different products
+                if not robust:
+                    conf = 0.55
+                elif between == "date":
+                    conf = 0.885
+                elif lv.get("kind") == "version":
+                    conf = 0.875
+                else:
+                    conf = 0.88
             a_ref, b_ref = (ls, la), (rs, ra)
             sem = ("compare",) + ((a_ref, op, b_ref) if a_ref <= b_ref else (b_ref, FLIP[op], a_ref))
             for left, right, o in ((a_ref, b_ref, op), (b_ref, a_ref, FLIP[op])):

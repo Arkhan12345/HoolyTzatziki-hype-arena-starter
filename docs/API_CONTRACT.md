@@ -42,7 +42,8 @@ type StageStatus = "idle" | "ok" | "fallback" | "not_available" | "failed" | "sk
 interface Label { id: string; label: Verdict; confidence: number | null; gold: Verdict | null }   // gold only for practice rows
 interface Claim { id: string; type: "fact"|"compare"|"change"|"at_event"|"relation"; text: string; form: object; confidence: number
                   sources: {row_id: string; date: string; text: string; label: string | null; origin: "practice"|"universe"|"fixture"
-                            classified?: {label: "true"; confidence: number}}[] }   // sentences the claim was built from (debug, newest first, ≤ 8)
+                            classified?: {label: "true"; confidence: number}
+                            states: {subject: string; attribute: string; value: object}[]}[] }   // what that sentence says that the claim uses   // sentences the claim was built from (debug, newest first, ≤ 8)
 interface Fact  { row_id: string; subject: string; attribute: string; value: {kind: string, ...}; span: string; conf: number }
 interface Evidence {                                  // one per extracted fact of the row
   subject: string; attribute: string; stated: object

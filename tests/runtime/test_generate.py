@@ -276,3 +276,25 @@ def test_equal_counts_read_as_counts():
 
     t = compare_text(("Hooly", "employees"), ("Hooly Cloud", "employees"), "eq", "amount", "quantity")
     assert t == "Hooly has as many employees as Hooly Cloud."
+
+
+def test_change_claims_are_consecutive_steps(world):
+    kb = world[2]
+    for c in world[4]:
+        if c.type != "change":
+            continue
+        keys = []
+        for m in kb.timeline(c.form["subject"], c.form["attribute"]).gold():
+            if "op" not in m.value and (not keys or keys[-1] != m.key):
+                keys.append(m.key)
+        steps = set(zip(keys, keys[1:]))
+        assert (nz.key(c.form["from"]), nz.key(c.form["to"])) in steps, c.text
+
+
+def test_sources_say_which_fact_each_sentence_gives(world):
+    for c in world[4]:
+        for s in c.meta["sources"]:
+            assert s["states"], (c.text, s["row_id"])
+            if c.type == "compare":
+                sides = {(c.form[k]["subject"], c.form[k]["attribute"]) for k in ("left", "right")}
+                assert all((st["subject"], st["attribute"]) in sides for st in s["states"])
