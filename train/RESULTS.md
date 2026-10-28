@@ -161,3 +161,51 @@ Note: `ncps.CfC` squeezes per-sample time gaps to the wrong shape, so the code s
 - **Cost:** torch adds about 250 MB to the image, and CfC training is about 4× slower. Not worth it while it doesn't win.
 
 **For the pitch:** "we tried a liquid time-constant network on irregular fact timelines; a plain GRU beat it and neither beat explicit temporal features" is an honest, defensible result.
+
+# Closed-world labeller for the 300 statements (built, not wired into the run)
+
+> Run `python train/eval_statements300.py` (about 1 min; dev split only). Add `--locked` for the final score and `--stack` to compare the shipped stack.
+> Writes `train/results_statements300.csv` and `train/statements300_predictions.csv`.
+
+`data/hooly_statements_300.csv` has 300 single-fact statements, all dated 2026-10-28, split 100 true / 100 false / 100 unsure. Their labels follow a **closed-world** rule over `practice.csv`, which the gold `form` column confirms on all 300 rows:
+- **true:** the value is the latest true value of the (subject, attribute)
+- **false:** the pair is known and the value differs
+- **unsure:** practice never states the pair
+
+**The shipped stack can't do this.** In practice a value that contradicts the latest one is true 389 times and false 206 times, because values change. So the stack learned that a contradiction is not evidence, and it labels 299 of the 300 rows true.
+
+`app/classify/closed_world.py` (`ClosedWorldLabeller`), fitted on practice + lexicon only:
+1. **Attribute model:** a multinomial LogReg over the words around the value. It never sees which subject the sentence names, only the last word of the subject's name ("results", "pro", "board"). Choices are limited to attributes of the value's kind and physical dimension.
+2. **Unsure:** the best attribute the subject has no practice value for beats the best one it has by more than a margin (log-odds). The margin is tuned out of fold on practice by hiding each held-out fact's own attribute from its subject: simulated unsure F1 0.908, 9% of known facts flagged, 91% of hidden ones caught.
+3. **True / false:** compare with the latest true value on or before the row's date. Dates are compared without their op ("by 31 December 2030"). A non-boolean value equal to another known attribute of the same subject also counts as true ("rescue").
+4. **Fallback for unknown names:** capitalised names the parser doesn't know ("led by Ron LaFlame") are read as name values. Without this they fall through to a boolean attribute.
+
+| Labeller (trained on practice only) | Dev (98) macro-F1, 3 classes | **Locked (199) macro-F1, 3 classes** | F1 true / false / unsure (locked) | ECE t/f (locked) |
+|---|---|---|---|---|
+| Shipped TruthStack | 0.189 | 0.164 | 0.49 / 0.00 / 0.00 | 0.63 |
+| **Closed-world (ships for this set)** | 0.877 | **0.873** | 0.90 / 0.88 / 0.84 | 0.12 |
+| Closed-world rule on the gold `form` (ceiling) | 1.000 | 1.000 | — | — |
+
+The split is seeded and stratified, with 100 dev rows used to look at errors and 200 locked rows. The 1 locked row and 2 dev rows whose text is also a practice row are left out. The locked split was scored once, after the configuration was fixed.
+
+**Dev ablations** (macro-F1, 3 classes):
+
+| Change | Dev score |
+|---|---|
+| First version | 0.805 |
+| Subject words none / last / all | 0.787 / 0.807 / 0.807 |
+| + pair from the attribute model instead of the classic extractor | 0.817 |
+| + rescue | 0.846 |
+| + no bonus for options that already have a known pair, date op ignored, no rescue for booleans | **0.877** |
+| Synonym rule: outside attributes the model often confuses with an inside one don't count | 0.869, and simulated unsure F1 0.900. **Not used** (`--synonyms`) |
+
+**Remaining errors on the locked split** (25 of 199):
+- 15 unsure rows read as a known pair, e.g. "Free Hooly Meet calls are capped at 10 participants" → `max_participants`
+- 5 known pairs called unsure, from synonyms such as headcount vs employees
+- 5 true/false swaps
+
+On the true/false rows the gold fact was read 114 times out of 132.
+
+**Do not use this for the arena run.** On arena-style rows, where values change through the year, the closed-world rule would call every legitimate update false. It is the right rule only where `practice.csv` is meant to be the complete truth.
+
+**Confidence** is 0.5 + 0.5 × P(attribute among the subject's known ones), and only 0.25 × for a rescue. It is not calibrated (ECE 0.12), because the practice set has no closed-world labels to calibrate on.
