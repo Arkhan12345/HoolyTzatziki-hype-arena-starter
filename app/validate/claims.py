@@ -42,9 +42,10 @@ class Verdict:
     reasons: list = field(default_factory=list)
     evidence: list = field(default_factory=list)  # row ids
     semantic_key: tuple = ()
+    flags: list = field(default_factory=list)  # e.g. "novelty_weak": a sentence might say it (fallback tier)
 
     def as_dict(self) -> dict:
-        return {"verdict": self.verdict, "checks": self.checks, "reasons": self.reasons,
+        return {"verdict": self.verdict, "checks": self.checks, "reasons": self.reasons, "flags": self.flags,
                 "evidence": self.evidence, "semantic_key": list(map(str, self.semantic_key))}
 
 
@@ -259,6 +260,73 @@ class ClaimValidator:
         rows = {r for r in rows or () if subjects <= self._named_in(r)}
         return sorted(rows)[0] if rows else None
 
+    # ---- every input sentence, as text (labelled or not) ----------------------------------------
+    NEAR = 80  # characters between a subject name and a value for "the sentence says it"
+
+    def text_index(self):
+        if not hasattr(self, "_text_index"):
+            from app.validate.textindex import RowTextIndex
+
+            self._text_index = RowTextIndex(self.inv.rows, self.lex)
+        return self._text_index
+
+    def text_restates(self, ctype: str, f: dict) -> tuple[str | None, str | None]:
+        """("strong"|"weak"|None, row id): does some input sentence already say this claim, as text?"""
+        from app.validate.rules import attr_spans
+        from app.validate.textindex import COMPARE_WORDS as CMP, claim_value_keys
+
+        ix = self.text_index()
+
+        def near(rid, canon, positions):
+            return any(abs(a - b) <= self.NEAR for a in ix.name_pos(rid, canon) for b in positions)
+
+        def rows_stating(value):
+            if value.get("kind") == "name":
+                c = self.canon(value["value"])
+                return ix.by_name.get(c, set()), (lambda rid: ix.name_pos(rid, c))
+            keys = claim_value_keys(value)
+            rows = set().union(*(ix.rows_with_value(k) for k in keys)) if keys else set()
+            return rows, (lambda rid: [p for k in keys for p in ix.value_pos(rid, k)])
+
+        if ctype == "compare":
+            a, b = self.canon(f["left"]["subject"]), self.canon(f["right"]["subject"])
+            best = None
+            for rid in sorted(ix.by_name.get(a, set()) & ix.by_name.get(b, set())):
+                text = ix.text[rid]
+                pa, pb = ix.name_pos(rid, a), ix.name_pos(rid, b)
+                words = [m.start() for m in CMP.finditer(text)]
+                if not words:
+                    continue
+                if any(min(x, y) <= w <= max(x, y) for x in pa for y in pb for w in words):
+                    return "strong", rid
+                best = best or rid
+            return ("weak", best) if best else (None, None)
+
+        subj = self.canon(f["subject"])
+        cand = set(ix.by_name.get(subj, set()))
+        if ctype == "at_event":
+            cand &= ix.by_name.get(self.canon(f["event"]), set())
+        values = [f["from"], f["to"]] if ctype == "change" else [f["value"]]
+        if ctype == "relation":
+            target = self.canon(f["target"])
+            cand = {r for r in cand if target in {c for c, _ in ix.names[r]}
+                    or attr_spans(f["link"], ix.text[r])}
+        if values[0].get("kind") == "boolean":
+            hits = [r for r in sorted(cand) if attr_spans(f["attribute"], ix.text[r])]
+            for rid in hits:
+                if near(rid, subj, [s for s, _ in attr_spans(f["attribute"], ix.text[rid])]):
+                    return "strong", rid
+            return ("weak", hits[0]) if hits else (None, None)
+        weak = None
+        for value in values:
+            rows, pos = rows_stating(value)
+            cand &= rows
+        for rid in sorted(cand):
+            if all(near(rid, subj, rows_stating(v)[1](rid)) for v in values):
+                return "strong", rid
+            weak = weak or rid
+        return ("weak", weak) if weak else (None, None)
+
     def _named_in(self, rid: str) -> set[str]:
         """Canonical lexicon names a row's text names (whole names, longest first, any case)."""
         cache = self.__dict__.setdefault("_named_cache", {})
@@ -308,6 +376,15 @@ class ClaimValidator:
             if rid:
                 v.reasons.append("novelty: reformulates an input row")
                 v.reasons.append(f"novelty: row {rid} already states it")
+            else:  # every input sentence, labelled or not, read as text
+                strength, trid = self.text_restates(ctype, f)
+                if strength == "strong":
+                    v.checks["novelty"] = FAIL
+                    v.reasons.append("novelty: an input sentence says it")
+                    v.reasons.append(f"novelty: row {trid} names the subject next to the value")
+                elif strength == "weak":
+                    v.flags.append("novelty_weak")
+                    v.reasons.append(f"novelty: row {trid} names the subject and the value far apart (kept as fallback)")
         order = [v.checks["contract"], v.checks["truth"], v.checks["novelty"], v.checks["provenance"]]
         v.verdict = FAIL if FAIL in order else UNVERIFIED if UNVERIFIED in order else PASS
         return v

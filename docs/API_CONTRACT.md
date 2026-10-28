@@ -19,7 +19,7 @@ labels is `null`.
 | GET | `/runs/{run_id}` | `RunResult`; `{run_id, status: "running"}` while an async run works | 200, 202, 404, 500 |
 | GET | `/runs/{run_id}/claims?offset=0&limit=100&type=compare` | `{run_id, total, offset, limit, claims: [Claim]}`; `limit` ≤ 1000 | 200, 202, 404 |
 | GET | `/runs/{run_id}/metrics` | `Metrics` of that run | 200, 202, 404 |
-| GET | `/runs/{run_id}/validation?verdict=&offset=&limit=` | claim validator report: `selected` + `candidates` aggregates, one `{verdict, checks, reasons, evidence}` per claim | 200, 202, 404 |
+| GET | `/runs/{run_id}/validation?verdict=&offset=&limit=` | claim validator report: `selected` + `candidates` aggregates, one `{verdict, checks, reasons, flags, evidence}` per claim (`flags: ["novelty_weak"]` = a sentence might say it; selected only as fallback) | 200, 202, 404 |
 | GET | `/runs/{run_id}/output.csv` | the run's table in the official `output.csv` format (`text/csv`) | 200, 404, 409 |
 | GET | `/metrics` | `Metrics` of the latest finished run (all-null if none) + `offline` + optional `neuro` | 200 |
 | GET | `/architecture` | `Architecture` with each node's `status` and `seconds` from the latest run | 200 |

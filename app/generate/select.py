@@ -2,7 +2,9 @@
 
 Every candidate goes through app/validate/claims.py (contract, truth recomputed from the KB, novelty,
 provenance); only PASS candidates can be selected, so a rejected one is replaced by the next best.
-Confidence first, no quotas. Two rules on top:
+Confidence first, no quotas. Fallback ladder when the strict pool runs short: confident and clearly
+new claims, then confident ones a sentence might weakly restate, then the less confident ones; never a
+FAIL, an UNVERIFIED or a duplicate (fewer than n claims, logged, rather than that). Two rules on top:
   - one claim per piece of information (mentor's rule): paraphrases, inverse compares and aliases
     share a semantic key and only the best one can be selected, never two;
   - a soft preference for all five types: if a type has PASS candidates at confidence >= 0.85 but fewer
@@ -63,6 +65,8 @@ def screen(inv: FactInventory, input_texts: set[str], report: dict,
             continue
         seen_text.add(nt)
         c.meta["vkey"] = v.semantic_key
+        if "novelty_weak" in v.flags:
+            c.meta["novelty_weak"] = True
         valid.append(c)
     report.update({"candidates": n, "validate_s": round(time.perf_counter() - t0, 3), "truth_s": 0.0,
                    "verdicts_by_type": {k: dict(v) for k, v in verdicts.items()},
@@ -77,10 +81,16 @@ def rank(valid: list[Candidate]) -> tuple[list[Candidate], list[Candidate]]:
         groups[c.meta.get("vkey") or c.semantic_key].append(c)
     distinct, dups = [], []
     for g in groups.values():
-        g.sort(key=lambda c: (-c.confidence, c.meta.get("template", 0), c.text))
+        g.sort(key=lambda c: (c.meta.get("novelty_weak", False), -c.confidence, c.meta.get("template", 0), c.text))
         distinct.append(g[0])
         dups.extend(g[1:])
-    return _spread(distinct), _spread(dups)
+    # fallback ladder: confident and clearly new, then confident with a weak "a sentence might say it",
+    # then the less confident ones in the same order. FAIL / UNVERIFIED / duplicates never enter.
+    tiers = defaultdict(list)
+    for c in distinct:
+        tiers[(c.confidence < SOFT_MIN_CONF, bool(c.meta.get("novelty_weak")))].append(c)
+    ordered = [c for t in sorted(tiers) for c in _spread(tiers[t])]
+    return ordered, _spread(dups)
 
 
 def _spread(cs: list[Candidate]) -> list[Candidate]:
@@ -148,6 +158,9 @@ def select(valid: list[Candidate], n: int, report: dict, gold_rows: set[str] | N
         "distinct_by_type": dict(Counter(c.type for c in distinct)),
         "selected_semantic_duplicates": 0,  # never: one claim per piece of information
         "shortfall": max(0, n - len(chosen)),
+        "fallback": {"selected_novelty_weak": sum(1 for c in chosen if c.meta.get("novelty_weak")),
+                     "selected_below_soft_min_conf": sum(1 for c in chosen if c.confidence < SOFT_MIN_CONF),
+                     "available_novelty_weak": sum(1 for c in distinct if c.meta.get("novelty_weak"))},
         "min_confidence_selected": min((c.confidence for c in chosen), default=None),
     })
     if gold_rows is not None:

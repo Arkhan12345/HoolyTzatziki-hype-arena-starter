@@ -188,3 +188,84 @@ def test_event_only_names_count_as_named():
              "value": {"kind": "money", "value": 9, "currency": "EUR", "per": "month"}}]
     v = ClaimValidator(FactInventory.from_records(recs, lex))
     assert v._named_in("r1") >= {"Zeta Plan", "Zeta Summit"}
+
+
+# ---- every input sentence, labelled or not, read as text (no extractor needed) -------------------
+ZLEX = {"subjects": [{"name": "Zeta Drone", "aliases": ["the Drone"], "attributes": ["propellers", "max_speed", "trial", "launched", "cpu_clock", "night_mode"]},
+                     {"name": "Zeta Plan", "aliases": [], "attributes": ["price"]},
+                     {"name": "Zeta Hub", "aliases": [], "attributes": ["price"]}], "events": []}
+Q = lambda v, u: {"kind": "quantity", "value": v, "unit": u}  # noqa: E731
+
+
+def _gold(rid, text, date, *facts):
+    return {"id": rid, "text": text, "date": date, "label": "true",
+            "form": [{"subject": s, "attribute": a, "value": v} for s, a, v in facts]}
+
+
+def zeta(*universe_texts):
+    """Practice gold that states facts without naming the subject, plus unlabelled universe rows."""
+    gold = [_gold("g1", "It flies on 12 propellers.", "2026-09-01", ("Zeta Drone", "propellers", Q(12, "propeller"))),
+            _gold("g2", "Its chip runs at 3.2 GHz.", "2026-09-01", ("Zeta Drone", "cpu_clock", Q(3.2, "GHz"))),
+            _gold("g3", "A free trial of 14 days comes with it.", "2026-09-01",
+                  ("Zeta Drone", "trial", {"kind": "duration", "value": 14, "unit": "day"})),
+            _gold("g4", "It went on sale on 12 March 2026.", "2026-09-01", ("Zeta Drone", "launched", {"kind": "date", "value": "2026-03-12"})),
+            _gold("g5", "Price: CHF 12 a month.", "2026-09-01", ("Zeta Plan", "price", {"kind": "money", "value": 12, "currency": "CHF", "per": "month"}))]
+    universe = [{"id": f"u{i}", "text": t, "date": "2026-10-01", "label": ""} for i, t in enumerate(universe_texts)]
+    return ClaimValidator(FactInventory.from_kb(KB(ZLEX).build([], gold, universe)))
+
+
+@pytest.mark.parametrize("form,unlabelled", [
+    ({"subject": "Zeta Drone", "attribute": "propellers", "value": Q(12, "propeller")}, "Zeta Drone flies on twelve propellers."),
+    ({"subject": "Zeta Drone", "attribute": "propellers", "value": Q(12, "propeller")}, "The Drone has a dozen props."),
+    ({"subject": "Zeta Drone", "attribute": "cpu_clock", "value": Q(3.2, "GHz")}, "Zeta Drone: 3,200 MHz chip."),
+    ({"subject": "Zeta Drone", "attribute": "trial", "value": {"kind": "duration", "value": 14, "unit": "day"}},
+     "Zeta Drone comes with a fortnight free."),
+    ({"subject": "Zeta Drone", "attribute": "launched", "value": {"kind": "date", "value": "2026-03-12"}},
+     "Zeta Drone launched March 12, 2026."),
+    ({"subject": "Zeta Plan", "attribute": "price", "value": {"kind": "money", "value": 12, "currency": "CHF", "per": "month"}},
+     "Zeta Plan is CHF 12 monthly."),
+])
+def test_unlabelled_sentence_in_any_form_restates_a_fact(form, unlabelled):
+    """Nouns, units and currencies that never appear in practice still match (no overfitting)."""
+    assert zeta().text_restates("fact", form)[0] is None  # gold sentences never name the subject
+    assert zeta(unlabelled).text_restates("fact", form)[0] == "strong", unlabelled
+
+
+def test_same_value_for_another_subject_is_not_a_restatement():
+    form = {"subject": "Zeta Drone", "attribute": "propellers", "value": Q(12, "propeller")}
+    assert zeta("Zeta Hub ships with 12 cables.").text_restates("fact", form)[0] is None
+
+
+def test_subject_far_from_the_value_is_only_a_weak_match():
+    form = {"subject": "Zeta Drone", "attribute": "propellers", "value": Q(12, "propeller")}
+    far = "Zeta Drone was shown at the fair, and after a long talk about safety, batteries and the new app, we counted 12 of them."
+    v = zeta(far)
+    assert v.text_restates("fact", form)[0] == "weak"
+    c = claim("f9", "fact", "Zeta Drone has 12 propellers.", form)
+    verdict = v.check(c)
+    assert verdict.verdict == PASS and "novelty_weak" in verdict.flags
+
+
+def test_compare_said_by_an_unlabelled_sentence_fails():
+    lex_v = zeta("Zeta Plan costs less than Zeta Hub.")
+    form = cmp_form("Zeta Plan", "price", "lt", "Zeta Hub", "price")
+    assert lex_v.text_restates("compare", form)[0] == "strong"
+
+
+def test_fallback_ladder_never_lets_fail_or_duplicates_in():
+    from app.generate.select import select
+
+    from app.generate.candidates import Candidate
+
+    def cand(i, conf, weak=False):
+        c = Candidate("change", f"t{i}", {"subject": f"s{i}", "attribute": "a"}, conf, ("k", i))
+        c.meta = {"vkey": ("k", i), **({"novelty_weak": True} if weak else {})}
+        return c
+
+    pool = [cand(1, 0.97), cand(2, 0.97, weak=True), cand(3, 0.6), cand(4, 0.6, weak=True)]
+    report = {}
+    chosen = select(pool + [cand(1, 0.5)], 3, report)  # the second ("k", 1) is a duplicate
+    assert [c.text for c in chosen] == ["t1", "t2", "t3"]  # strong+new, strong+weak, then less confident
+    assert report["fallback"]["selected_novelty_weak"] == 1 and report["semantic_duplicates"] == 1
+    report = {}
+    assert len(select(pool, 10, report)) == 4 and report["shortfall"] == 6
