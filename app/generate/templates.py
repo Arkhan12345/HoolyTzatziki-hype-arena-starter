@@ -44,18 +44,24 @@ def _date_prep(v: dict) -> str:
 
 
 # ---- fact ------------------------------------------------------------------------------------------
-def _yes_no(subject: str, attribute: str, yes: bool) -> str | None:
+def _yes_no(subject: str, attribute: str, yes: bool, past: bool = False, tail: str = "",
+            scoped: bool = False) -> str | None:
+    """A yes/no as a plain sentence holding the attribute's words; None when no wording keeps them whole.
+    past=True for at_event ("Hooly Gemini was EU hosted at …"); tail is appended before the full stop."""
     aw = attr_words(attribute)
     low = aw.lower()
-    if low.startswith("is "):  # "is engineering hub": a negation would split the attribute's words
-        return f"{subject} {aw}." if yes else None
+    if low.startswith("is "):  # "is engineering hub": a negation or a tense would split the attribute's words
+        return f"{subject} {aw}{tail}." if yes and not past else None
     if low.startswith(("had ", "raised ")):  # past events: "Hooly never had major outage."
-        return f"{subject} {aw}." if yes else f"{subject} never {aw}."
-    if low.startswith(VERB_START):  # "has api", "chairs …": a negation would split or overstate them
-        return f"{subject} {aw}." if yes else None
+        if not yes and scoped:
+            return None  # at one event / while a link held: "never" would claim more than the form says
+        return f"{subject} {aw}{tail}." if yes else f"{subject} never {aw}{tail}."
+    if low.startswith(VERB_START):  # "has api", "chairs …": a negation or a tense would split or overstate them
+        return f"{subject} {aw}{tail}." if yes and not past else None
+    be, have = ("was", "had") if past else ("is", "has")
     if low in YES_IS or low.endswith(("ed", "able", "ible")):
-        return f"{subject} is {aw}." if yes else f"{subject} is not {aw}."
-    return f"{subject} has {aw}." if yes else f"{subject} has no {aw}."
+        return f"{subject} {be} {aw}{tail}." if yes else f"{subject} {be} not {aw}{tail}."
+    return f"{subject} {have} {aw}{tail}." if yes else f"{subject} {have} no {aw}{tail}."
 
 
 def fact_text(subject: str, attribute: str, value: dict) -> str | None:
@@ -128,8 +134,9 @@ def change_text(subject: str, attribute: str, frm: dict, to: dict) -> str | None
 # ---- at_event --------------------------------------------------------------------------------------
 def at_event_text(subject: str, attribute: str, event: str, value: dict) -> str | None:
     aw = noun(attribute)
-    if value.get("kind") == "boolean":
-        return f"The {attr_words(attribute)} flag of {subject} was {'set' if value['value'] else 'not set'} at {event}."
+    if value.get("kind") == "boolean":  # "Hooly Gemini was EU hosted at Hooly Cloud Next 2026."
+        return (_yes_no(subject, attribute, bool(value["value"]), past=True, tail=f" at {event}", scoped=True)
+                or f"The {attr_words(attribute)} flag of {subject} was {'set' if value['value'] else 'not set'} at {event}.")
     vt = value_text(value)
     return None if vt is None else f"The {aw} of {subject} was {vt} at {event}."
 
@@ -137,8 +144,9 @@ def at_event_text(subject: str, attribute: str, event: str, value: dict) -> str 
 # ---- relation --------------------------------------------------------------------------------------
 def relation_text(subject: str, link: str, attribute: str, value: dict) -> str | None:
     lw = attr_words(link)
-    if value.get("kind") == "boolean":
-        return f"The {attr_words(attribute)} flag of the {lw} of {subject} is {'set' if value['value'] else 'not set'}."
+    if value.get("kind") == "boolean":  # "The CTO of Hooly is SOC 2 certified." style
+        return (_yes_no(f"The {lw} of {subject}", attribute, bool(value["value"]), scoped=True)
+                or f"The {attr_words(attribute)} flag of the {lw} of {subject} is {'set' if value['value'] else 'not set'}.")
     vt = value_text(value)
     if vt is None:
         return None

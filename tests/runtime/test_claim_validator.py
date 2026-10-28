@@ -305,3 +305,70 @@ def test_yes_no_sentence_with_the_opposite_polarity_is_not_a_restatement():
     yes = {"subject": "Zeta Drone", "attribute": "night_mode", "value": {"kind": "boolean", "value": True}}
     assert zeta("Zeta Drone has no night mode.").text_restates("fact", yes)[0] is None
     assert zeta("Zeta Drone has night mode.").text_restates("fact", yes)[0] == "strong"
+
+
+def _fake(i, t, conf, **form):
+    from app.generate.candidates import Candidate
+
+    c = Candidate(t, f"{t}{i}", {"subject": form.get("subject", f"s{i}"), "attribute": form.get("attribute", "a")},
+                  conf, (t, i))
+    c.meta = {"vkey": (t, i)}
+    return c
+
+
+def test_every_type_with_a_pass_candidate_is_represented():
+    from app.generate.select import select
+
+    pool = [_fake(i, "change", 0.98) for i in range(10)] + [_fake(99, "relation", 0.7)]
+    report = {}
+    chosen = select(pool, 10, report)
+    assert len(chosen) == 10 and any(c.type == "relation" for c in chosen)  # low confidence, but the only one
+    assert report["missing_types"] == ["fact", "compare", "at_event"]  # none exist: nothing forced
+
+
+def test_at_event_kept_to_two_per_fact():
+    from app.generate.select import select
+
+    pool = [_v(_fake(i, "at_event", 0.9, subject="Zeta", attribute="eu_hosted")) for i in range(5)] + \
+           [_fake(10 + i, "change", 0.88) for i in range(5)]
+    chosen = select(pool, 7, {})
+    assert sum(c.type == "at_event" for c in chosen) == 2
+
+
+def test_yes_no_at_event_reads_naturally_and_validates():
+    from app.generate.templates import at_event_text
+
+    rows = read_practice(os.path.join(ROOT, "data", "practice.csv"))
+    lex = read_lexicon(os.path.join(ROOT, "data", "lexicon.json"))
+    v = ClaimValidator(FactInventory.from_kb(KB(lex).build([], rows)))
+    form = {"subject": "Hooly Gemini", "attribute": "eu_hosted", "event": "Hooly Cloud Next 2026",
+            "value": {"kind": "boolean", "value": True}}
+    text = at_event_text("Hooly Gemini", "eu_hosted", "Hooly Cloud Next 2026", form["value"])
+    assert text == "Hooly Gemini was EU hosted at Hooly Cloud Next 2026."
+    assert v.check(claim("a1", "at_event", text, form)).checks["contract"] == PASS
+
+
+def test_scoped_yes_no_never_says_never():
+    from app.generate.templates import at_event_text, relation_text
+
+    no = {"kind": "boolean", "value": False}
+    assert "never" not in at_event_text("Hooly", "raised_series_b", "Hooly I/O 2026", no)
+    assert "never" not in relation_text("Hooly", "cto", "had_major_outage", no)
+
+
+def test_cap_holds_while_balancing_types_and_counts_values_apart():
+    from app.generate.select import select
+
+    pool = [_fake(i, "at_event", 0.9, subject="Zeta", attribute="eu_hosted") for i in range(5)]
+    for c in pool:
+        c.form["value"] = {"kind": "boolean", "value": True}
+    other = _fake(50, "at_event", 0.9, subject="Zeta", attribute="eu_hosted")
+    other.form["value"] = {"kind": "boolean", "value": False}  # another value: another fact, own cap
+    chosen = select(pool + [other] + [_fake(10 + i, "change", 0.88) for i in range(30)], 30, {})
+    same = [c for c in chosen if c.type == "at_event" and c.form["value"]["value"] is True]
+    assert len(same) == 2 and other in chosen
+
+
+def _v(c):
+    c.form["value"] = {"kind": "boolean", "value": True}
+    return c
