@@ -29,7 +29,7 @@ the runner imports them lazily and survives their absence or a crash.
 .venv/Scripts/python scripts/local_check.py --minutes 5   # check.sh without Docker + validator over every claim
 .venv/Scripts/python scripts/synth_universe.py "$TEMP/u20k" && .venv/Scripts/python scripts/local_check.py --universe "$TEMP/u20k"
 # the real thing, through Docker in WSL Ubuntu (check.sh is checked out with CRLF on Windows: strip it into a temp copy)
-tr -d '' < scripts/check.sh > scripts/.check_lf.sh
+tr -d '\r' < scripts/check.sh > scripts/.check_lf.sh
 MSYS_NO_PATHCONV=1 wsl.exe -d Ubuntu -- sh -c "cd /mnt/c/Users/john/Documents/GitHub/HoolyTzatziki-hype-arena-starter && MINUTES=5 sh scripts/.check_lf.sh"
 rm scripts/.check_lf.sh
 ```
