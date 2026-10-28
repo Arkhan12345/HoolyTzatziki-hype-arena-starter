@@ -1,0 +1,6 @@
+# EDA / research, dev-only (never in the image). Follows DEPENDENCIES.md: exact pins, same versions as the image.
+# Classic EDA (01-03, 05, 06) - in the shared .venv:
+#   .venv/Scripts/python -m pip install -r eda/requirements-eda.txt
+-r ../requirements.txt
+-c ../constraints.txt
+matplotlib==3.11.2

@@ -1,0 +1,55 @@
+target = false  (weights shown as [not false, false] after class balancing)
+
+|--- disagrees_prev_mention <= 0.50
+|   |--- rel_before_first_known <= 0.50
+|   |   |--- rel_stale_older <= 0.50
+|   |   |   |--- rel_contradicts <= 0.50
+|   |   |   |   |--- weights: [621.21, 116.42] class: 0
+|   |   |   |--- rel_contradicts >  0.50
+|   |   |   |   |--- weights: [4.10, 13.70] class: 1
+|   |   |--- rel_stale_older >  0.50
+|   |   |   |--- weights: [2.34, 13.70] class: 1
+|   |--- rel_before_first_known >  0.50
+|   |   |--- multi_fact <= 0.50
+|   |   |   |--- never_repeated <= 0.50
+|   |   |   |   |--- weights: [12.30, 10.27] class: 0
+|   |   |   |--- never_repeated >  0.50
+|   |   |   |   |--- weights: [37.47, 106.15] class: 1
+|   |   |--- multi_fact >  0.50
+|   |   |   |--- rel_future_value <= 0.50
+|   |   |   |   |--- weights: [2.93, 27.39] class: 1
+|   |   |   |--- rel_future_value >  0.50
+|   |   |   |   |--- weights: [3.51, 10.27] class: 1
+|--- disagrees_prev_mention >  0.50
+|   |--- rel_stale_older <= 0.50
+|   |   |--- rel_contradicts <= 0.50
+|   |   |   |--- rel_future_value <= 0.50
+|   |   |   |   |--- weights: [72.60, 17.12] class: 0
+|   |   |   |--- rel_future_value >  0.50
+|   |   |   |   |--- weights: [121.78, 130.12] class: 1
+|   |   |--- rel_contradicts >  0.50
+|   |   |   |--- page_first_person <= 0.50
+|   |   |   |   |--- weights: [64.40, 267.09] class: 1
+|   |   |   |--- page_first_person >  0.50
+|   |   |   |   |--- weights: [1.76, 54.79] class: 1
+|   |--- rel_stale_older >  0.50
+|   |   |--- kv_line <= 0.50
+|   |   |   |--- rel_match_latest <= 0.50
+|   |   |   |   |--- weights: [1.76, 119.85] class: 1
+|   |   |   |--- rel_match_latest >  0.50
+|   |   |   |   |--- weights: [1.17, 37.67] class: 1
+|   |   |--- kv_line >  0.50
+|   |   |   |--- weights: [1.17, 23.97] class: 1
+
+
+importance:
+disagrees_prev_mention    0.397
+rel_before_first_known    0.249
+rel_contradicts           0.178
+rel_stale_older           0.121
+rel_future_value          0.037
+never_repeated            0.008
+page_first_person         0.006
+multi_fact                0.004
+kv_line                   0.000
+rel_match_latest          0.000
