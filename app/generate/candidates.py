@@ -130,8 +130,9 @@ def change_candidates(inv: FactInventory):
             seen.add((ki, kj))
             text = T.change_text(s, a, vi, vj)
             if text:
+                # holdout (scripts/claim_holdout.py): 0 of ~540 change claims contradicted, 50% or 90% hidden
                 yield Candidate("change", text, {"subject": s, "attribute": a, "from": vi, "to": vj},
-                                0.95 if j == i + 1 else 0.9, ("change", s, a, ki, kj), ri + rj,
+                                0.98 if j == i + 1 else 0.97, ("change", s, a, ki, kj), ri + rj,
                                 {"consecutive": j == i + 1})
 
 
@@ -147,7 +148,9 @@ def at_event_candidates(inv: FactInventory):
             if any(v is None for v, _, _ in vals) or len({nz.key(v) for v, _, _ in vals}) != 1:
                 continue
             v = vals[0][0]
-            conf = min(c for _, c, _ in vals) - (0.03 if len(days) > 1 else 0)
+            # holdout: ~43% not confirmed by the full data (rescheduled events have dates we did not
+            # see), so at_event only fills in when the safer types run out
+            conf = min(0.6, min(c for _, c, _ in vals) - (0.03 if len(days) > 1 else 0))
             text = T.at_event_text(s, a, event, v)
             if text:
                 yield Candidate("at_event", text, {"subject": s, "attribute": a, "event": event, "value": v},
@@ -172,13 +175,13 @@ def relation_candidates(inv: FactInventory):
                 tev = inv.trusted(target, ta)
                 if not tev:
                     continue
-                if len({e.key for e in tev}) == 1:
-                    v, conf, used = tev[-1].value, 0.9, tev
+                if len({e.key for e in tev}) == 1:  # holdout: few and often wrong -> below compare/fact
+                    v, conf, used = tev[-1].value, 0.75, tev
                 else:
                     used = [e for e in tev if lo <= e.date <= hi]
                     if not used or len({e.key for e in used}) != 1:
                         continue
-                    v, conf = used[-1].value, 0.8
+                    v, conf = used[-1].value, 0.7
                 text = T.relation_text(s, link, ta, v)
                 if text:
                     yield Candidate("relation", text,
@@ -209,7 +212,12 @@ def compare_candidates(inv: FactInventory):
             if op == "eq" and not robust:
                 continue
             if robust:
-                conf = (0.94 if between == "date" else 0.92) + (0.03 if min(lc, rc) >= 0.9 else 0.0)
+                # holdout, 90% of pages hidden: both sides seen from Sep 2026 on ~0% wrong; older dates
+                # ~2.5%, older amounts ~8%
+                if min(lc, rc) >= 0.9:
+                    conf = 0.97
+                else:
+                    conf = 0.93 if between == "date" else 0.9
             else:
                 conf = min(lc, rc) - 0.05
             if la != ra:
