@@ -28,7 +28,7 @@ sys.path.insert(0, ROOT)
 from app.generate import strategies  # noqa: E402
 from app.generate.select import generate_from_inventory  # noqa: E402
 from app.generate.truth import truth_problems  # noqa: E402
-from app.io.reader import read_lexicon, read_practice  # noqa: E402
+from app.io.reader import read_lexicon, read_practice, read_rows  # noqa: E402
 from app.kb.inventory import FactInventory  # noqa: E402
 from app.kb.store import KB  # noqa: E402
 from app.validate.rules import norm_text  # noqa: E402
@@ -75,6 +75,7 @@ def summary(recs: list[dict]) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--structured", help="JSON with B's labels + facts (shared-interface shape)")
+    ap.add_argument("--universe", help="universe.csv B's output refers to (default: the practice rows, labels blanked)")
     ap.add_argument("--mock", action="store_true", help="force the MOCK classifier for B")
     ap.add_argument("--noise", type=float, default=0.0, help="MOCK: share of rows whose label is flipped")
     ap.add_argument("--min-conf", type=float, default=strategies.MIN_CONF)
@@ -87,8 +88,11 @@ def main() -> int:
 
     practice = read_practice(os.path.join(ROOT, "data", "practice.csv"))
     lex = read_lexicon(os.path.join(ROOT, "data", "lexicon.json"))
-    universe = [{"id": r["id"], "text": r["text"], "date": r["date"], "label": ""} for r in practice]
-    texts = {norm_text(r["text"]) for r in practice}
+    if args.universe:  # B's facts are dated by their own rows: they must come from the universe B labelled
+        universe = [dict(r, label="") for r in read_rows(args.universe)]
+    else:
+        universe = [{"id": r["id"], "text": r["text"], "date": r["date"], "label": ""} for r in practice]
+    texts = {norm_text(r["text"]) for r in practice} | {norm_text(r["text"]) for r in universe}
     full = FactInventory.from_kb(KB(lex).build([], practice))
 
     rnd = random.Random(args.seed)
@@ -116,6 +120,8 @@ def main() -> int:
     keys_a, keys_b = {r["semantic_key"] for r in ja}, {r["semantic_key"] for r in jb}
     result = {
         "setting": {"hide": args.hide, "seed": args.seed, "a_gold_rows": len(kept), "b_source": b_source,
+                    "universe_rows": len(universe),
+                    "b_facts_undated": sum(1 for f in b_facts if strategies._get(f, "row_id") not in {r["id"] for r in universe}),
                     "b_min_conf": args.min_conf, "b_rows_labelled_true": sum(1 for lb in b_labels
                                                                             if strategies._get(lb, "label") == "true")},
         "A_gold": {"selected": len(claims_a), "valid": rep_a.get("valid"), "distinct": rep_a.get("distinct_semantic"),

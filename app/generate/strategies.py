@@ -45,8 +45,10 @@ def from_p3(rows: list[dict], lexicon: dict) -> tuple[list, list] | None:
     try:
         from app.classify import classify  # type: ignore
         from app.extract import extract  # type: ignore
-    except Exception:  # noqa: BLE001
-        return None
+    except ModuleNotFoundError as e:  # only a module that is not there yet means "unavailable"
+        if e.name in ("app.extract", "app.classify"):
+            return None
+        raise  # a broken P3 module (or one of its imports) must show, not fall back to a mock
     facts = extract(rows, lexicon)
     kb = KB(lexicon).build(facts, [], rows)
     return classify(rows, facts, kb), facts
