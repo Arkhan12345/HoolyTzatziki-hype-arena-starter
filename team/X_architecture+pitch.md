@@ -146,8 +146,8 @@ TEAMWORK RULES (non-negotiable)
       git fetch origin && git merge origin/main && git log --oneline -15 origin/main && cat STATUS.md
     and adapt to what teammates merged (new interfaces, new data, requests addressed to you).
  3. ALL WORK IS ON BRANCHES. One branch per task, named <name>/<topic> (X/contracts, ioan/dockerfile,
-    X's branches always start with X/ (X/skeleton, X/contracts, X/pitch, X/neuro-<topic>).
     arckan/extractor, vald/run-page). Never commit directly to main.
+    X's branches always start with X/ (X/skeleton, X/contracts, X/pitch, X/neuro-<topic>).
     Commit small and often on your branch (every working step, at least every 30 min), message
     "<P#-role>: <what>" (e.g. "P3-ai: attribute classifier v1, 0.91 acc"), and push the branch after
     every commit (git push -u origin HEAD) so teammates can see progress (git fetch; git log origin/<branch>).
