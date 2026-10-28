@@ -257,7 +257,7 @@ def _value_and_polarity(text, rest, form_value, attribute, mask_spans) -> tuple[
     vt = value_text(form_value)
     if vt is None:
         return ["value cannot be written"], []
-    found = [(m.start(), m.end()) for m in re.finditer(value_regex(form_value, vt), text)]
+    found = [(m.start(), m.end()) for m in re.finditer(value_regex(form_value, vt, attribute), text)]
     if len(found) != 1:
         p.append(f"value {vt!r} stated {len(found)} times")
     for s, e in found:
@@ -265,14 +265,21 @@ def _value_and_polarity(text, rest, form_value, attribute, mask_spans) -> tuple[
     return p, found
 
 
-def value_regex(value: dict, vt: str) -> str:
-    """Where a value may stand: as rendered, or for a count with up to two words between the number
-    and its noun (value-forms.md, Counted nouns: "10,000 of our customers", "598,000,000 monthly active users")."""
-    exact = re.escape(vt) + r"(?![\w])"
-    if value.get("kind") != "quantity" or value.get("unit") in PHYSICAL_UNITS or " " not in vt:
+def value_regex(value: dict, vt: str, attribute: str | None = None) -> str:
+    """Where a value may stand: as rendered, whole (no digit, point or comma right before it), or for a
+    count with one or two words between the number and its noun (value-forms.md, Counted nouns:
+    "598,000,000 monthly active users"). Those words must be the attribute's own words, so a scale
+    ("10 million users"), a comparison or an approximation can never sit there."""
+    exact = r"(?<![\w.,])" + re.escape(vt) + r"(?![\w])"
+    if value.get("kind") != "quantity" or value.get("unit") in PHYSICAL_UNITS or " " not in vt or not attribute:
         return exact
     num, noun = vt.split(" ", 1)
-    return r"(?:" + exact + r"|" + re.escape(num) + r"(?:\s+[A-Za-z][A-Za-z-]*){1,2}\s+" + re.escape(noun) + r"(?![\w]))"
+    allowed = [w for w in re.findall(r"[a-z]+", attribute.lower()) if w not in noun.lower().split()]
+    if not allowed:
+        return exact
+    word = r"(?:" + "|".join(re.escape(w) for w in sorted(set(allowed), key=len, reverse=True)) + r")"
+    return (r"(?:" + exact + r"|(?<![\w.,])" + re.escape(num) + r"(?:\s+" + word + r"){1,2}\s+" + re.escape(noun)
+            + r"(?![\w]))")
 
 
 def _qualifier_problems(before: str, after: str) -> list[str]:
@@ -365,7 +372,8 @@ def _check_change(text, form, lex, spans, named):
         return p + ["value cannot be written"]
     if a == b:
         p.append("from and to read the same")
-    m = re.search(r"\bfrom\s+" + value_regex(form["from"], a) + r"\s+to\s+" + value_regex(form["to"], b), text)
+    m = re.search(r"\bfrom\s+" + value_regex(form["from"], a, form["attribute"]) + r"\s+to\s+"
+                  + value_regex(form["to"], b, form["attribute"]), text, re.I)
     if not m:
         p.append("no 'from … to …' change phrase")
     p += _extra_entities(spans, {subj}, None, lex) if form["from"].get("kind") != "name" else \

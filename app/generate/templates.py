@@ -47,8 +47,10 @@ def _yes_no(subject: str, attribute: str, yes: bool) -> str | None:
     low = aw.lower()
     if low.startswith("is "):  # "is engineering hub": a negation would split the attribute's words
         return f"{subject} {aw}." if yes else None
-    if low.startswith(VERB_START):
+    if low.startswith(("had ", "raised ")):  # past events: "Hooly never had major outage."
         return f"{subject} {aw}." if yes else f"{subject} never {aw}."
+    if low.startswith(VERB_START):  # "has api", "chairs …": a negation would split or overstate them
+        return f"{subject} {aw}." if yes else None
     if low in YES_IS or low.endswith(("ed", "able", "ible")):
         return f"{subject} is {aw}." if yes else f"{subject} is not {aw}."
     return f"{subject} has {aw}." if yes else f"{subject} has no {aw}."
@@ -183,6 +185,8 @@ def _compare_same(ls: str, rs: str, attribute: str, op: str, between: str, kind:
     if (kind or "") == "money":
         return None  # "has a higher cash/revenue" reads wrong: "The revenue of A is higher than the revenue of B"
     if op == "eq":
+        if (kind or "quantity") == "quantity" and aw.endswith("s") and not aw.endswith("ss"):
+            return f"{ls} has as many {aw} as {rs}."  # equal counts, not the same people
         return f"{ls} has the same {aw} as {rs}."
     k = kind or "quantity"
     if k == "quantity" and aw.endswith("s") and not aw.endswith("ss"):

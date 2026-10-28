@@ -88,8 +88,12 @@ def _most_precise_date(ev, value: dict) -> dict:
     the referee compares dates as written, so the precise one is the safer claim."""
     if value.get("kind") != "date" or len(str(value["value"])) == 10:
         return value
-    finer = {str(e.value["value"]) for e in ev if str(e.value["value"]).startswith(str(value["value"]))
-             and len(str(e.value["value"])) > len(str(value["value"]))}
+    v = str(value["value"])
+    # only evidence for the current value: mentions after the last one that states an unrelated date
+    unrelated = [e.date for e in ev if not (str(e.value["value"]).startswith(v) or v.startswith(str(e.value["value"])))]
+    since = max(unrelated, default="")
+    finer = {str(e.value["value"]) for e in ev if e.date > since and str(e.value["value"]).startswith(v)
+             and len(str(e.value["value"])) > len(v)}
     if len(finer) != 1:
         return value
     precise = next(iter(finer))

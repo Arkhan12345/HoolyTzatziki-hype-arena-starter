@@ -189,3 +189,30 @@ def test_name_values_must_resolve_in_the_lexicon(name, ok):
     form = {"subject": "Hooly", "attribute": "cto", "value": {"kind": "name", "value": name}}
     c = Claim("e7", "fact", f"The cto of Hooly is {name}.", form, 0.9)
     assert (validate_claim(c, LEX, set()) == []) == ok
+
+
+USERS = {"subject": "Hooly Drive", "attribute": "active_users", "value": {"kind": "quantity", "value": 10, "unit": "user"}}
+MAU = {"subject": "Hooly Maps", "attribute": "monthly_active_users",
+       "value": {"kind": "quantity", "value": 118000000, "unit": "user"}}
+
+
+@pytest.mark.parametrize("form,text,ok", [
+    (MAU, "Hooly Maps has 118,000,000 monthly active users.", True),  # two words of the attribute between
+    (USERS, "Hooly Drive has 10 active users.", True),
+    (USERS, "Hooly Drive has 10 million users.", False),          # a scale word is not an attribute word
+    (USERS, "Hooly Drive has 10 more than users.", False),        # nor a comparison
+    (USERS, "Hooly Drive has 110 users.", False),                 # 10 inside a larger number
+    (USERS, "Hooly Drive has 1.10 users.", False),
+])
+def test_counted_noun_words_are_the_attributes_own(form, text, ok):
+    assert (validate_claim(Claim("e8", "fact", text, form, 0.9), LEX, set()) == []) == ok
+
+
+def test_generated_yes_no_wordings_validate():
+    from app.generate.templates import fact_text
+
+    for attribute, subject in (("soc2_certified", "Hooly"), ("ai_sidebar", "Hooly Chrome"), ("raised_series_a", "Hooly")):
+        for yes in (True, False):
+            form = {"subject": subject, "attribute": attribute, "value": {"kind": "boolean", "value": yes}}
+            text = fact_text(subject, attribute, form["value"])
+            assert validate_claim(Claim("e9", "fact", text, form, 0.9), LEX, set()) == [], text
