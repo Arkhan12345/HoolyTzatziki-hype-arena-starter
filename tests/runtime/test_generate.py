@@ -207,3 +207,43 @@ def test_every_selected_claim_has_its_sentences(world):
     for c in world[4]:
         assert c.meta["sources"], c.text
         assert all(s["text"] and s["origin"] == "practice" and s["label"] == "true" for s in c.meta["sources"])
+
+
+def test_compare_generators_script_runs_both_strategies(tmp_path):
+    import subprocess
+    import sys
+
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "compare_generators.py"), "--mock", "--noise", "0.1",
+                        "--out", str(tmp_path)], cwd=ROOT, capture_output=True, text=True, encoding="utf-8",
+                       env={**os.environ, "PYTHONPATH": ROOT, "PYTHONIOENCODING": "utf-8"})
+    assert r.returncode == 0, r.stderr[-2000:]
+    cmp = json.loads((tmp_path / "comparison.json").read_text(encoding="utf-8"))
+    assert cmp["A_gold"]["selected"] == cmp["B_classified"]["selected"] == 1000
+    assert "MOCK" in cmp["setting"]["b_source"]
+    recs = [json.loads(x) for x in (tmp_path / "claims_B.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert all(r["verdict"] in ("holds", "unconfirmed", "contradicted") and r["sources"] for r in recs)
+
+
+def test_broken_p3_module_is_not_hidden_behind_the_mock(tmp_path, monkeypatch):
+    import sys
+
+    import app
+    from app.generate import strategies
+
+    for sub, body in (("extract", "import not_a_real_package\n"), ("classify", "def classify(*a):\n    return []\n")):
+        (tmp_path / "app" / sub).mkdir(parents=True)
+        (tmp_path / "app" / sub / "__init__.py").write_text(body, encoding="utf-8")
+    monkeypatch.setattr(app, "__path__", list(app.__path__) + [str(tmp_path / "app")])
+    for m in ("app.extract", "app.classify"):
+        monkeypatch.delitem(sys.modules, m, raising=False)
+    with pytest.raises(ModuleNotFoundError) as e:
+        strategies.from_p3([], {})
+    assert e.value.name == "not_a_real_package"
+    for m in ("app.extract", "app.classify"):
+        sys.modules.pop(m, None)
+
+
+def test_absent_p3_modules_mean_unavailable():
+    from app.generate import strategies
+
+    assert strategies.from_p3([], {}) is None
