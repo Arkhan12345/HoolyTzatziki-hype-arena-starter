@@ -190,7 +190,7 @@ export default function Dashboard() {
             <div className="space-y-5">
               <Panel className="overflow-hidden">
                 <PanelHeader
-                  eyebrow={pipe.replaying ? 'replaying measured stage timings' : job?.status === 'running' ? 'request in flight' : 'pipeline'}
+                  eyebrow={pipe.cursor ? `stage ${pipe.cursor.index + 1}/${pipe.cursor.total} · ${pipe.cursor.stage}` : job?.status === 'running' ? 'request in flight' : 'pipeline'}
                   title="Data flow"
                   right={
                     <Link to="/architecture" className="inline-flex items-center gap-1 text-xs text-cyan hover:underline">
@@ -199,7 +199,7 @@ export default function Dashboard() {
                   }
                 />
                 <div className="h-[210px]">
-                  <PipelineFlow architecture={architecture.data} status={pipe.status} timings={pipe.timings} compact />
+                  <PipelineFlow architecture={architecture.data} status={pipe.status} edges={pipe.edges} activeMs={pipe.activeMs} timings={pipe.timings} compact />
                 </div>
               </Panel>
               <TerminalLog job={job} />
