@@ -14,8 +14,10 @@ Rules live in `contracts/` (never edit it): `README.md`, `claim-forms.md`, `valu
 | --- | --- |
 | `app/run.py` | pipeline, fallback table after the gold claims, watchdog at deadline-90 s, SIGTERM write |
 | `app/io/` | CSV reader (BOM, `;` or `,`), atomic writer (`.output.*.tmp` then `os.replace`), fallback types |
-| `app/kb/` | `KB` timelines per (subject, attribute): gold (practice true), wrong (practice false, 1 fact), extracted (P3) |
-| `app/generate/` | `render.py` value forms, `templates.py` one sentence per type, `select.py` candidates + quotas |
+| `app/kb/store.py` | `KB` timelines per (subject, attribute): gold (practice true), wrong (practice false, 1 fact), extracted (P3) |
+| `app/kb/adapter.py` | P3's facts (dataclass, object or dict) -> uniform records; malformed values dropped and counted |
+| `app/kb/inventory.py` | `FactInventory`: the generator's only input (trusted dated evidence + lexicon); `from_kb` or `from_records` for fixtures |
+| `app/generate/` | `render.py` value forms, `templates.py` one sentence per type, `candidates.py` five factories, `truth.py` re-checks each form on the inventory, `select.py` screen + rank + exactly n |
 | `app/validate/rules.py` | schema + lexicon + claim-forms text rules; conservative (rejects what the referee might misread) |
 | `app/api/main.py` | demo API for the frontend: `POST /run`, `GET /architecture`, `GET /metrics` |
 | `tests/runtime/` | example tables from `claim-forms.md` as pytest cases, generator invariants, run/SIGTERM/crash tests |
@@ -38,6 +40,11 @@ rm scripts/.check_lf.sh
 Last green run: 2026-10-28, exit 0, no OOM, RSS 43 MB, image 689 MB.
 
 ## Rules when editing the generator
+- NO quotas per type, no caps per subject. Selection is confidence first; one claim per semantic key
+  first (a compare and its mirror, or two paraphrases, share a key); duplicates only if distinct claims run out.
+- The generator reads only `FactInventory`. Never parse rows or sentences in app/generate.
+- Measure before tuning: `.venv/Scripts/python scripts/claim_capacity.py` (candidates, rejections per rule,
+  distinct claims, the 1,000-compare hypothesis).
 - Truth comes from gold only. A `change` pairs two gold values at increasing dates (safest type). A `fact`
   needs a recent last mention (Sep 2026 on ~96% right in subsampling, earlier is much worse).
 - Every new template: add its example to `tests/runtime/test_validate.py` and keep `test_exactly_1000_unique_valid` green.

@@ -140,7 +140,18 @@ def run_rows(rows: list[dict], claims_limit: int = 50) -> dict:
         labels = _clean_labels([], blank)
     report: dict = {}
     texts = w["texts"] | {norm_text(r["text"]) for r in rows}
-    claims = stage("generate", lambda: generate(kb, lexicon, texts, 1000, report), [])
+    # Without extracted facts the claims depend only on which gold rows were held out: cache them.
+    cache_key = None if facts else frozenset(demo_ids & set(gold_by_id)) | frozenset(norm_text(r["text"]) for r in rows)
+    cache = w.setdefault("claim_cache", {})
+    if cache_key is not None and cache_key in cache:
+        claims, cached = cache[cache_key]
+        report.update(cached, validate_s=0.0)
+        stage("generate", lambda: None, None, "cached")
+    else:
+        claims = stage("generate", lambda: generate(kb, lexicon, texts, 1000, report), [])
+        if cache_key is not None and claims:
+            cache.clear()
+            cache[cache_key] = (claims, dict(report))
     timings["validate"] = round(report.get("validate_s", 0.0), 4)
     timings["generate"] = round(max(0.0, timings["generate"] - timings["validate"]), 4)
     details[-1]["seconds"] = timings["generate"]

@@ -4,12 +4,15 @@ from collections import Counter
 
 import pytest
 
-from app.generate import generate
+from app.generate import generate, generate_from_inventory
 from app.generate.render import value_text
+from app.generate.truth import truth_problems
 from app.io.reader import read_lexicon, read_practice
 from app.kb import normalize as nz
+from app.kb.inventory import FactInventory
 from app.kb.store import KB
 from app.validate.rules import norm_text, validate_claim
+from tests.runtime.mocks import gold_extractor
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -30,24 +33,30 @@ def test_exactly_1000_unique_valid(world):
     assert len(claims) == 1000
     assert len({c.id for c in claims}) == 1000
     assert len({norm_text(c.text) for c in claims}) == 1000
+    inv = FactInventory.from_kb(kb)
     for c in claims:
-        c.meta = {"between": "date" if c.type == "compare" and _is_date_compare(kb, c) else "amount"}
         assert validate_claim(c, lex, texts) == [], c.text
+        assert truth_problems(c.type, c.form, inv) == [], c.text
         assert 0.5 <= c.confidence <= 1
 
 
-def _is_date_compare(kb, c):
-    v, _, _ = kb.current_value(c.form["left"]["subject"], c.form["left"]["attribute"])
-    return v is not None and v.get("kind") == "date"
+def test_no_semantic_duplicates_while_distinct_claims_remain(world):
+    report = world[5]
+    assert report["distinct_semantic"] >= 1000
+    assert report["selected_semantic_duplicates"] == 0
+    keys = [c.meta["semantic_key"] for c in world[4]]
+    assert len(set(keys)) == len(keys)
 
 
-def test_all_types_present(world):
-    by = Counter(c.type for c in world[4])
-    assert set(by) == {"fact", "compare", "change", "at_event", "relation"}
+def test_selection_is_confidence_first(world):
+    claims, report = world[4], world[5]
+    assert report["min_confidence_selected"] == min(c.confidence for c in claims)
+    # nothing left out is more confident than the least confident claim taken
+    assert all(c.confidence >= report["min_confidence_selected"] for c in claims)
 
 
 def test_change_claims_follow_gold_order(world):
-    rows, lex, kb, *_ = world
+    kb = world[2]
     for c in world[4]:
         if c.type != "change":
             continue
@@ -65,6 +74,67 @@ def test_compare_claims_hold_on_current_values(world):
         lv, _, _ = kb.current_value(c.form["left"]["subject"], c.form["left"]["attribute"])
         rv, _, _ = kb.current_value(c.form["right"]["subject"], c.form["right"]["attribute"])
         assert nz.compare(lv, rv) == c.form["op"], c.text
+
+
+# ---- synthetic inventory: the generator without any extractor or practice data -------------------
+NAMES = ["Alpha", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel", "India", "Juliett", "Kilo",
+         "Lima", "Mike", "November", "Oscar", "Papa", "Quebec", "Romeo", "Sierra", "Tango", "Uniform", "Victor",
+         "Whiskey", "Xray", "Yankee", "Zulu", "Amber", "Basalt", "Cobalt", "Dune", "Ember", "Fjord", "Garnet", "Helix"]
+
+
+def _synthetic(n_products=34):
+    products = [f"Zeta {w} Plan" for w in NAMES[:n_products]]
+    lex = {"subjects": [{"name": p, "aliases": [], "attributes": ["price"]} for p in products], "events": []}
+    recs = [{"subject": p, "attribute": "price", "date": "2026-10-01",
+             "value": {"kind": "money", "value": 10 + i, "currency": "EUR", "per": "month"}}
+            for i, p in enumerate(products)]
+    return FactInventory.from_records(recs, lex), lex
+
+
+def test_combinatorial_compares_without_quotas():
+    inv, lex = _synthetic(34)
+    report = {}
+    claims = generate_from_inventory(inv, set(), 1000, report)
+    assert report["valid_by_type"]["compare"] == 34 * 33  # 1,122 ordered comparisons
+    assert report["distinct_by_type"]["compare"] == 34 * 33 // 2  # 561 distinct relations
+    assert len(claims) == 1000
+    by_type = Counter(c.type for c in claims)
+    assert by_type["compare"] + by_type["fact"] == 1000  # whatever the evidence supports, no quota
+    assert report["selected_semantic_duplicates"] == 1000 - report["distinct_semantic"]
+    for c in claims:
+        assert validate_claim(c, lex, set()) == [], c.text
+
+
+def test_currency_and_period_never_mix():
+    lex = {"subjects": [{"name": "Zeta Alpha Plan", "aliases": [], "attributes": ["price"]},
+                        {"name": "Zeta Bravo Plan", "aliases": [], "attributes": ["price"]}], "events": []}
+    recs = [{"subject": "Zeta Alpha Plan", "attribute": "price", "date": "2026-10-01",
+             "value": {"kind": "money", "value": 10, "currency": "EUR", "per": "month"}},
+            {"subject": "Zeta Bravo Plan", "attribute": "price", "date": "2026-10-01",
+             "value": {"kind": "money", "value": 20, "currency": "USD", "per": "month"}}]
+    report = {}
+    generate_from_inventory(FactInventory.from_records(recs, lex), set(), 10, report)
+    assert "compare" not in report["valid_by_type"]
+
+
+def test_extractor_output_plugs_in_unchanged(world):
+    """Facts from a P3-shaped extractor (dataclasses or dicts) reach the generator through the KB only."""
+    rows, lex, _, texts, _, _ = world
+    universe = [{"id": r["id"], "text": r["text"], "date": r["date"], "label": ""} for r in rows]
+    for as_dicts in (False, True):
+        facts = gold_extractor(rows, as_dicts)(universe, lex)
+        kb = KB(lex).build(facts, rows, universe)
+        assert kb.stats()["extracted"] == len(facts) and kb.stats()["extracted_dropped"] == 0
+        report = {}
+        assert len(generate(kb, lex, texts, 1000, report)) == 1000
+
+
+def test_adapter_drops_malformed_facts():
+    lex = read_lexicon(os.path.join(ROOT, "data", "lexicon.json"))
+    kb = KB(lex).build([{"row_id": "x", "subject": "Hooly", "attribute": "ceo", "value": "Gavin"},
+                        {"row_id": "y", "subject": "Hooly", "attribute": "ceo",
+                         "value": {"kind": "name", "value": "Gavin Bellson"}}], [], [{"id": "y", "date": "2026-01-01"}])
+    assert kb.stats()["extracted"] == 1 and kb.stats()["extracted_dropped"] == 1
 
 
 @pytest.mark.parametrize("value,text", [

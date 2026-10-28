@@ -79,6 +79,7 @@ class KB:
         self._tl: dict[tuple[str, str], Timeline] = {}
         self.row_dates: dict[str, str] = {}
         self.page_votes: dict[str, list[int]] = defaultdict(lambda: [0, 0])  # date -> [agree, disagree]
+        self.ingest: dict = {}  # adapter counters: extracted_in, extracted_dropped
 
     # ---- build -------------------------------------------------------------------------------
     def _add(self, subject, attribute, value, date, source, weight, row_id):
@@ -100,11 +101,14 @@ class KB:
                 self._add(f["subject"], f["attribute"], f["value"], date, "wrong", GOLD_WEIGHT, r["id"])
 
     def add_extracted(self, facts, rows: list[dict] | None = None) -> None:
+        """P3's facts (dataclass, object or dict; see app.kb.adapter), dated by their row."""
+        from app.kb.adapter import to_records
+
         for r in rows or []:
             self.row_dates.setdefault(r["id"], r.get("date", ""))
-        for f in facts or []:
+        for f in to_records(facts, self.ingest):
             date = self.row_dates.get(f.row_id, "")
-            self._add(f.subject, f.attribute, f.value, date, "extracted", float(getattr(f, "conf", 0.5) or 0.5), f.row_id)
+            self._add(f.subject, f.attribute, f.value, date, "extracted", f.conf, f.row_id)
 
     def build(self, facts, gold_rows: list[dict], rows: list[dict] | None = None) -> "KB":
         self.add_gold(gold_rows)
@@ -177,4 +181,4 @@ class KB:
         for tl in self._tl.values():
             for m in tl.mentions:
                 n[m.source] += 1
-        return {"pairs": len(self._tl), **n}
+        return {"pairs": len(self._tl), **n, **self.ingest}

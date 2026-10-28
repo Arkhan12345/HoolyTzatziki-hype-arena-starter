@@ -4,3 +4,5 @@
 11:40 | P2 | Temporal KB + claim generator + validator from practice gold | 1,000 claims, 100% validator-clean, 5 types; ~3,900 valid candidates to choose from
 11:40 | P2 | Demo API (POST /run, GET /architecture, GET /metrics) in the frontend's shapes | Vald's UI can switch from mocks to the live pipeline
 12:00 | P2 | scripts/check.sh green in real Docker (WSL): exit 0, no OOM, 1,000 claims, user 10001, read-only root, no network | the image is contest-ready; 19k rows in 4 s at 57 MB RSS, image 689 MB of the 3 GiB allowed
+12:10 | P2 | Generator v2: reads only a FactInventory from the KB, no type quotas, confidence-first selection, both orientations of every compare, an independent truth re-check of every form | 10,190 valid new claims, 5,796 distinct; 3,981 distinct compares alone could fill the 1,000; selected all at confidence >= 0.93 with zero semantic duplicates
+12:10 | P2 | KB adapter for P3's extractor output + scripts/claim_capacity.py | real extraction plugs in without touching the generator (tested with a mock extractor, dataclasses and dicts)
