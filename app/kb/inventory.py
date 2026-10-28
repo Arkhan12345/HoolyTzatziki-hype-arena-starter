@@ -45,6 +45,11 @@ class FactInventory:
         self._trusted = {p: [e for e in ev if e.source in self.trusted_sources and "op" not in e.value]
                          for p, ev in self._all.items()}
         self.gold_rows = {r for ev in self._all.values() for e in ev if e.source == "gold" for r in e.row_ids}
+        self._by_row: dict[str, list] = defaultdict(list)  # row id -> [(pair, value)]: what each sentence states
+        for pair, ev in self._all.items():
+            for e in ev:
+                for r in e.row_ids:
+                    self._by_row[r].append((pair, e.value))
 
     # ---- construction --------------------------------------------------------------------------
     @classmethod
@@ -73,16 +78,24 @@ class FactInventory:
             rows[rid] = {"text": r.get("text", ""), "date": r["date"], "label": "true", "origin": "fixture"}
         return cls(dict(timelines), lex, rows)
 
-    def sources(self, row_ids, limit: int = 8) -> list[dict]:
-        """The sentences behind a claim, newest first (internal debug only, never in output.csv)."""
+    def sources(self, row_ids, limit: int = 8, pairs=None) -> list[dict]:
+        """The sentences behind a claim, newest first, each with the facts it states that the claim
+        uses (`states`, limited to `pairs` when given). Internal debug only, never in output.csv."""
+        pairs = {(self.lex.canonical(s) or s, a) for s, a in pairs} if pairs else None
         seen, out = set(), []
         for rid in sorted(set(row_ids), key=lambda r: (self.rows.get(r, {}).get("date", ""), r), reverse=True):
             if rid in seen:
                 continue
             seen.add(rid)
             info = self.rows.get(rid, {})
+            states, seen_state = [], set()
+            for p, v in self._by_row.get(rid, []):
+                k = (p, nz.key(v))
+                if (pairs is None or p in pairs) and k not in seen_state:
+                    seen_state.add(k)
+                    states.append({"subject": p[0], "attribute": p[1], "value": v})
             out.append({"row_id": rid, "date": info.get("date"), "text": info.get("text"),
-                        "label": info.get("label"), "origin": info.get("origin"),
+                        "label": info.get("label"), "origin": info.get("origin"), "states": states,
                         **({"classified": info["classified"]} if "classified" in info else {})})
             if len(out) >= limit:
                 break

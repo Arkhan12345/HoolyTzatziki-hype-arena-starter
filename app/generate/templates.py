@@ -7,6 +7,8 @@ is the fallback the validator has always accepted.
 """
 from __future__ import annotations
 
+import re
+
 from app.generate.render import value_text
 
 ACRONYMS = {"ai": "AI", "api": "API", "cli": "CLI", "eu": "EU", "sdks": "SDKs", "ides": "IDEs", "ar": "AR",
@@ -193,3 +195,23 @@ def _compare_same(ls: str, rs: str, attribute: str, op: str, between: str, kind:
         return f"{ls} has {'more' if op == 'gt' else 'fewer'} {aw} than {rs}."  # more employees than
     word = (AMOUNT_GT if op == "gt" else AMOUNT_LT).get(k, "higher" if op == "gt" else "lower")
     return f"{ls} has a {word} {aw} than {rs}."
+
+
+def _tidy(text: str | None) -> str | None:
+    """'… of The May 2026 outage' -> '… of the May 2026 outage' (names match in any case)."""
+    if not text:
+        return text
+    return text[:1] + re.sub(r"(?<=\s)The (?=[A-Z0-9])", "the ", text[1:])
+
+
+def _tidied(fn):
+    def wrapper(*args, **kwargs):
+        return _tidy(fn(*args, **kwargs))
+
+    wrapper.__name__, wrapper.__doc__ = fn.__name__, fn.__doc__
+    return wrapper
+
+
+for _name in ("fact_text", "fact_text_plain", "fact_text_alt", "change_text", "at_event_text", "relation_text",
+              "compare_text", "compare_text_plain"):
+    globals()[_name] = _tidied(globals()[_name])

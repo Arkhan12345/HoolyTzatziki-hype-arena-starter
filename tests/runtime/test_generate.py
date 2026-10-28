@@ -6,7 +6,7 @@ import pytest
 
 from app.generate import generate, generate_from_inventory
 from app.generate.render import value_text
-from app.generate.truth import truth_problems
+from app.validate.claims import ClaimValidator
 from app.io.reader import read_lexicon, read_practice
 from app.kb import normalize as nz
 from app.kb.inventory import FactInventory
@@ -34,9 +34,10 @@ def test_exactly_1000_unique_valid(world):
     assert len({c.id for c in claims}) == 1000
     assert len({norm_text(c.text) for c in claims}) == 1000
     inv = FactInventory.from_kb(kb)
+    judge = ClaimValidator(inv, texts)
     for c in claims:
         assert validate_claim(c, lex, texts) == [], c.text
-        assert truth_problems(c.type, c.form, inv) == [], c.text
+        assert judge.check(c).verdict == "PASS", (c.text, judge.check(c).reasons)
         assert 0.5 <= c.confidence <= 1
 
 
@@ -105,10 +106,11 @@ def test_combinatorial_compares_without_quotas():
                 c.form["left"]["subject"])
     assert len(pairs) == 561 and all(len(sides) == 2 for sides in pairs.values())
     assert report["distinct_by_type"]["compare"] == 34 * 33 // 2  # 561 distinct relations
-    assert len(claims) == 1000
-    by_type = Counter(c.type for c in claims)
-    assert by_type["compare"] + by_type["fact"] == 1000  # whatever the evidence supports, no quota
-    assert report["selected_semantic_duplicates"] == 1000 - report["distinct_semantic"]
+    # 561 pieces of information exist; the mirror wordings and the facts (each restates its own row)
+    # may not pad the set: fewer than n claims, reported, instead of relaxed rules
+    assert len(claims) == 561 and report["shortfall"] == 1000 - 561
+    assert Counter(c.type for c in claims) == {"compare": 561}
+    assert report["selected_semantic_duplicates"] == 0 and report["semantic_duplicates_inverse_compare"] >= 561
     for c in claims:
         assert validate_claim(c, lex, set()) == [], c.text
 
@@ -276,3 +278,56 @@ def test_equal_counts_read_as_counts():
 
     t = compare_text(("Hooly", "employees"), ("Hooly Cloud", "employees"), "eq", "amount", "quantity")
     assert t == "Hooly has as many employees as Hooly Cloud."
+
+
+def test_change_claims_are_consecutive_steps(world):
+    kb = world[2]
+    for c in world[4]:
+        if c.type != "change":
+            continue
+        keys = []
+        for m in kb.timeline(c.form["subject"], c.form["attribute"]).gold():
+            if "op" not in m.value and (not keys or keys[-1] != m.key):
+                keys.append(m.key)
+        steps = set(zip(keys, keys[1:]))
+        assert (nz.key(c.form["from"]), nz.key(c.form["to"])) in steps, c.text
+
+
+def test_sources_say_which_fact_each_sentence_gives(world):
+    from app.generate.candidates import current
+    from app.generate.select import claim_pairs
+
+    inv = FactInventory.from_kb(world[2])
+    for c in world[4]:
+        pairs = set(claim_pairs(c.type, c.form))
+        if c.type == "fact":
+            used = {(c.form["subject"], c.form["attribute"]): [c.form["value"]]}
+        elif c.type == "change":
+            used = {(c.form["subject"], c.form["attribute"]): [c.form["from"], c.form["to"]]}
+        elif c.type == "compare":  # a compare holds over the pair's history: any trusted value backs it
+            used = {p: [current(inv, *p)[0]] + [e.value for e in inv.trusted(*p)] for p in pairs}
+        else:
+            used = None
+        for s in c.meta["sources"]:
+            assert s["states"], (c.text, s["row_id"])
+            keys = [(st["subject"], st["attribute"], nz.key(st["value"])) for st in s["states"]]
+            assert len(keys) == len(set(keys)), ("repeated state", c.text, s["row_id"])
+            for st in s["states"]:
+                assert (st["subject"], st["attribute"]) in pairs, (c.text, st)
+                if used is not None:
+                    # a less precise date of the same day ("January 2026" for 12 January 2026) also backs it
+                    assert any(nz.same(st["value"], v) or nz.date_prefix_related(st["value"], v)
+                               for v in used[(st["subject"], st["attribute"])]), (c.text, st)
+
+
+def test_at_event_sources_include_the_event_date():
+    from app.generate.candidates import at_event_candidates
+
+    rows = read_practice(os.path.join(ROOT, "data", "practice.csv"))
+    lex = read_lexicon(os.path.join(ROOT, "data", "lexicon.json"))
+    inv = FactInventory.from_kb(KB(lex).build([], rows))
+    c = next(iter(at_event_candidates(inv)))
+    from app.generate.select import claim_pairs
+
+    srcs = inv.sources(c.evidence, limit=50, pairs=claim_pairs(c.type, c.form))
+    assert any(st["attribute"] == "date" and st["subject"] == c.form["event"] for s in srcs for st in s["states"])

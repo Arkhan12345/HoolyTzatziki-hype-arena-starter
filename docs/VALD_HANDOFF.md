@@ -47,6 +47,7 @@ that works if the `python` on PATH has `requirements.txt` installed. Check: `cur
 | Metrics page | `GET /metrics` (latest run) or `GET /runs/{run_id}/metrics` | `Metrics` |
 | Diagram | `GET /architecture` | `{nodes, edges, stage_status, timings, run_id}` (React Flow ready) |
 | Download the run's table | `GET /runs/{run_id}/output.csv` | official `output.csv` format |
+| Claim validator report | `GET /runs/{run_id}/validation?verdict=PASS\|FAIL\|UNVERIFIED&offset=0&limit=100` | `{selected: {n, verdicts, by_type, checks_failed}, candidates: {generated, verdicts_by_type, rejected, distinct_semantic, semantic_duplicates: {inverse_compare, paraphrase_or_alias}}, total, claims: [{id, type, text, confidence, verdict, checks, reasons, evidence, semantic_key}]}` |
 | History | `GET /runs` | last 20 runs |
 
 ## 4. Real examples (captured from the running API)
@@ -170,6 +171,10 @@ claims or metrics in the browser, and do not add a pipeline under `frontend/`.
    to P2 (or a commit to `frontend/src/mocks/architecture.json` that P2 copies over).
 9. **Dependencies**: read `DEPENDENCIES.md` before adding any npm package; frontend versions are pinned by
    `frontend/package-lock.json`.
+
+Validator numbers are also in `metrics.claims.validation` (`candidates_verdicts_by_type`, `inverse_compares_detected`,
+`paraphrases_detected`, `selected`). The arena run writes the same report to `validation_report.json` next to
+`metrics.json` (`$TZ_AUX_DIR`, default `/tmp/tzatziki` in the arena, next to `output.csv` locally).
 
 ## 7. What works now, what is still stubbed
 

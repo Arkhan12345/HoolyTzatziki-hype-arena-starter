@@ -16,9 +16,10 @@
       "claims_valid": 1000
     },
     "claims_by_type": {
-      "change": 384,
-      "compare": 343,
-      "fact": 273
+      "compare": 466,
+      "change": 281,
+      "at_event": 252,
+      "relation": 1
     },
     "fact_staleness_check": "15% subsample of practice: facts last seen from Sep 2026 on ~96% still current, Jun-Aug ~75%, earlier ~50% (confidence follows this)",
     "note": "extractor and classifier not merged yet: labels are the all-true baseline (0.83 confidence)",
@@ -86,6 +87,36 @@
           "hide_25pct": 0.021,
           "hide_50pct": 0.0913
         }
+      },
+      "consecutive_changes": {
+        "wrong_rate": {
+          "hide_10pct": 0.0017,
+          "hide_25pct": 0.007,
+          "hide_50pct": 0.022
+        },
+        "note": "change = consecutive steps only; on the full practice set 903 claims at >= 0.9, 97 timeline compares (dates of different attributes) at 0.885"
+      }
+    },
+    "claim_validator": {
+      "source": "app/validate/claims.py on the practice gold, 2026-10-28",
+      "candidates": 11794,
+      "pass": 9583,
+      "fail": 1885,
+      "unverified": 326,
+      "fact_rejected_as_reformulation_or_contract": 1272,
+      "inverse_compares_detected": 2459,
+      "paraphrases_detected": 2270,
+      "distinct_semantic": 4854,
+      "selected": {
+        "n": 1000,
+        "PASS": 1000,
+        "semantic_duplicates": 0
+      },
+      "holdout_wrong_rate": {
+        "hide_10pct": 0.0017,
+        "hide_25pct": 0.0057,
+        "hide_50pct": 0.0183,
+        "at_event_robust": 0.0
       }
     }
   }

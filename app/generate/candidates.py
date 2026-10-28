@@ -118,6 +118,15 @@ def value_at(inv: FactInventory, s: str, a: str, day: str):
     return None, 0.0, ()
 
 
+def _days_between(a: str, b: str) -> int:
+    from datetime import date
+
+    try:
+        return (date.fromisoformat(b[:10]) - date.fromisoformat(a[:10])).days
+    except ValueError:
+        return -1
+
+
 def event_days(inv: FactInventory, event: str) -> list[str]:
     return sorted({e.value["value"] for e in inv.trusted(event, "date") if len(str(e.value["value"])) == 10})
 
@@ -141,7 +150,9 @@ def change_candidates(inv: FactInventory):
     for (s, a) in inv.pairs():
         rs = runs(inv.trusted(s, a))
         seen = set()
-        for i, j in itertools.combinations(range(len(rs)), 2):
+        # consecutive steps only: "went from 68.0 to 71.0" is true per the contract but hides 69.0, 70.0
+        # (and that 72.0 came after), so each claim states one real step of the timeline
+        for i, j in ((k, k + 1) for k in range(len(rs) - 1)):
             ki, vi, _, last_i, ri = rs[i]
             kj, vj, first_j, _, rj = rs[j]
             if ki == kj or (ki, kj) in seen or first_j <= last_i:
@@ -153,8 +164,7 @@ def change_candidates(inv: FactInventory):
             if text:
                 # holdout (scripts/claim_holdout.py): 0 of ~540 change claims contradicted, 50% or 90% hidden
                 yield Candidate("change", text, {"subject": s, "attribute": a, "from": vi, "to": vj},
-                                0.98 if j == i + 1 else 0.97, ("change", s, a, ki, kj), ri + rj,
-                                {"consecutive": j == i + 1})
+                                0.98, ("change", s, a, ki, kj), ri + rj, {"consecutive": True})
 
 
 def at_event_candidates(inv: FactInventory):
@@ -170,12 +180,21 @@ def at_event_candidates(inv: FactInventory):
                 continue
             v = vals[0][0]
             # holdout: ~43% not confirmed by the full data (rescheduled events have dates we did not
-            # see), so at_event only fills in when the safer types run out
+            # see), so at_event only fills in when the safer types run out ...
             conf = min(0.6, min(c for _, c, _ in vals) - (0.03 if len(days) > 1 else 0))
+            # ... unless the fact never changed and its mentions bracket every event day by a week:
+            # then any day the event moved to (inside that span) held the same value
+            ev = inv.trusted(s, a)
+            if len(ev) >= 2 and len({e.key for e in ev}) == 1 and _days_between(ev[0].date, days[0]) >= 7 \
+                    and _days_between(days[-1], ev[-1].date) >= 7:
+                conf = 0.9
             text = T.at_event_text(s, a, event, v)
             if text:
                 yield Candidate("at_event", text, {"subject": s, "attribute": a, "event": event, "value": v},
-                                conf, ("at_event", s, a, event, nz.key(v)), tuple(r for _, _, e in vals for r in e),
+                                conf, ("at_event", s, a, event, nz.key(v)),
+                                tuple(r for _, _, e in vals for r in e)  # the fact on the event's day(s)
+                                + tuple(r for e in inv.trusted(event, "date") if len(str(e.value["value"])) == 10
+                                        for r in e.row_ids),  # and the sentences that date the event
                                 {"event_days": days})
 
 
@@ -198,6 +217,10 @@ def relation_candidates(inv: FactInventory):
                     continue
                 if len({e.key for e in tev}) == 1:  # holdout: few and often wrong -> below compare/fact
                     v, conf, used = tev[-1].value, 0.75, tev
+                    # the link always named this target and the target's fact never changed: robust
+                    all_links = [e for e in inv.trusted(s, link) if e.value.get("kind") == "name"]
+                    if len(tev) >= 2 and len(links) >= 2 and len(links) == len(all_links):
+                        conf = 0.9
                 else:
                     used = [e for e in tev if lo <= e.date <= hi]
                     if not used or len({e.key for e in used}) != 1:
@@ -248,7 +271,16 @@ def compare_candidates(inv: FactInventory):
                 # lower version than Hooly Maps" says nothing a reader wants. Robust ones are still the
                 # safest filler (holdout: ~0% wrong), so they rank after every sensible claim but before
                 # the riskier old facts and at_event; on the full practice set they are not needed.
-                conf = 0.88 if robust else 0.55
+                # among fillers: a timeline (founding vs launch date) reads best, then same-kind amounts,
+                # last the version numbers of two different products
+                if not robust:
+                    conf = 0.55
+                elif between == "date":
+                    conf = 0.885
+                elif lv.get("kind") == "version":
+                    conf = 0.875
+                else:
+                    conf = 0.88
             a_ref, b_ref = (ls, la), (rs, ra)
             sem = ("compare",) + ((a_ref, op, b_ref) if a_ref <= b_ref else (b_ref, FLIP[op], a_ref))
             for left, right, o in ((a_ref, b_ref, op), (b_ref, a_ref, FLIP[op])):
