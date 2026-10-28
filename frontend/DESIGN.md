@@ -4,9 +4,9 @@ Chosen with the `ui-ux-pro-max` skill. Its `--design-system` query came back off
 
 ## Themes
 
-There are two themes, dark (the default) and light. The toggle sits in the sidebar and the mobile top bar. The choice is saved in localStorage; without one, the system preference decides. An inline script in index.html sets  before first paint, so the page never flashes the wrong theme. Every token is a CSS variable in , holding an RGB triplet, so Tailwind can add alpha. SVG and Recharts colours come from  (), which reads the same variables, so there is one source of truth. In light mode the verdict colours are darker (lime , red , amber ) to keep text contrast at 4.5:1 or more on white.
+There are two themes, dark (the default) and light. The toggle sits in the sidebar and the mobile top bar. The choice is saved in localStorage; without one, the system preference decides. An inline script in index.html sets `data-theme` before first paint, so the page never flashes the wrong theme. Every token is a CSS variable in `src/index.css`, holding an RGB triplet, so Tailwind can add alpha. SVG and Recharts colours come from `useColors()` (`src/lib/theme.tsx`), which reads the same variables, so there is one source of truth. In light mode the verdict colours are darker (lime `#4D7C0F`, red `#C0353F`, amber `#B45309`) to keep text contrast at 4.5:1 or more on white.
 
-## Tokens (, dark values shown)
+## Tokens (`tailwind.config.js`, dark values shown)
 
 | Role | Token | Value | Use |
 | --- | --- | --- | --- |
