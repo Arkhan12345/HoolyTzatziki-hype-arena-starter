@@ -1,0 +1,4 @@
+.venv-eda/
+eda/out/*.pkl
+.claude/worktrees/
+__pycache__/

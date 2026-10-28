@@ -314,4 +314,4 @@ flowchart TD
 ```
 
 Every option is scored with the same folds (grouped by page, plus a time-forward split) on macro-F1, ECE and runtime,
-and recorded in `train/results.csv`. Details: [`docs/MODELS.md`](docs/MODELS.md).
+and recorded in `train/results.csv`. Details: [`docs/MODELS.md`](docs/MODELS.md). Data rules, per-row option advice and the first bake-off: [`docs/EDA_v2.md`](docs/EDA_v2.md), [`data/RULES.md`](data/RULES.md).

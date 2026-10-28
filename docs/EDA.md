@@ -69,3 +69,5 @@ Reuses ideas/code from `C:\Users\alexandru.mirea\PycharmProjects\neuromorphic-ge
 Label rate per attribute and per page; value-change timelines for the top 30 pairs; n-gram cues of lying
 pages (speaker quotes, superlatives "more than any", "best"); extraction coverage per value kind;
 calibration curve of the first model.
+
+**Done in [EDA v2](EDA_v2.md)**: rules sheet [`data/RULES.md`](../data/RULES.md), per-row advice `eda/out/practice_annotated.csv`, bake-off `eda/out/bakeoff.csv`.
