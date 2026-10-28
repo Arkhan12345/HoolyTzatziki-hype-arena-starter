@@ -223,3 +223,16 @@ Rezultatele sunt în `eda/out/fact_chains_model.csv`.
 5. Mix-ul de etichete (~60/30/10) e ales de Ioan. Modelul învață totuși pe distribuția reală prin ponderea `w_synth`.
 
 Modelul rezultat se salvează în `eda/out/models/synth_lgbm.joblib` (+ `synth_lgbm_params.json`). `eda/12_train_synth.py --load` scorează holdout-ul și cele 300 de afirmații fără reantrenare.
+
+### Cum prindem mai multe afirmații false (propuneri, neimplementate)
+
+Detaliile sunt în [`eda/README.md`](../../eda/README.md), secțiunea „Catching false statements”. Pe scurt:
+- **Prag mai mic pentru „false”**, ales pe fold-urile interioare. Pe CV, cu L0, recall-ul pe false crește de la 0,45 la 0,64 (p_false ≥ 0,2), cu 2 puncte de acuratețe mai puțin. Cu L4 crește de la 0,61 la 0,72.
+- **Ponderi de clasă pentru false.**
+- **Un model separat „actualizare vs minciună”** pentru valorile care contrazic valoarea curentă. În practice, doar 44% din ele sunt false, și niciun semnal singur nu le separă.
+- **Semantica atributelor:** atribute imuabile, cum sunt datele de lansare și de înființare, și atribute monotone, cum e versiunea.
+- **Praguri pe arhetip.**
+- **Un extractor mai bun:** valorile citite greșit arată ca minciuni.
+- **Minciuni sintetice tipizate** în setul lui Ioan.
+
+Nu calibrăm doar pe `hooly_statements_300`: regula lui de etichetare nu e cea din practice.

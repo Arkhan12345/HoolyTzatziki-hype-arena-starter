@@ -127,6 +127,106 @@ minorities are oversampled (~60/30/10). The spec in `tests/runtime/README.md` as
 `--smoke` runs the pipeline on any CSV, e.g. `data/hooly_statements_300.csv`. It's a pipeline check only: it never
 replaces the saved model.
 
+## Catching false statements: proposals (not implemented yet)
+
+**What fails.** Every model misses most false rows. Practice CV with gold facts catches 45% of the false rows with L0
+and 61% with L4. On `hooly_statements_300` it catches 0–10%. There are two reasons:
+- The model decides by argmax over three classes with priors of 83% true and 15% false, so false only wins when the
+  evidence is overwhelming.
+- In practice, a value that contradicts the known value is false only **44%** of the time (232 contradicting facts,
+  leave-one-page-out KB). The rest are real updates, so "contradicts" alone can't mean false.
+
+Simple single signals don't separate updates from lies either (measured on those 232 facts):
+
+| Contradicting fact | n | false share |
+| --- | --- | --- |
+| value only on this page | 178 | 0.41 |
+| value repeated on other pages | 54 | 0.54 |
+| "immutable" attribute (founded / released / joined / dates) | 14 | 0.43 |
+| report-scoped subject (Q1 results, reports) | 10 | 0.50 |
+
+Each proposal below lists what to test and how to measure it. The protocol is the same for all of them:
+- `eda/splits.csv`;
+- inner folds for every tuned knob;
+- real fold_group CV with extracted facts;
+- the holdout once;
+- `eda/10_h300_validation.py`.
+
+### 1. Lower the bar for "false" (cheapest, measured)
+Predict false when `p_false ≥ t` instead of argmax, with `t` tuned on the inner folds. The table below comes from the
+existing out-of-fold predictions of `07_improve.py` (gold facts, fold_group CV):
+
+| Model | Rule | False recall | False precision | Rows predicted false | Accuracy |
+| --- | --- | --- | --- | --- | --- |
+| L0 | argmax | 0.45 | 0.69 | 151 | 0.873 |
+| L0 | p_false ≥ 0.3 | 0.56 | 0.58 | 226 | 0.861 |
+| L0 | p_false ≥ 0.2 | 0.64 | 0.54 | 280 | 0.852 |
+| L4 | argmax | 0.61 | 0.75 | 192 | 0.895 |
+| L4 | p_false ≥ 0.3 | 0.69 | 0.65 | 245 | 0.884 |
+| L4 | p_false ≥ 0.2 | 0.72 | 0.59 | 284 | 0.870 |
+
+- **Trade-off:** +10 to +20 points of false recall for −1 to −2.5 points of accuracy. Whether that pays depends on how
+  the arena scores labels and confidence; ask QA DNA if needed.
+- **Effort:** about 30 min. Add a `false_threshold` beside the existing `tau` in `07_improve.decide()` and in `09`/`12`.
+
+### 2. Cost-sensitive training
+Give false rows a class weight of 2–3× (or `class_weight="balanced"`) in `improve/base.lgbm()` and tune it on the inner
+folds. It works like option 1 but inside training, so the trees split on false-specific evidence. Effort: about 30 min.
+Compare with option 1 on false F1.
+
+### 3. An "update vs lie" model for contradicting values (biggest expected gain)
+Train a second LightGBM / logistic model only on rows whose fact contradicts the current value (232 facts in practice,
+44% false; more once synthetic data exists). Candidate features, all label-free or out-of-fold:
+- **Later confirmation:** do later pages repeat the new value? (`fact_chains.ch_superseded`, `same_value_pages`,
+  `agree_next_mention`)
+- **Page trust** (`improve/trust.py`) and genre: first-person hype, hearsay, joke tail.
+- **Deviation size and shape:** `log_dev_from_pair_median`, round numbers, ×10 / ÷10 slips.
+- **Direction vs the attribute's trend:** versions and counts usually grow, so a lower version than current is
+  suspicious.
+- **Timing:** row date vs the KB change date, and "today" claims vs page date (`today_date_mismatch`).
+- **Pair volatility:** how often the pair changes (`ch_chain_len`, days between changes).
+
+Its probability becomes one feature (`p_lie`) for the main model, out-of-fold. Effort: 2–3 h.
+
+### 4. Attribute semantics
+Some attributes should never change: founding dates, release dates, people's start dates, a past report's figures.
+Others change in one direction only: version, headcount over a year. Tag them once from `data/lexicon.json`, using
+attribute names plus the practice change history: an attribute with 0 changes over many mentions counts as immutable.
+Then:
+- a contradiction of an immutable fact → strong `p_lie`;
+- a backwards move of a monotone attribute → strong `p_lie`.
+
+Practice has only ~14 such contradicting facts (43% false), so this has to be validated on synthetic data and h300
+before any hard rule. Most h300 false rows are of this kind (release dates, founding dates, Q1 report figures). Effort:
+about 1 h.
+
+### 5. Thresholds per archetype, or a cascade
+False rates differ a lot by archetype (`eda/out/archetypes.csv`, `03_recommend.py`). Tune `t` per archetype, with
+shrinkage to the global `t`. Or use a two-stage cascade: an unsure gate first, then a binary true/false model with its
+own calibrated threshold. Effort: about 1–2 h.
+
+### 6. Extraction errors hide lies
+With extracted facts, L4's false precision falls from 0.74 to 0.57, and h300 extraction F1 is 0.54. A misread value
+looks like a contradiction, and a missed value hides one. Plan:
+- train the extractor on `form` (train-time only): a token tagger for subject and value spans, plus the attribute
+  picker trained on real and synthetic forms (`12_train_synth.py` already does the latter);
+- pass a value-level confidence to the classifier, so "contradicts, but low read confidence" isn't treated as a lie.
+
+### 7. Synthetic lies (Ioan's ~10k rows)
+Ask for lies typed by mechanism: stale value, inflated hype number, wrong date, wrong person, unit slip, backwards
+version. Each type should come with realistic updates as counter-examples, otherwise the model relearns
+"contradicts = false". Train through `eda/12_train_synth.py`, which tunes `w_synth` on real inner folds and reports
+false recall on real rows.
+
+### 8. Don't tune to h300 alone
+`hooly_statements_300` labels every contradiction false, but practice doesn't (44%). Track recall on false there, but
+pick thresholds and weights on real CV. A change that only helps h300 is overfitting to its labelling rule.
+
+### Acceptance rule for any of the above
+Report false recall, false precision and false F1 next to accuracy and all-true, on real CV (extracted facts), the
+holdout once, and h300. Ship a change when false F1 rises and accuracy drops by at most 1 point, or when the team
+explicitly accepts the trade.
+
 ## Saved models (no retraining)
 
 | File | What | Reuse |
