@@ -169,6 +169,8 @@ def main(universe_dir: str | None = None, output_dir: str | None = None, deadlin
         if labels:
             state.set(labels=labels)
             classifier = "p3"
+            # the classification's structured output (confident true rows + their facts) feeds the KB
+            stages.run("kb", lambda: kb.add_classified(labels, facts, rows), 0)
     else:
         stages.status["classify"] = "not_available"
     if facts and deadline - time.time() > 5 * 60:
@@ -196,7 +198,8 @@ def main(universe_dir: str | None = None, output_dir: str | None = None, deadlin
         collector.write_json(out, "metrics.json", metrics)
         collector.write_json(out, "architecture.json",
                              collector.architecture(metrics["runtime"]["stage_status"], stages.timings, run_id))
-        log(f"auxiliary metrics.json + architecture.json in {out}")
+        collector.write_claims_debug(out, claims)
+        log(f"auxiliary metrics.json, architecture.json, claims_debug.jsonl in {out}")
     except Exception:  # noqa: BLE001
         log(f"auxiliary artifacts skipped:\n{traceback.format_exc()}")
         metrics = None
