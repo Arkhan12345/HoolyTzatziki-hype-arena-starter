@@ -73,12 +73,13 @@ hype-arena-starter/
 │   └── examples/{entry,claimed_value}/{good,bad}/   schema test cases
 ├── data/                    [S] what we learn from
 │   ├── practice.csv             1,897 labelled rows (id, text, date, label, form)
-│   └── lexicon.json             subjects, aliases, attributes, events
+│   ├── lexicon.json             subjects, aliases, attributes, events
+│   └── RULES.md             [T] dataset logic: the rules that decide true / false / unsure (X)
 ├── scripts/                 [S] arena checker
 │   ├── check.sh                 builds the image and runs it like the arena, on practice rows
 │   ├── input.py                 hides every 5th label to make the run's input
 │   └── check_output.py          checks output.csv (columns, ids, 1,000 claims, label count)
-├── docs/                    [T] design: ARCHITECTURE, REQUIREMENTS, EDA, MODELS
+├── docs/                    [T] design: ARCHITECTURE, REQUIREMENTS, EDA, EDA_v2, MODELS
 ├── team/                    [T] one prompt per member + team rules (branches, commits, merges)
 ├── frontend/                [T] Vite + React UI: architecture diagram, live run, metrics, pitch
 ├── Dockerfile               [C] python:3.12-slim image the arena runs (origin/john)
@@ -88,7 +89,7 @@ hype-arena-starter/
 ├── models/                  [C] trained model files shipped in the image
 ├── pitch/                   [C] JOURNAL.md (one line per commit) + metrics.json for the UI
 ├── STATUS.md                [C] who does what, plus requests between members
-├── eda/                     [C] EDA scripts: rules, features, per-row model advice, bake-off (X/model-strategy-v2)
+├── eda/                     [T] EDA scripts: rules, features, per-row model advice, bake-off (X/model-strategy-v2)
 └── sample/sample.csv        [S] 20 unlabelled rows added on 29 Oct at 09:00
 ```
 
@@ -96,6 +97,7 @@ hype-arena-starter/
 |---|---|---|---|
 | `contracts/` | starter | — (read-only) | The contract: what we get, how we run, what we hand in, plus schemas and examples |
 | `data/` | starter | — (read-only) | Practice rows with labels and gold facts, and the lexicon of names |
+| `data/RULES.md` | team | X | Dataset logic: rules and relations found in the practice data (short sheet) |
 | `scripts/` | starter (+ team scripts later) | — / Ioan | `check.sh` runs our image like the arena does; the team adds local helpers |
 | `sample/` | starter, 29 Oct 09:00 | — | The 20 rows our video shows running live |
 | `README.md` | starter + team | X | The starter text, then our pipeline, layout and options |
@@ -108,7 +110,7 @@ hype-arena-starter/
 | `models/` | team (coming) | Arckan | Trained weights baked into the image |
 | `pitch/` | team (coming) | everyone / X | Journal and metrics for the pitch page |
 | `STATUS.md` | team (coming) | everyone | Status board and requests |
-| `eda/` | team (coming) | X | EDA and model-selection experiments (dev-time only, not in the image) |
+| `eda/` | team | X | EDA scripts and outputs (`eda/out/`: rules, relations, per-row advice, bake-off); dev-time only, not in the image |
 
 ### The pipeline
 
