@@ -1,0 +1,5 @@
+knob,ftf,gain,folds_better,acc,ece,ren_ftf,ren_gain,ren_folds_better,ren_acc,rule,a_nested,a_rotations,b_gap,gap_widening,c_seeds,seed_gains,d_known_subjects,accepted
+unknown_bundle,0.6657,0.0153,3,0.8662,0.0461,0.5391,0.0668,5,0.8462,True,True,5,True,0.0078,True,"[0.0668, 0.0575, 0.0639]",True,True
+unknown_bundle+thresholds,0.6721,0.0217,3,0.8613,0.0455,0.5653,0.093,5,0.839,True,True,5,True,0.0138,True,"[0.093, 0.0964, 0.0901]",True,True
+unknown_bundle+closed_world,0.6485,-0.0018,2,0.858,0.0482,0.5247,0.0523,4,0.8443,True,True,4,True,0.0251,True,"[0.0523, 0.0415, 0.0466]",True,True
+unknown_bundle+referent+tolerance,0.6616,0.0112,3,0.8655,0.0421,0.5326,0.0602,5,0.8447,True,True,5,True,0.0119,True,"[0.0602, 0.0492, 0.0537]",True,True

@@ -1,0 +1,42 @@
+{
+ "config": {
+  "groups": [
+   "core",
+   "text",
+   "hist"
+  ],
+  "reg": "strong",
+  "synth_w": 0.3,
+  "extra": [
+   "v2_plaus_z",
+   "v2_plaus_out",
+   "v2_known_subject",
+   "v2_page_size",
+   "v2_pos_in_page",
+   "v2_page_first_person",
+   "misread_hedge",
+   "misread_negation"
+  ],
+  "ren_w": 1.0,
+  "cw_w": 0.0,
+  "cap": false,
+  "unk_offsets": true,
+  "unk_read": true
+ },
+ "chosen_by": "practice CV only (fold_group) + renamed-subject CV slice; key metric true/false macro-F1 on the renamed slice, accepted under rule + gates a-d (out/ladder_v2_combos.csv); single knobs rejected (out/ladder_v2_trials.csv)",
+ "cv": {
+  "ftf": 0.6720872685300744,
+  "acc": 0.8612581316473348,
+  "ece": 0.04546868991758899,
+  "ren_ftf": 0.5653411142219215,
+  "ren_acc": 0.8389680728391244
+ },
+ "permutation_ftf": [
+  0.4552410558470491,
+  0.4552410558470491,
+  0.4552410558470491
+ ],
+ "permutation_pass": true,
+ "n_distinct_trials": 13,
+ "deflation": "13 v2 trials; seed spread of the renamed gain 0.003 -> expected max noise ~0.003*sqrt(2 ln 13)=0.007, gain 0.093"
+}

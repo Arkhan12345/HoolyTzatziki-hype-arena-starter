@@ -1,0 +1,26 @@
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  outer 3 inner 0 (29s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  outer 3 inner 1 (47s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  outer 3 inner 2 (64s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  outer 3 inner 4 (80s)
+outer 3 done (114s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  outer 4 inner 0 (138s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  outer 4 inner 1 (155s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  outer 4 inner 2 (171s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  outer 4 inner 3 (188s)
+outer 4 done (225s)

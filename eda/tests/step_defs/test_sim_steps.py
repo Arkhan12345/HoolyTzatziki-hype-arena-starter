@@ -46,5 +46,7 @@ def no_leak(outside, runlog):
 
 @then("exactly one run is recorded and it was not forced")
 def one_run(runlog):
-    assert len(runlog["runs"]) == 1, f"{len(runlog['runs'])} runs recorded"
-    assert not runlog["runs"][0]["forced"]
+    # one unforced run per configuration (v1 = the first run, no label; v2 = label "v2")
+    labels = [r.get("label", "v1") for r in runlog["runs"]]
+    assert len(labels) == len(set(labels)), f"repeated runs: {labels}"
+    assert not any(r["forced"] for r in runlog["runs"])

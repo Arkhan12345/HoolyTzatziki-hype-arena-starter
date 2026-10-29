@@ -39,6 +39,7 @@ NEG = re.compile(r"\b(not|no|never|none|without|n't)\b", re.I)
 FIRST = re.compile(r"\b(I|I'm|me|my)\b")
 NUM = re.compile(r"\d[\d,.]*")
 PERTURB = [2, 0.5, 2.5, 0.4, 5, 0.2, 10, 0.1]
+UNKNOWN_SUBJECT = "<unknown subject>"
 DATE_FORMATS = ("%Y-%m-%d", "%Y/%m/%d", "%d %b %Y", "%d %B %Y", "%b %d, %Y", "%B %d, %Y", "%d.%m.%Y", "%m/%d/%Y")
 
 
@@ -67,6 +68,35 @@ def _num(key):
             if isinstance(x, (int, float)) and not isinstance(x, bool):
                 return float(x)
     return float("nan")
+
+
+def v2_fields(reader, best, out: dict) -> dict:
+    """v2 features, added on top of the v1 ones (which they never change). Needs no knowledge of the subject:
+    referent  how sure the attribute reading is, and whether its runner-up is an attribute it is easily confused with
+    plaus     where the value sits among the true values of the same attribute across ALL subjects
+    tol       a hedged value close to the held value counts as agreeing"""
+    from .referent import confusable, plausibility   # local import keeps pickled readers loadable
+    v = {"v2_known_subject": 0, "v2_attr_gap": 0.0, "v2_confusable": 0, "v2_plaus_z": np.nan, "v2_plaus_out": 0,
+         "v2_plaus_n": 0, "v2_tol_match": int(out.get("matches_latest", 0) == 1), "v2_referent_weak": 1}
+    if best is None:
+        return v
+    _, m, subj, p, inside, kind, _ = best
+    v["v2_known_subject"] = int(subj in reader.kb.by_subject)
+    ranked = sorted(p.items(), key=lambda kv: -kv[1])
+    top = ranked[0][0]
+    gap = ranked[0][1] - (ranked[1][1] if len(ranked) > 1 else 0.0)
+    v["v2_attr_gap"] = float(gap)
+    if len(ranked) > 1 and confusable(top, ranked[1][0]) and gap < 0.3:
+        v["v2_confusable"] = 1
+    v["v2_referent_weak"] = int(v["v2_confusable"] == 1 or gap < 0.15 or out.get("parse_conf", 0.0) < 0.5)
+    if m is not None:
+        z, n = plausibility(reader, top, dict(m.value))
+        v["v2_plaus_z"], v["v2_plaus_n"] = z, n
+        v["v2_plaus_out"] = int(z == z and abs(z) > 2.5)
+    lr = out.get("log_ratio_latest", np.nan)
+    if not v["v2_tol_match"] and lr == lr and out.get("misread_hedge", 0) and abs(lr) < math.log(1.1):
+        v["v2_tol_match"] = 1
+    return v
 
 
 @dataclass
@@ -100,8 +130,13 @@ class Reader:
     def _read_with(self, row, extractor):
         ctx = extractor._contexts([row])[0]
         subjects = list(dict.fromkeys(s for _, _, s in ctx.subjects))
+        unknown = False
         if not subjects:
-            return None, "no_subject", ctx
+            # v2 readers (unknown_subject_reading=True) still read the value and its attribute for a sentence
+            # about a company we have never seen; v1 readers keep returning nothing, exactly as before
+            if not getattr(self, "unknown_subject_reading", False):
+                return None, "no_subject", ctx
+            subjects, unknown = [UNKNOWN_SUBJECT], True
         spans = _subject_spans(ctx)
         constrained = extractor.extract([row])[0]
         mentions = [m for m in ctx.mentions
@@ -130,7 +165,7 @@ class Reader:
                 best = (score, m, subj, p, inside, kind, constrained)
         if best is None:
             return None, "no_attribute_of_kind", ctx
-        return best, "ok", ctx
+        return best, ("unknown_subject" if unknown else "ok"), ctx
 
     def _features(self, row) -> dict:
         row = dict(row, date=norm_date(row.get("date")))
@@ -147,10 +182,11 @@ class Reader:
             if best2 is not None and best2[4]:
                 best, status, second = best2, "ok", 1
         f["second_chance"] = second
-        f["status_no_subject"] = int(status == "no_subject")
+        f["status_no_subject"] = int(status in ("no_subject", "unknown_subject"))
         f["status_no_attr"] = int(status == "no_attribute_of_kind")
         out = dict(f)
         out.update(self._decide(row, best, ctx))
+        out.update(v2_fields(self, best, out))
         return out
 
     def _decide(self, row, best, ctx) -> dict:

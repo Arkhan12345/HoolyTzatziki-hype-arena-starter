@@ -24,3 +24,8 @@ FALLBACK (retrained),renamed subjects (invented names),662,0.8187,0.3001,0.4502,
 "FINAL, 50% of training pages",last 6 weeks,328,0.8049,0.4172,0.6259,0.0,0.0621
 "FINAL, 50% of training pages",random pages,156,0.859,0.5133,0.7699,0.0,0.0615
 "FINAL, 50% of training pages",renamed subjects (invented names),662,0.8202,0.3291,0.4937,0.0,0.0378
+FINAL v2 (retrained),all original outside rows,662,0.8353,0.3937,0.5905,0.0,0.0417
+FINAL v2 (retrained),unseen subjects,178,0.8258,0.3404,0.5105,0.0,0.035
+FINAL v2 (retrained),last 6 weeks,328,0.8384,0.4025,0.6038,0.0,0.0743
+FINAL v2 (retrained),random pages,156,0.8397,0.4421,0.6632,0.0,0.0451
+FINAL v2 (retrained),renamed subjects (invented names),662,0.8202,0.3238,0.4857,0.0,0.053

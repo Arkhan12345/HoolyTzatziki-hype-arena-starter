@@ -108,10 +108,93 @@ def run_runtime(train_rows, outside, practice_cols):
                     "claims_by_type": claims["type"].value_counts().to_dict()}
 
 
+def main_v2(force: bool):
+    """One run of the v2 configuration (eda/h300/out/ladder_v2_choice.json, chosen on practice CV only) on the same
+    frozen outside set, with the same training universe and protocol as the FINAL v1 run. Logged as label "v2"."""
+    import build_v2
+    import ladder_v2
+    log_p = OUT / "run_log.json"
+    log = json.loads(log_p.read_text()) if log_p.exists() else {"runs": []}
+    if any(r.get("label") == "v2" for r in log["runs"]) and not force:
+        sys.exit("one v2 run only: eda/sim/out/run_log.json already records it")
+    sha_frozen = (OUT / "outside.sha256").read_text().strip()
+    sha_now = hashlib.sha256((OUT / "outside.csv").read_bytes()).hexdigest()
+    assert sha_now == sha_frozen, "the outside set changed after it was frozen"
+    choice = json.loads((H300 / "out" / "ladder_v2_choice.json").read_text())
+    cfg = choice["config"]
+    t0 = time.time()
+    outside = pd.read_csv(OUT / "outside.csv", dtype=str, keep_default_na=False)
+    for c in ("renamed",):
+        outside[c] = outside[c].astype(int)
+    prac = pd.read_csv(ROOT / "data" / "practice.csv", dtype=str, keep_default_na=False)
+    d = pd.to_datetime(prac.date)
+    prac["page"] = (d != d.shift()).cumsum()
+    train = prac[~prac.id.isin(set(outside.loc[outside.renamed == 0, "orig_id"]))].copy()
+    train_rows = train.to_dict("records")
+    lexicon = Lexicon.load(ROOT / "data" / "lexicon.json")
+    lex_raw = json.loads((ROOT / "data" / "lexicon.json").read_text(encoding="utf-8"))
+    mapping, aliases = build_v2.rename_map(lex_raw)
+    lab = dict(zip(train.id, train.label))
+    full = Reader.fit(train_rows, lexicon)
+    parts, ren = [], []
+    for tr, te in GroupKFold(5).split(train, groups=train.page.values):
+        rd = Reader.fit([train_rows[i] for i in tr], lexicon, margin=full.margin)
+        rows_te = [train_rows[i] for i in te]
+        parts.append(build_v2.read(rd, rows_te))
+        if cfg.get("ren_w"):
+            ren.append(build_v2.read(rd, [build_v2.rename_row(r, mapping, aliases) for r in rows_te]))
+    TF = pd.concat(parts, ignore_index=True)
+    TF["y"] = TF.id.map(lab).map(LAB2I).values
+    fold = {"train": TF, "ren_train": pd.concat(ren, ignore_index=True) if ren else TF.iloc[:0], "synth": {}}
+    if len(fold["ren_train"]):
+        fold["ren_train"]["y"] = fold["ren_train"].id.str.replace("^rn-", "", regex=True).map(lab).map(LAB2I).values
+    held = list(outside.text)
+    for mode, w in (("practice", cfg.get("synth_w")), ("closed_world", cfg.get("cw_w"))):
+        if not w:
+            fold["synth"][mode] = TF.iloc[:0]
+            continue
+        srows, _ = synth.generate(train_rows, lex_raw, held, mode, 10000 if mode == "practice" else 2000,
+                                  seed=SEED, prefix=f"sim{mode[:2]}", fold="sim")
+        S = pd.DataFrame(srows, columns=synth.COLUMNS)
+        S = S[["id", "label", "case_type"]].merge(build_v2.read(full, S.to_dict("records")), on="id")
+        S["y"] = S.label.map(LAB2I).values
+        fold["synth"][mode] = S
+    fold = ladder_v2.view(cfg, {**fold, "val": TF.iloc[:0], "ren_val": TF.iloc[:0]})
+    F, y, w = ladder_v2.training_set(cfg, fold)
+    model = ladder_v2.Model(cfg, 0).fit(F, y, w)
+    OF = build_v2.read(full, outside[["id", "text", "date"]].to_dict("records")).merge(outside, on="id")
+    if not cfg.get("unk_read"):
+        OF = ladder_v2.as_v1_reading(OF)
+    OF["y"] = OF.label.map(LAB2I).values
+    pred, P = model.predict(OF)
+    yv = OF.y.values
+    slices = {"all original outside rows": OF.renamed.values == 0,
+              "unseen subjects": (OF.renamed.values == 0) & (OF.slice.values == "subject"),
+              "last 6 weeks": (OF.renamed.values == 0) & (OF.slice.values == "time"),
+              "random pages": (OF.renamed.values == 0) & (OF.slice.values == "page"),
+              "renamed subjects (invented names)": OF.renamed.values == 1}
+    rows = [{"system": "FINAL v2 (retrained)", "slice": s, "rows": int(m.sum()),
+             **{k: round(v, 4) for k, v in h300run.metrics(yv[m], pred[m], P[m]).items()}} for s, m in slices.items()]
+    R = pd.DataFrame(rows)
+    old = pd.read_csv(OUT / "per_slice.csv")
+    pd.concat([old[old.system != "FINAL v2 (retrained)"], R], ignore_index=True).to_csv(OUT / "per_slice.csv",
+                                                                                        index=False)
+    log["runs"].append({"label": "v2", "when": datetime.now().isoformat(timespec="seconds"), "forced": force,
+                        "outside_sha256": sha_now, "config_fixed_before_run": cfg, "training_rows": int(len(train)),
+                        "seconds_total": round(time.time() - t0, 1),
+                        "training_ids_sha256": hashlib.sha256("\n".join(sorted(train.id)).encode()).hexdigest()})
+    log_p.write_text(json.dumps(log, indent=1, default=str), encoding="utf-8")
+    pd.set_option("display.width", 220)
+    print(R.to_string(index=False))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--config", choices=["v1", "v2"], default="v1")
     a = ap.parse_args()
+    if a.config == "v2":
+        return main_v2(a.force)
     log_p = OUT / "run_log.json"
     log = json.loads(log_p.read_text()) if log_p.exists() else {"runs": []}
     if log["runs"] and not a.force:

@@ -1,0 +1,39 @@
+{'knob': 'base (FINAL v1)', 'ftf': 0.6503524987874071, 'acc': 0.8600797581593997, 'ece': 0.0439846541582225, 'ren_ftf': 0.4723515801927579, 'ren_acc': 0.8368791978586833, 'accepted': 'base'}
+{'knob': 'subject_free_features', 'ftf': 0.6394, 'gain': -0.011, 'folds_better': 0, 'acc': 0.8576, 'ece': 0.0483, 'ece_gain': -0.0043, 'ren_ftf': 0.4633, 'ren_gain': -0.009, 'ren_acc': 0.8363, 'rule': False, 'accepted': False}
+{'knob': 'same_referent', 'ftf': 0.6447, 'gain': -0.0056, 'folds_better': 0, 'acc': 0.8582, 'ece': 0.049, 'ece_gain': -0.005, 'ren_ftf': 0.4722, 'ren_gain': -0.0002, 'ren_acc': 0.8362, 'rule': False, 'accepted': False}
+{'knob': 'tolerance', 'ftf': 0.6537, 'gain': 0.0033, 'folds_better': 2, 'acc': 0.8602, 'ece': 0.0428, 'ece_gain': 0.0011, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{'knob': 'renamed_augmentation_w1', 'ftf': 0.6503, 'gain': -0.0001, 'folds_better': 1, 'acc': 0.8595, 'ece': 0.0465, 'ece_gain': -0.0025, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{'knob': 'renamed_augmentation_w05', 'ftf': 0.6474, 'gain': -0.003, 'folds_better': 1, 'acc': 0.8589, 'ece': 0.0496, 'ece_gain': -0.0056, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{'knob': 'closed_world_share_w01', 'ftf': 0.6535, 'gain': 0.0031, 'folds_better': 3, 'acc': 0.852, 'ece': 0.0524, 'ece_gain': -0.0084, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{'knob': 'unknown_subject_thresholds', 'ftf': 0.6504, 'gain': 0.0, 'folds_better': 0, 'acc': 0.8601, 'ece': 0.044, 'ece_gain': 0.0, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{'knob': 'confidence_cap', 'ftf': 0.6504, 'gain': 0.0, 'folds_better': 0, 'acc': 0.8601, 'ece': 0.176, 'ece_gain': -0.1321, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{
+ "config": {
+  "groups": [
+   "core",
+   "text",
+   "hist"
+  ],
+  "reg": "strong",
+  "synth_w": 0.3,
+  "extra": [],
+  "ren_w": 0.0,
+  "cw_w": 0.0,
+  "cap": false,
+  "unk_offsets": false
+ },
+ "cv": {
+  "ftf": 0.6503524987874071,
+  "acc": 0.8600797581593997,
+  "ece": 0.0439846541582225,
+  "ren_ftf": 0.4723515801927579,
+  "ren_acc": 0.8368791978586833
+ },
+ "permutation_ftf": [
+  0.4552410558470491,
+  0.4552410558470491,
+  0.4552410558470491
+ ],
+ "permutation_pass": true,
+ "n_trials": 8
+}

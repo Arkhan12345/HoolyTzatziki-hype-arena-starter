@@ -1,0 +1,41 @@
+{'knob': 'base (FINAL v1)', 'ftf': 0.6503524987874071, 'acc': 0.8600797581593997, 'ece': 0.04359019089140856, 'ren_ftf': 0.4723515801927579, 'ren_acc': 0.8368791978586833, 'accepted': 'base'}
+{'knob': 'unknown_subject_reading', 'ftf': 0.6481, 'gain': -0.0022, 'folds_better': 0, 'acc': 0.8582, 'ece': 0.0507, 'ece_gain': -0.0071, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{'knob': 'subject_free_features', 'ftf': 0.6394, 'gain': -0.011, 'folds_better': 0, 'acc': 0.8576, 'ece': 0.0494, 'ece_gain': -0.0058, 'ren_ftf': 0.4688, 'ren_gain': -0.0035, 'ren_acc': 0.837, 'rule': False, 'accepted': False}
+{'knob': 'same_referent', 'ftf': 0.6447, 'gain': -0.0056, 'folds_better': 0, 'acc': 0.8582, 'ece': 0.0486, 'ece_gain': -0.005, 'ren_ftf': 0.4722, 'ren_gain': -0.0002, 'ren_acc': 0.8362, 'rule': False, 'accepted': False}
+{'knob': 'tolerance', 'ftf': 0.6537, 'gain': 0.0033, 'folds_better': 2, 'acc': 0.8602, 'ece': 0.043, 'ece_gain': 0.0006, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{'knob': 'renamed_augmentation_w1', 'ftf': 0.6503, 'gain': -0.0001, 'folds_better': 1, 'acc': 0.8595, 'ece': 0.0465, 'ece_gain': -0.0029, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{'knob': 'renamed_augmentation_w05', 'ftf': 0.6474, 'gain': -0.003, 'folds_better': 1, 'acc': 0.8589, 'ece': 0.0496, 'ece_gain': -0.006, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{'knob': 'closed_world_share_w01', 'ftf': 0.6559, 'gain': 0.0056, 'folds_better': 3, 'acc': 0.8527, 'ece': 0.0531, 'ece_gain': -0.0095, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{'knob': 'unknown_subject_thresholds', 'ftf': 0.6504, 'gain': 0.0, 'folds_better': 0, 'acc': 0.8601, 'ece': 0.0436, 'ece_gain': 0.0, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{'knob': 'confidence_cap', 'ftf': 0.6504, 'gain': 0.0, 'folds_better': 0, 'acc': 0.8601, 'ece': 0.1755, 'ece_gain': -0.132, 'ren_ftf': 0.4724, 'ren_gain': 0.0, 'ren_acc': 0.8369, 'rule': False, 'accepted': False}
+{
+ "config": {
+  "groups": [
+   "core",
+   "text",
+   "hist"
+  ],
+  "reg": "strong",
+  "synth_w": 0.3,
+  "extra": [],
+  "ren_w": 0.0,
+  "cw_w": 0.0,
+  "cap": false,
+  "unk_offsets": false,
+  "unk_read": false
+ },
+ "cv": {
+  "ftf": 0.6503524987874071,
+  "acc": 0.8600797581593997,
+  "ece": 0.04359019089140856,
+  "ren_ftf": 0.4723515801927579,
+  "ren_acc": 0.8368791978586833
+ },
+ "permutation_ftf": [
+  0.4552410558470491,
+  0.4552410558470491,
+  0.4552410558470491
+ ],
+ "permutation_pass": true,
+ "n_trials": 9
+}
