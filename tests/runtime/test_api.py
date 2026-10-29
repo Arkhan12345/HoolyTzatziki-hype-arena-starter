@@ -50,7 +50,9 @@ def test_api_starts_with_uvicorn():
 
 def test_run_result_matches_contract(sample_run):
     jsonschema.validate(sample_run, RUN_RESULT)
-    assert sample_run["stages"] == STAGE_ORDER
+    # the classifier's steps replace "classify" in the demo (collector.expand_classify), in pipeline order
+    expanded = [x for s in STAGE_ORDER for x in (["items", "lkb", "train", "classify"] if s == "classify" else [s])]
+    assert sample_run["stages"] == expanded
     assert len(sample_run["labels"]) == len(sample_run["rows"]) == len(sample_run["predictions"]) > 0
     assert sample_run["claims_total"] == 1000 and len(sample_run["claims"]) == 50
 
@@ -144,3 +146,14 @@ def test_validation_report_endpoint(sample_run):
     assert client.get(f"/runs/{sample_run['run_id']}/validation?verdict=FAIL").json()["total"] == 0
     m = client.get(f"/runs/{sample_run['run_id']}/metrics").json()
     assert m["claims"]["validation"]["selected"]["verdicts"] == {"PASS": 1000}
+
+
+def test_debug_hides_no_practice_row():
+    """Debug is scored on held-out generated sentences: practice demo rows stay labelled (no random 20)."""
+    r = client.post("/run?pipeline_mode=debug", json={"rows": [{"id": "p-1", "text": "x", "date": "2026-01-12"},
+                                                               {"id": "n-1", "text": "Hooly Jules costs 190 EUR a year.",
+                                                                "date": "2026-10-28"}]}).json()
+    assert [p["id"] for p in r["predictions"]] == ["n-1"]
+    d = r["classifier"]["debug"]
+    assert d["test_items"] > 0 and len(d["predictions"]) == d["test_items"]
+    assert d["train_rows"] == d["train_items"] + r["classifier"]["labelled_rows"]

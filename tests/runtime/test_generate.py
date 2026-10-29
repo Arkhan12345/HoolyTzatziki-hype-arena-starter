@@ -243,7 +243,8 @@ def test_broken_p3_module_is_not_hidden_behind_the_mock(tmp_path, monkeypatch):
     for sub, body in (("extract", "import not_a_real_package\n"), ("classify", "def classify(*a):\n    return []\n")):
         (tmp_path / "app" / sub).mkdir(parents=True)
         (tmp_path / "app" / sub / "__init__.py").write_text(body, encoding="utf-8")
-    monkeypatch.setattr(app, "__path__", list(app.__path__) + [str(tmp_path / "app")])
+    # first on the path: the broken module shadows the real app/extract (merged in P2-backend integration)
+    monkeypatch.setattr(app, "__path__", [str(tmp_path / "app")] + list(app.__path__))
     for m in ("app.extract", "app.classify"):
         monkeypatch.delitem(sys.modules, m, raising=False)
     with pytest.raises(ModuleNotFoundError) as e:
@@ -253,10 +254,11 @@ def test_broken_p3_module_is_not_hidden_behind_the_mock(tmp_path, monkeypatch):
         sys.modules.pop(m, None)
 
 
-def test_absent_p3_modules_mean_unavailable():
+def test_present_p3_modules_return_labels_and_facts():
     from app.generate import strategies
 
-    assert strategies.from_p3([], {}) is None
+    labels, facts = strategies.from_p3([], {"subjects": [], "events": []})
+    assert labels == [] and facts == []  # no rows: nothing to read, nothing to label
 
 
 def test_precise_date_only_from_the_current_run():

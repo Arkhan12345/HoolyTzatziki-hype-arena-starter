@@ -106,6 +106,22 @@ interface Architecture {
 }
 ```
 
+## Classifier fields (29 Oct, branch john)
+
+- `POST /run?pipeline_mode=prod|debug` (default `prod`). The demo runs like the arena: practice rows minus the demo
+  rows come labelled, the demo rows unlabelled. `debug` holds half the generated training items out and scores them.
+- `stages` shows the classifier's steps in place of `classify`: `... "kb", "items", "lkb", "train", "classify", ...`
+  (training items, label-free KB + EM, training, inference); `timings` / `stage_details` have the same ids.
+- `predictions[]` adds `trust_score` (0..1), `trust_parts` {page_trust, support_ratio, extraction_conf}, `probabilities`
+  {false, true, unsure} and `sources[]`: per fact `{subject, attribute, value, status (holds | outdated | ahead_of_time |
+  unbacked | unseen), support, against, supporting_rows, contradicting_rows, quotes {row_id: text}, labelled_sources
+  {row_id: label} (sources that are labelled input rows), extraction_conf,
+  both_extractors}`. `labels[]` adds `trust_score`.
+- `classifier` = the classify report: `mode`, `labelled_rows`, `unlabelled_rows`, `train_rows`, `features`, `generated`
+  (items per type and label), `debug` (null in prod; else `accuracy`, `by_type`, `by_label`, `confusion`, `examples`),
+  `top_features`, `seconds`.
+- The arena run writes the same per-row details to the aux file `classifier.json` (never to output.csv).
+
 ## Files the pipeline writes
 
 | File | Written by | Where | Official? |

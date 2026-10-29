@@ -3,7 +3,9 @@
 
 export type Verdict = 'true' | 'false' | 'unsure'
 export type ClaimType = 'fact' | 'compare' | 'change' | 'at_event' | 'relation'
-export type Stage = 'load' | 'extract' | 'kb' | 'classify' | 'generate' | 'validate' | 'write'
+/** items / lkb / train are the classifier's own steps (training items, label-free KB + EM, training), shown in the demo. */
+export type Stage = 'load' | 'extract' | 'kb' | 'items' | 'lkb' | 'train' | 'classify' | 'generate' | 'validate' | 'write'
+export type PipelineMode = 'prod' | 'debug'
 export type StageStatus = 'idle' | 'ok' | 'fallback' | 'not_available' | 'failed' | 'skipped'
 
 export interface Value {
@@ -70,6 +72,71 @@ export interface Prediction {
   facts: Fact[]
   evidence: Evidence[] | null
   explanation: string
+  /** 0..1 blend of page trust, support from other pages and extraction confidence (never in output.csv). */
+  trust_score?: number | null
+  trust_parts?: { page_trust: number; support_ratio: number; extraction_conf: number } | null
+  probabilities?: Record<Verdict, number> | null
+  /** Each fact the row states, its status on the KB's stairs and the rows that support or contradict it. */
+  sources?: SourceFact[]
+}
+
+export interface SourceFact {
+  subject: string
+  attribute: string
+  value: Value | Record<string, unknown>
+  status: 'holds' | 'outdated' | 'ahead_of_time' | 'unbacked' | 'unseen' | string
+  support: number
+  against: number
+  supporting_rows: string[]
+  contradicting_rows: string[]
+  /** text of each supporting / contradicting row */
+  quotes?: Record<string, string>
+  /** the sources that are labelled input rows, with their label (they pin the KB) */
+  labelled_sources?: Record<string, string>
+  extraction_conf: number
+  both_extractors: boolean
+}
+
+export interface DebugScore {
+  n: number
+  accuracy: number | null
+  train_items: number
+  test_items: number
+  by_type: Record<string, { n: number; accuracy: number }>
+  by_label: Record<string, { n: number; recall: number | null; precision: number | null }>
+  confusion: Record<string, Record<string, number>>
+  /** rows the debug model trained on: only the training half of the generated sentences */
+  train_rows?: number
+  /** the inference on the held-out half: every generated sentence, its expected and predicted label */
+  predictions?: HeldOutPrediction[]
+}
+
+export interface HeldOutPrediction {
+  id: string
+  type: string
+  text: string
+  date: string
+  gold: Verdict
+  pred: Verdict
+  correct: boolean
+  confidence: number | null
+  probabilities: Record<Verdict, number>
+  /** true = from the claim generator, flip = logic flipped (false), unseen = a pair nobody states (unsure) */
+  origin: 'candidate' | 'flip' | 'unseen' | string
+  sources: string[]
+  source_texts?: Record<string, string>
+}
+
+export interface ClassifierReport {
+  mode: PipelineMode
+  labelled_rows?: number
+  unlabelled_rows?: number
+  train_rows?: number
+  features?: number
+  generated?: { items?: Record<string, Record<string, number>>; total?: number; fact_restatements_skipped?: number } | null
+  debug?: DebugScore | null
+  top_features?: { feature: string; importance: number }[]
+  seconds?: Record<string, number>
 }
 
 export interface InputRow {
@@ -108,6 +175,7 @@ export interface RunResponse {
   stage_details?: StageDetail[]
   metrics?: Metrics
   errors?: RunError[]
+  classifier?: ClassifierReport
 }
 
 export interface ClaimsPage {

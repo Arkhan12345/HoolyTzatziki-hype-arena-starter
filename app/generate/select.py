@@ -19,6 +19,7 @@ import time
 from collections import Counter, defaultdict
 
 from app.generate.candidates import FACTORIES, Candidate
+from app.generate.restate import restates_prose
 from app.io.types import Claim
 from app.kb.inventory import FactInventory
 from app.validate.claims import PASS, ClaimValidator
@@ -60,6 +61,9 @@ def screen(inv: FactInventory, input_texts: set[str], report: dict,
         if v.verdict != PASS:
             first = v.reasons[0] if v.reasons else v.verdict
             rejected[c.type][first.split(":")[0] + ": " + first.split(":", 1)[-1].strip()[:45]] += 1
+            continue
+        if c.type == "fact" and restates_prose(c.form, c.evidence, inv.rows):  # team rule, stricter than the mentor's
+            rejected[c.type]["novelty: rewords a prose input sentence (team rule)"] += 1
             continue
         nt = norm_text(c.text)
         if nt in seen_text:

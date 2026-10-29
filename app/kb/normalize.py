@@ -88,6 +88,22 @@ def same(a: dict, b: dict) -> bool:
     return key(a) == key(b)
 
 
+def key_inclusive(value: dict) -> str:
+    """Equality key where a bound includes its own value: "up to 60" and "at least 60" both state 60.
+
+    The classifier's KB compares values with this key; the claim validator keeps the strict `key`."""
+    if value.get("op") in ("le", "ge", "eq"):
+        value = {k: v for k, v in value.items() if k != "op"}
+    return key(value)
+
+
+def row_order(row_id) -> tuple:
+    """Sort key for row ids: by the row's number (p-999 before p-1000), not as text."""
+    s = str(row_id)
+    digits = "".join(ch for ch in s[s.rfind("-") + 1:] if ch.isdigit()) if "-" in s else ""
+    return (s[:s.rfind("-")] if "-" in s else s, int(digits) if digits else -1, s)
+
+
 def date_prefix_related(a: dict, b: dict) -> bool:
     """True when one date is a less precise form of the other (2026 vs 2026-06-02)."""
     if a.get("kind") != "date" or b.get("kind") != "date":

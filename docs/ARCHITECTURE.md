@@ -10,6 +10,42 @@ architecture and runs it live.
 **Our answer:** turn text into facts, put facts on a timeline, judge new facts against the timeline,
 and generate claims only from what the timeline firmly supports.
 
+## What runs now (integrated pipeline, 29 Oct, branch `john`)
+
+The sections after this one are the first design; this one is what `python -m app.run` and the demo API do.
+
+```mermaid
+flowchart LR
+  U[/universe.csv/] --> X[Two readers<br/>app/extract]
+  X -->|facts vote| L[KB pinned by input labels + EM<br/>app/classify/timeline.py]
+  G[/practice gold forms<br/>minus rows the input hides/] --> T[Truth KB<br/>app/kb/store.py]
+  T --> D[Training items, 5 types<br/>app/classify/datagen.py]
+  L -->|features| M[Train LightGBM<br/>app/classify/model.py]
+  D -->|true / false / unsure| M
+  M --> I[Inference + trust + sources] --> W[Writer]
+  T --> C[Claim generator] --> V[Validator] --> W --> O[/output.csv/]
+```
+
+| Step | What it does | Where |
+|---|---|---|
+| Two readers | Arckan's ranker extracts every row (fact F1 0.838 on holdout pages); X's simple extractor reads it again and a fact both read gets more weight (precision 0.953). Practice rows are read by models that never saw their page (5 page folds), so training rows look like inference rows. | `app/extract/` |
+| KB pinned by input labels + EM | Only the input's labelled rows pin it (true -> its gold form holds; false with one fact -> forbidden); unlabelled rows vote, weighted by page trust (EM from a text-only prior); a staircase per subject+attribute (a new value needs a pin or 2 pages). Generated items never pin or vote. A labelled row's own features come from a KB without its page's labels (5 page folds), read from its extracted facts like any unlabelled row. Values compare with units converted, a bound includes its value (`key_inclusive`), rows of one date in row order. `TZ_KB_LABELS=0`: label-free. | `app/classify/timeline.py`, `model.py` |
+| Truth KB | Gold forms of practice rows, except rows whose label the input hides (no leak). Source of truth for claims and training items. | `app/kb/store.py` |
+| Training items | true = validated claim candidates (one per meaning; a fact that only rewords one prose sentence is skipped), false = the same claim with its logic flipped, unsure = pairs no gold row states (the subject's or its siblings' attributes). | `app/classify/datagen.py` |
+| Train / infer | LightGBM (research's frozen hyperparameters) on the labelled rows + items. `TZ_MODE=prod` trains on all items; `debug` holds half out and scores them. Each label gets a confidence (0.5–1, empty for unsure), a trust score and its supporting / contradicting rows (aux `classifier.json`, never in output.csv). | `app/classify/` |
+
+Measured: `scripts/check.sh` (Docker, offline, read-only, user 10001, 2 CPUs) green, 380/380 hidden rows labelled,
+~87 % right (all-true: 85 %); debug accuracy on held-out generated items 98.1 % with the pinned KB (89.6 % label-free):
+the generated items take their truth from the same labels that pin the KB, so debug measures judgement with the
+evidence present, not the hidden-row case.
+
+**Ideas noted, not applied yet (29 Oct, Ioan):** today the label is the model's argmax and the trust score is only an
+explanation. To try next, measured in debug before keeping any:
+- a sentence with 0 % support from other pages (no other page states its value) should lean towards **unsure**;
+- a trust score below 50 % should pull the confidence towards **false** (or lower the confidence of a true label);
+- similar adjustments: let the trust parts (page trust, support, extraction) feed the decision, e.g. as model
+  features or a post-hoc rule, and calibrate `confidence` on the held-out generated half (no calibration step yet). Research behind it: `eda/07_improve.py` (X).
+
 ## Pipeline
 
 ```mermaid

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Play, RotateCcw, X } from 'lucide-react'
-import { PipelineFlow, usePipelineStatus } from '@/components/PipelineFlow'
+import { PipelineFlow, STAGE_TITLE, usePipelineStatus } from '@/components/PipelineFlow'
 import { TerminalLog } from '@/components/data/TerminalLog'
 import { Panel } from '@/components/fx/Panel'
 import { PageHeader } from '@/components/States'
@@ -49,7 +49,7 @@ export default function ArchitecturePage() {
                 <span className="text-ink-faint">
                   stage {pipe.cursor.index + 1}/{pipe.cursor.total}
                 </span>
-                <span className="font-semibold">{pipe.cursor.stage}</span>
+                <span className="font-semibold">{STAGE_TITLE[pipe.cursor.stage] ?? pipe.cursor.stage}</span>
                 <span>· {fmtSeconds(pipe.cursor.seconds)}</span>
                 <span className="text-ink-muted">· {pipe.cursor.status}</span>
               </motion.span>

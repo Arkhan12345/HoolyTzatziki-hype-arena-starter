@@ -33,7 +33,7 @@ class Timeline:
     mentions: list[Mention] = field(default_factory=list)
 
     def sorted(self) -> list[Mention]:
-        return sorted(self.mentions, key=lambda m: (m.date, m.row_id))
+        return sorted(self.mentions, key=lambda m: (m.date, nz.row_order(m.row_id)))
 
     def gold(self) -> list[Mention]:
         return [m for m in self.sorted() if m.source == "gold"]
@@ -94,7 +94,9 @@ class KB:
         for r in gold_rows:
             label, form, date = r.get("label"), r.get("form") or [], r.get("date", "")
             self.row_dates[r["id"]] = date
-            self.rows[r["id"]] = {"text": r.get("text", ""), "date": date, "label": label, "origin": "practice"}
+            # the form lets the claim screening spot a fact that only rewords this row (app/generate/restate.py)
+            self.rows[r["id"]] = {"text": r.get("text", ""), "date": date, "label": label, "origin": "practice",
+                                  "form": form}
             if label == "true":
                 for f in form:
                     self._add(f["subject"], f["attribute"], f["value"], date, "gold", GOLD_WEIGHT, r["id"])

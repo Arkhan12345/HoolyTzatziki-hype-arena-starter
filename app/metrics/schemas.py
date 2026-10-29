@@ -7,6 +7,8 @@ from __future__ import annotations
 
 SCHEMA_VERSION = "1.0"
 STAGES = ["load", "extract", "kb", "classify", "generate", "validate", "write"]
+# the demo API also shows the classifier's own steps (collector.expand_classify): training items, label-free KB, training
+DEMO_STAGES = STAGES + ["items", "lkb", "train"]
 STAGE_STATUS = ["idle", "ok", "fallback", "not_available", "failed", "skipped"]
 
 _num = {"type": ["number", "null"]}
@@ -138,7 +140,7 @@ RUN_RESULT = {
         "facts": {"type": "array"},
         "claims": {"type": "array", "items": _CLAIM},
         "claims_total": {"type": "integer"}, "claims_by_type": _counts,
-        "timings": {"type": "object", "required": STAGES, "additionalProperties": {"type": ["number", "null"]}}, "stages": {"type": "array", "items": {"enum": STAGES}},
+        "timings": {"type": "object", "required": STAGES, "additionalProperties": {"type": ["number", "null"]}}, "stages": {"type": "array", "items": {"enum": DEMO_STAGES}},
         "stage_details": {"type": "array"}, "metrics": METRICS, "errors": {"type": "array"},
     },
 }

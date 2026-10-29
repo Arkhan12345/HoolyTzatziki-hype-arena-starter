@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { demoRun, getArchitecture, getHealth, runPipeline, type RunInput } from '@/api/client'
-import type { Architecture, Health as HealthInfo, InputRow, Prediction, RunResponse, Source, Sourced } from '@/api/types'
+import type { Architecture, Health as HealthInfo, InputRow, PipelineMode, Prediction, RunResponse, Source, Sourced } from '@/api/types'
 import { ApiError } from '@/api/types'
 import architectureMock from '@/mocks/architecture.json'
 import { parseCsv } from '@/lib/csv'
+import { useDebug } from '@/state/debug'
 
 export type Health = 'checking' | 'online' | 'offline'
 export type JobKind = 'run' | 'verify' | 'generate'
@@ -22,6 +23,8 @@ export interface Job {
   rows: InputRow[]
   /** The API's id for this run (as soon as the async run has started). */
   runId?: string
+  /** prod: train on every generated item; debug: half of them held out and scored (follows the debug switch). */
+  mode?: PipelineMode
 }
 
 interface RunState {
@@ -58,6 +61,10 @@ export function RunProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<Job[]>([])
   const [focus, setFocus] = useState<Job | null>(null)
   const [replay, setReplay] = useState(0)
+  // the debug switch also picks the pipeline mode: debug = generated items split 50/50, half scored
+  const { debug } = useDebug()
+  const modeRef = useRef<PipelineMode>('prod')
+  modeRef.current = debug ? 'debug' : 'prod'
   const tokens = useRef<Record<JobKind, number>>({ run: 0, verify: 0, generate: 0 })
 
   const refreshHealth = useCallback(() => {
@@ -99,7 +106,8 @@ export function RunProvider({ children }: { children: ReactNode }) {
         rows = []
       }
     }
-    const started: Job = { kind, status: 'running', startedAt: Date.now(), input: label, rows }
+    const mode = modeRef.current
+    const started: Job = { kind, status: 'running', startedAt: Date.now(), input: label, rows, mode }
     setJobs((j) => ({ ...j, [kind]: started }))
     setFocus(started)
 
@@ -107,7 +115,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
     try {
       const res = await runPipeline(input, claimsLimit, (runId) => {
         if (token === tokens.current[kind]) setJobs((j) => ({ ...j, [kind]: { ...started, runId } }))
-      })
+      }, mode)
       done = { ...started, status: 'done', finishedAt: Date.now(), result: res.data, source: res.source, runId: res.data.run_id }
       if (res.source === 'api') {
         setHealth('online')

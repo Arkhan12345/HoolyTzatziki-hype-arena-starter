@@ -12,6 +12,7 @@ const GeneratePage = lazy(() => import('@/pages/Generate'))
 const ArchitecturePage = lazy(() => import('@/pages/Architecture'))
 const MetricsPage = lazy(() => import('@/pages/Metrics'))
 const PitchPage = lazy(() => import('@/pages/Pitch'))
+const OutputPage = lazy(() => import('@/pages/Output'))
 
 function Loading() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
                 <Route path="verify" element={<VerifyPage />} />
                 <Route path="explorer" element={<ExplorerPage />} />
                 <Route path="generate" element={<GeneratePage />} />
+                <Route path="output" element={<OutputPage />} />
                 <Route path="architecture" element={<ArchitecturePage />} />
                 <Route path="metrics" element={<MetricsPage />} />
                 <Route path="pitch" element={<PitchPage />} />

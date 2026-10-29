@@ -139,8 +139,12 @@ def main(universe_dir: str | None = None, output_dir: str | None = None, deadlin
 
     rows, lexicon = stages.run("load", lambda: read_universe(universe_dir),
                                lambda: ([], read_lexicon(os.path.join(ROOT, "data", "lexicon.json"))))
-    gold = stages.run("load", lambda: read_practice(PRACTICE) if os.path.exists(PRACTICE) else [], [])
-    input_texts = {norm_text(r["text"]) for r in rows} | {norm_text(r["text"]) for r in gold}
+    gold_all = stages.run("load", lambda: read_practice(PRACTICE) if os.path.exists(PRACTICE) else [], [])
+    # A practice row whose label the input hides must not teach anything through its label: the truth KB (claims,
+    # generated training items) only uses gold rows the input does not ask us to label.
+    blank_ids = {r["id"] for r in rows if not r["label"]}
+    gold = [g for g in gold_all if g["id"] not in blank_ids]
+    input_texts = {norm_text(r["text"]) for r in rows} | {norm_text(r["text"]) for r in gold_all}
     state.set(labels=baseline_labels(rows))
     state.write("initial")  # within a second: labels only, so even an early kill leaves a valid table
 
@@ -168,8 +172,10 @@ def main(universe_dir: str | None = None, output_dir: str | None = None, deadlin
     else:
         stages.status["extract"] = "not_available"
     classifier = "baseline"
+    class_report: dict = {}
     if classify:
-        labels = stages.run("classify", lambda: _clean_labels(classify(rows, facts, kb), rows), None)
+        labels = stages.run("classify", lambda: _clean_labels(
+            classify(rows, facts, kb, report=class_report, gold_rows=gold_all), rows), None)
         if labels:
             state.set(labels=labels)
             classifier = "p3"
@@ -187,15 +193,14 @@ def main(universe_dir: str | None = None, output_dir: str | None = None, deadlin
     state.write("final")
 
     # Auxiliary artifacts: after the official table, never able to break it.
-    blank_ids = {r["id"] for r in rows if not r["label"]}
-    hidden_gold = {r["id"]: r["label"] for r in gold if r["id"] in blank_ids}
+    hidden_gold = {r["id"]: r["label"] for r in gold_all if r["id"] in blank_ids}
     try:
         metrics = collector.build(
             run_id=run_id, kind="arena", status=stages.overall(), errors=stages.errors,
             classification=collector.classification_metrics(
                 rows, state.labels, classifier, hidden_gold, "data/practice.csv",
-                "rows whose label was hidden from the input but which data/practice.csv in the image holds: "
-                "optimistic, the KB was built with these labels"),
+                "rows whose label was hidden from the input but which data/practice.csv in the image holds; "
+                "their labels reach neither the classifier's KB (label-free) nor the truth KB"),
             claims=collector.claim_metrics(gen_report, claims),
             runtime=collector.runtime_metrics(stages.timings, stages.status, time.time() - t0, rss_mb()))
         out = aux_dir(output_dir)
@@ -203,6 +208,10 @@ def main(universe_dir: str | None = None, output_dir: str | None = None, deadlin
         collector.write_json(out, "architecture.json",
                              collector.architecture(metrics["runtime"]["stage_status"], stages.timings, run_id))
         collector.write_claims_debug(out, claims)
+        if class_report:
+            from app.classify import LAST
+
+            collector.write_json(out, "classifier.json", {"report": class_report, "labels": LAST.get("details", {})})
         if gen_report.get("_validation_report"):
             collector.write_json(out, "validation_report.json", gen_report["_validation_report"])
         log(f"auxiliary metrics.json, architecture.json, claims_debug.jsonl, validation_report.json in {out}")
@@ -213,6 +222,9 @@ def main(universe_dir: str | None = None, output_dir: str | None = None, deadlin
     report = {"run_id": run_id, "timings": {k: round(v, 3) for k, v in stages.timings.items()},
               "stage_status": stages.status, "errors": stages.errors, "rows": len(rows), "blank": len(blank_ids),
               "facts": len(facts), "kb": kb.stats(),
+              "classifier": {k: class_report.get(k) for k in ("mode", "train_rows", "features", "seconds", "debug")
+                             if k != "debug" or class_report.get("debug") is None} |
+                            ({"debug_accuracy": class_report["debug"]["accuracy"]} if class_report.get("debug") else {}),
               "claims": {k: v for k, v in gen_report.items() if not k.startswith("_")}, "rss_mb": rss_mb(),
               "total_s": round(time.time() - t0, 3), "metrics": metrics}
     log("report " + json.dumps({k: v for k, v in report.items() if k != "metrics"}, default=str))

@@ -128,14 +128,26 @@ export default function Dashboard() {
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi i={0} label="Sentences labelled" value={result?.labels.length ?? 0} loading={!result} />
             <Kpi i={1} label="New true claims" value={claimsTotal} loading={!result} suffix=" / 1,000" />
-            <Kpi
-              i={2}
-              label="Accuracy on known labels"
-              value={evaluation?.accuracy ?? null}
-              format={(n) => `${(n * 100).toFixed(0)}%`}
-              loading={!result}
-              sub={result && !evaluation ? 'no known labels in this input' : undefined}
-            />
+            {result?.classifier?.debug ? (
+              // debug: trained on half the generated sentences, scored on the other half
+              <Kpi
+                i={2}
+                label="Accuracy on held-out generated"
+                value={result.classifier.debug.accuracy ?? null}
+                format={(n) => `${(n * 100).toFixed(1)}%`}
+                loading={!result}
+                sub={`${result.classifier.debug.test_items} sentences never trained on`}
+              />
+            ) : (
+              <Kpi
+                i={2}
+                label="Accuracy on known labels"
+                value={evaluation?.accuracy ?? null}
+                format={(n) => `${(n * 100).toFixed(0)}%`}
+                loading={!result}
+                sub={result && !evaluation ? 'no known labels in this input' : undefined}
+              />
+            )}
             <Kpi i={3} label="Pipeline time" value={metrics?.runtime?.total_s ?? null} format={(n) => fmtSeconds(n)} loading={!result} />
           </div>
 
@@ -158,17 +170,18 @@ export default function Dashboard() {
               />
               {result && cls && (
                 <div className="px-6 pt-4">
+                  <div className="mb-1.5 text-2xs uppercase tracking-wider text-ink-faint">predicted labels (not accuracy)</div>
                   <VerdictDistribution counts={cls.predicted} />
                 </div>
               )}
-              <ul className="mt-3 divide-y divide-line">
+              <ul className="mt-3 max-h-[640px] divide-y divide-line overflow-y-auto">
                 {result
-                  ? predictions.slice(0, 8).map((p, i) => (
+                  ? predictions.map((p, i) => (
                       <motion.li
                         key={p.id}
                         initial={reduce ? false : { opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: i * 0.04 }}
+                        transition={{ delay: Math.min(i, 20) * 0.04 }}
                         className="grid grid-cols-[1fr_auto] items-start gap-x-4 gap-y-2 px-6 py-3.5 sm:grid-cols-[1fr_auto_auto]"
                       >
                         <span className="min-w-0">

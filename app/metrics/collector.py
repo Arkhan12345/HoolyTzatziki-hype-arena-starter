@@ -197,6 +197,32 @@ def empty() -> dict:
                  claims=claim_metrics(None, None), runtime=runtime_metrics({}, {}, None, None))
 
 
+# The classifier's steps, in order, as the diagram shows them; their seconds come from classify()'s report.
+CLASSIFY_STEPS = [("items", "generate_items"), ("lkb", "kb_em"), ("train", "fit"), ("classify", "predict")]
+SUBSTAGE_OF = {s: "classify" for s, _ in CLASSIFY_STEPS}
+
+
+def expand_classify(stages: list, timings: dict, details: list, seconds: dict | None, mode: str | None = None):
+    """Replace the "classify" stage by its steps (items -> lkb -> train -> classify) for the demo diagram."""
+    if not seconds or "classify" not in stages:
+        return list(stages), dict(timings), list(details)
+    parent = next((d for d in details if d["id"] == "classify"), {"status": "idle"})
+    out_stages, out_details, out_t = [], [], dict(timings)
+    for s in stages:
+        if s != "classify":
+            out_stages.append(s)
+            out_details += [d for d in details if d["id"] == s]
+            continue
+        for sub, key in CLASSIFY_STEPS:
+            out_stages.append(sub)
+            out_t[sub] = round(float(seconds.get(key) or 0.0), 4)
+            note = {"items": "true, flipped false, unstated unsure", "lkb": "input labels pin, the rest vote; EM page trust",
+                    "train": f"{mode or 'prod'}: " + ("half the items held out" if mode == "debug" else "all items"),
+                    "classify": "labels + trust + sources"}[sub]
+            out_details.append({"id": sub, "seconds": out_t[sub], "status": parent.get("status", "idle"), "note": note})
+    return out_stages, out_t, out_details
+
+
 def architecture(stage_status: dict | None = None, timings: dict | None = None, run_id: str | None = None) -> dict:
     with open(ARCHITECTURE_FILE, encoding="utf-8") as f:
         arch = json.load(f)
@@ -204,7 +230,7 @@ def architecture(stage_status: dict | None = None, timings: dict | None = None, 
     for n in arch["nodes"]:
         st = n.get("stage", "")
         optional_off = n.get("kind") == "optional" and os.environ.get("USE_NEURO") != "1"
-        n["status"] = "not_available" if optional_off else stage_status.get(st, "idle")
+        n["status"] = "not_available" if optional_off else stage_status.get(st, stage_status.get(SUBSTAGE_OF.get(st, ""), "idle"))
         n["seconds"] = None if optional_off else timings.get(st)
     arch.update({"stage_status": {s: stage_status.get(s, "idle") for s in STAGES},
                  "timings": {s: timings.get(s) for s in STAGES}, "run_id": run_id})

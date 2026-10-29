@@ -41,7 +41,8 @@ class FactInventory:
         self.lex = lexicon
         self.rows = rows or {}  # row id -> {text, date, label, origin}: where each claim comes from
         self.trusted_sources = tuple(trusted_sources)
-        self._all = {p: sorted(ev, key=lambda e: (e.date, e.row_ids)) for p, ev in timelines.items()}
+        self._all = {p: sorted(ev, key=lambda e: (e.date, [nz.row_order(r) for r in e.row_ids]))
+                     for p, ev in timelines.items()}
         self._trusted = {p: [e for e in ev if e.source in self.trusted_sources and "op" not in e.value]
                          for p, ev in self._all.items()}
         self.gold_rows = {r for ev in self._all.values() for e in ev if e.source == "gold" for r in e.row_ids}
@@ -83,7 +84,7 @@ class FactInventory:
         uses (`states`, limited to `pairs` when given). Internal debug only, never in output.csv."""
         pairs = {(self.lex.canonical(s) or s, a) for s, a in pairs} if pairs else None
         seen, out = set(), []
-        for rid in sorted(set(row_ids), key=lambda r: (self.rows.get(r, {}).get("date", ""), r), reverse=True):
+        for rid in sorted(set(row_ids), key=lambda r: (self.rows.get(r, {}).get("date", ""), nz.row_order(r)), reverse=True):
             if rid in seen:
                 continue
             seen.add(rid)

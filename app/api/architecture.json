@@ -1,30 +1,256 @@
 {
   "nodes": [
-    { "id": "universe", "label": "Universe CSV", "kind": "io", "stage": "load", "owner": "P2", "description": "/universe/universe.csv (id, text, date, label) + lexicon.json. About 20,000 rows, about 18,000 of them unlabelled.", "position": { "x": 0, "y": 160 } },
-    { "id": "gold", "label": "Practice gold forms", "kind": "io", "stage": "kb", "owner": "P2", "description": "data/practice.csv with its gold forms, baked into the image as trusted facts.", "position": { "x": 520, "y": 0 } },
-    { "id": "extractor", "label": "Extractor", "kind": "stage", "stage": "extract", "owner": "P3", "description": "Subject gazetteer (lexicon names and aliases), value regexes (value-forms.md), a TF-IDF + logistic regression attribute classifier, and same-page coreference (He / Its / The platform).", "details": ["Gazetteer", "Value regexes", "Attribute classifier", "Coreference"], "position": { "x": 260, "y": 160 } },
-    { "id": "kb", "label": "Temporal KB", "kind": "stage", "stage": "kb", "owner": "P2", "description": "A timeline per subject and attribute, with support votes across the universe and a trust score per page. lookup(subject, attr, date) gives the value in force on that date.", "details": ["Timelines", "Support votes", "Page trust"], "position": { "x": 520, "y": 160 } },
-    { "id": "neuro", "label": "CfC liquid net", "kind": "optional", "stage": "classify", "owner": "P3", "description": "Optional (USE_NEURO=1): a closed-form continuous-time network that scores whether a value is still current. Fed in as one more feature.", "position": { "x": 780, "y": 0 } },
-    { "id": "classifier", "label": "Truth classifier", "kind": "stage", "stage": "classify", "owner": "P3", "description": "Features (agrees with or contradicts the value in force, support, page trust, value kind) go into LightGBM, then isotonic calibration maps confidence to 0.5–1.0.", "details": ["Features", "LightGBM", "Isotonic calibration"], "position": { "x": 780, "y": 110 } },
-    { "id": "labels", "label": "~18,000 labels", "kind": "io", "stage": "classify", "owner": "P3", "description": "true / false / unsure per unlabelled row; confidence 0.5–1.0, empty for unsure.", "position": { "x": 1040, "y": 110 } },
-    { "id": "generator", "label": "Claim generator", "kind": "stage", "stage": "generate", "owner": "P2", "description": "Templates from claim-forms.md: fact, compare, change, at_event and relation, built only from values the KB firmly supports.", "position": { "x": 780, "y": 280 } },
-    { "id": "validator", "label": "Validator", "kind": "stage", "stage": "validate", "owner": "P2", "description": "Checks entry.schema.json, lexicon names, the claim-forms rules and novelty (not a copy of an input row). An invalid claim is sent back to be regenerated.", "position": { "x": 1040, "y": 280 } },
-    { "id": "writer", "label": "Writer", "kind": "stage", "stage": "write", "owner": "P2", "description": "Writes a temp file in /output, then os.replace() to output.csv. A fallback table goes down early, and a watchdog writes again at the deadline.", "position": { "x": 1300, "y": 190 } },
-    { "id": "output", "label": "output.csv", "kind": "io", "stage": "write", "owner": "P2", "description": "/output/output.csv: id, type, text, form, label, confidence. The labels plus exactly 1,000 new claims.", "position": { "x": 1540, "y": 190 } }
+    {
+      "id": "universe",
+      "label": "Universe CSV",
+      "kind": "io",
+      "stage": "load",
+      "owner": "P2",
+      "description": "/universe/universe.csv (id, text, date, label) + lexicon.json. The practice rows come with their labels; every other row (about 18,000) has an empty label and no form.",
+      "position": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "extractor",
+      "label": "Two readers",
+      "kind": "stage",
+      "stage": "extract",
+      "owner": "P3",
+      "description": "Text to facts (subject, attribute, value). Arckan's ranker reads every row (fact F1 0.84 on held-out pages); X's simple extractor reads it again, and a fact both read gets more weight (right 95% of the time). Labelled rows are read by models that never saw their page.",
+      "details": [
+        "Gazetteer + value regexes",
+        "Attribute ranker",
+        "Second opinion",
+        "Cross-fitted"
+      ],
+      "position": {
+        "x": 260,
+        "y": 0
+      }
+    },
+    {
+      "id": "lkb",
+      "label": "KB: input labels + EM",
+      "kind": "stage",
+      "stage": "lkb",
+      "owner": "P3",
+      "description": "Only the input's labelled rows pin it (a true row's gold form holds, a false row's value is forbidden); unlabelled rows vote, weighted by page trust learnt by EM; a new value needs a pin or 2 pages. Generated items only ask. A labelled row is itself judged by a KB without its page's labels.",
+      "details": [
+        "Pins from input labels",
+        "Votes + EM page trust",
+        "Out-of-fold for labelled rows"
+      ],
+      "position": {
+        "x": 520,
+        "y": 0
+      }
+    },
+    {
+      "id": "gold",
+      "label": "Practice gold forms",
+      "kind": "io",
+      "stage": "kb",
+      "owner": "P2",
+      "description": "data/practice.csv with its gold forms, baked into the image. A row whose label the input hides is left out.",
+      "position": {
+        "x": 0,
+        "y": 160
+      }
+    },
+    {
+      "id": "truthkb",
+      "label": "Truth KB",
+      "kind": "stage",
+      "stage": "kb",
+      "owner": "P2",
+      "description": "A dated timeline per subject and attribute from the gold forms (units converted, rows of one date in row order). The source of truth for the claims and for the training items.",
+      "details": [
+        "Timelines",
+        "Wrong values",
+        "As of 29 Oct 2026"
+      ],
+      "position": {
+        "x": 260,
+        "y": 160
+      }
+    },
+    {
+      "id": "datagen",
+      "label": "Training items",
+      "kind": "stage",
+      "stage": "items",
+      "owner": "P3",
+      "description": "Labelled claims in all 5 types: true from the claim generator (facts that only reword a prose sentence are skipped), false by flipping the logic (another value, the reverse change, the opposite comparison), unsure from pairs nobody states.",
+      "details": [
+        "True",
+        "False (flipped)",
+        "Unsure (unstated pairs)"
+      ],
+      "position": {
+        "x": 520,
+        "y": 160
+      }
+    },
+    {
+      "id": "trainer",
+      "label": "Train",
+      "kind": "stage",
+      "stage": "train",
+      "owner": "P3",
+      "description": "LightGBM on the labelled rows + the training items, every feature from the label-free KB. prod: all items; debug: half the items held out and scored.",
+      "details": [
+        "Text + page features",
+        "KB status + support",
+        "Type checks"
+      ],
+      "position": {
+        "x": 780,
+        "y": 0
+      }
+    },
+    {
+      "id": "classifier",
+      "label": "Inference + trust",
+      "kind": "stage",
+      "stage": "classify",
+      "owner": "P3",
+      "description": "Labels every unlabelled row: true / false / unsure with a confidence (0.5 to 1, empty for unsure), plus a trust score (page trust, support, extraction) and the rows that support or contradict it.",
+      "details": [
+        "Confidence",
+        "Trust score",
+        "Sources of truth"
+      ],
+      "position": {
+        "x": 1040,
+        "y": 0
+      }
+    },
+    {
+      "id": "labels",
+      "label": "~18,000 labels",
+      "kind": "io",
+      "stage": "classify",
+      "owner": "P3",
+      "description": "One label per unlabelled row; trust scores and sources go to the debug files, never to output.csv.",
+      "position": {
+        "x": 1300,
+        "y": 0
+      }
+    },
+    {
+      "id": "generator",
+      "label": "Claim generator",
+      "kind": "stage",
+      "stage": "generate",
+      "owner": "P2",
+      "description": "Templates from claim-forms.md: fact, compare, change, at_event and relation, built only from values the truth KB firmly supports.",
+      "position": {
+        "x": 520,
+        "y": 320
+      }
+    },
+    {
+      "id": "validator",
+      "label": "Validator",
+      "kind": "stage",
+      "stage": "validate",
+      "owner": "P2",
+      "description": "Checks entry.schema.json, lexicon names, the claim-forms rules and novelty (not a reformulation of an input row). An invalid claim is sent back to be regenerated.",
+      "position": {
+        "x": 780,
+        "y": 320
+      }
+    },
+    {
+      "id": "writer",
+      "label": "Writer",
+      "kind": "stage",
+      "stage": "write",
+      "owner": "P2",
+      "description": "Writes a temp file in /output, then os.replace() to output.csv. A fallback table goes down early, and a watchdog writes again at the deadline.",
+      "position": {
+        "x": 1300,
+        "y": 160
+      }
+    },
+    {
+      "id": "output",
+      "label": "output.csv",
+      "kind": "io",
+      "stage": "write",
+      "owner": "P2",
+      "description": "/output/output.csv: id, type, text, form, label, confidence. The labels plus exactly 1,000 new claims.",
+      "position": {
+        "x": 1300,
+        "y": 320
+      }
+    }
   ],
   "edges": [
-    { "source": "universe", "target": "extractor" },
-    { "source": "extractor", "target": "kb" },
-    { "source": "gold", "target": "kb" },
-    { "source": "kb", "target": "classifier" },
-    { "source": "extractor", "target": "classifier", "label": "facts" },
-    { "source": "neuro", "target": "classifier", "dashed": true },
-    { "source": "classifier", "target": "labels" },
-    { "source": "kb", "target": "generator" },
-    { "source": "generator", "target": "validator" },
-    { "source": "validator", "target": "generator", "label": "invalid: regenerate", "dashed": true, "loop": true },
-    { "source": "labels", "target": "writer" },
-    { "source": "validator", "target": "writer", "label": "1,000 claims" },
-    { "source": "writer", "target": "output" }
+    {
+      "source": "universe",
+      "target": "extractor"
+    },
+    {
+      "source": "extractor",
+      "target": "lkb",
+      "label": "facts vote"
+    },
+    {
+      "source": "gold",
+      "target": "truthkb"
+    },
+    {
+      "source": "truthkb",
+      "target": "datagen"
+    },
+    {
+      "source": "lkb",
+      "target": "trainer",
+      "label": "features"
+    },
+    {
+      "source": "datagen",
+      "target": "trainer",
+      "label": "labelled items"
+    },
+    {
+      "source": "trainer",
+      "target": "classifier"
+    },
+    {
+      "source": "classifier",
+      "target": "labels"
+    },
+    {
+      "source": "truthkb",
+      "target": "generator"
+    },
+    {
+      "source": "generator",
+      "target": "validator"
+    },
+    {
+      "source": "validator",
+      "target": "generator",
+      "label": "invalid: regenerate",
+      "dashed": true,
+      "loop": true
+    },
+    {
+      "source": "labels",
+      "target": "writer"
+    },
+    {
+      "source": "validator",
+      "target": "writer",
+      "label": "1,000 claims"
+    },
+    {
+      "source": "writer",
+      "target": "output"
+    }
   ]
 }

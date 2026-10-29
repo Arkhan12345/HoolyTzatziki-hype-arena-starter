@@ -3,7 +3,8 @@
     python -m uvicorn app.api.main:app --host 127.0.0.1 --port 8000     (scripts/dev_api.ps1 / .sh)
 
 GET  /health                     what is loaded (extractor / classifier available?)
-POST /run                        rows in (JSON or CSV upload), labels + claims + metrics out; ?mode=async -> 202
+POST /run                        rows in (JSON or CSV upload), labels + claims + metrics out; ?mode=async -> 202;
+                                 ?pipeline_mode=prod|debug (debug: half the generated items held out and scored)
 GET  /runs                       recent runs (newest first)
 GET  /runs/{run_id}              one run's result (status "running" while an async run works)
 GET  /runs/{run_id}/claims       the run's 1,000 claims, paged: ?offset=&limit=&type=
@@ -65,6 +66,15 @@ def _world():
         _STATE["texts"] = {norm_text(r["text"]) for r in _STATE["gold"]}
         _STATE["claim_cache"] = {}
     return _STATE
+
+
+def _practice_facts(extract) -> list[dict]:
+    """Facts of every practice row, cross-fitted (each read by models that never saw its page); once per process."""
+    w = _world()
+    if "practice_facts" not in w:
+        rows = [{"id": g["id"], "text": g["text"], "date": g["date"], "label": g["label"]} for g in w["gold"]]
+        w["practice_facts"] = extract(rows, w["lexicon"], gold_rows=w["gold"])
+    return w["practice_facts"]
 
 
 def _plain(x):
@@ -148,8 +158,11 @@ def _explain(label, ev: list[dict] | None, classifier: str) -> str:
     return "The knowledge base has no value in force on this date for these facts."
 
 
-def run_rows(rows: list[dict], source: str = "rows", claims_limit: int = 50, run_id: str | None = None) -> dict:
-    """The real pipeline on demo rows. Demo rows that come from practice keep their gold out of the KB."""
+def run_rows(rows: list[dict], source: str = "rows", claims_limit: int = 50, run_id: str | None = None,
+             pipeline_mode: str = "prod") -> dict:
+    """The real pipeline on demo rows, as the arena runs it: the practice rows (minus the demo rows) come labelled,
+    the demo rows come unlabelled. Demo rows that are practice rows keep their gold out of every KB.
+    pipeline_mode: "prod" (train on all generated items) or "debug" (half of them held out and scored)."""
     from app.generate import generate
 
     w = _world()
@@ -159,22 +172,40 @@ def run_rows(rows: list[dict], source: str = "rows", claims_limit: int = 50, run
     t0 = time.time()
     stages = collector.Stages()
 
+    if pipeline_mode == "debug":
+        # debug is measured on the held-out half of the generated sentences: no practice row is hidden (no random
+        # 20); only rows that are not practice rows (an uploaded CSV of new sentences) come unlabelled
+        rows = [r for r in rows if r["id"] not in gold_by_id]
     blank = [dict(r, label="") for r in rows]
+    demo_ids = {r["id"] for r in rows}
+    labelled = [{"id": g["id"], "text": g["text"], "date": g["date"], "label": g["label"]}
+                for g in gold if g["id"] not in demo_ids]
+    universe = labelled + blank
     extract, classify = stages.run("load", _load_p3, (None, None))
     if extract:
-        facts = stages.run("extract", lambda: extract(blank, lexicon), []) or []
+        def read():  # practice rows: cached cross-fitted facts; other demo rows: read now
+            new = [r for r in blank if r["id"] not in gold_by_id]
+            return _practice_facts(extract) + (extract(new, lexicon, gold_rows=gold) if new else [])
+        facts_all = stages.run("extract", read, []) or []
     else:
-        facts = []
+        facts_all = []
         stages.status["extract"] = "not_available"
-    demo_ids = {r["id"] for r in rows}
+    facts = [f for f in facts_all if f.get("row_id") in demo_ids]
     kb = stages.run("kb", lambda: KB(lexicon).build(facts, [g for g in gold if g["id"] not in demo_ids], blank),
                     lambda: KB(lexicon))
-    labels, classifier = None, "baseline"
+    labels, classifier, class_report = None, "baseline", {}
     if classify:
-        labels = stages.run("classify", lambda: _clean_labels(classify(blank, facts, kb), blank), None)
-        classifier = "p3" if labels else "baseline"
+        labels = stages.run("classify", lambda: _clean_labels(
+            classify(universe, facts_all, kb, mode=pipeline_mode, report=class_report, gold_rows=gold), blank), None)
+        # the classifier ran even when no row was left to label (debug: it labels the held-out generated half)
+        classifier = "p3" if labels or class_report.get("train_rows") else "baseline"
     else:
         stages.status["classify"] = "not_available"
+    details = {}
+    if classifier == "p3":
+        from app.classify import LAST
+
+        details = LAST.get("details", {})
     if not labels:
         labels = _clean_labels([], blank)
 
@@ -207,10 +238,13 @@ def run_rows(rows: list[dict], source: str = "rows", claims_limit: int = 50, run
         g = gold_by_id.get(r["id"])
         rf = by_row.get(r["id"], [])
         ev = _evidence(kb, r, rf) if extract else None
-        out_labels.append({**_plain(lb), "gold": g["label"] if g else None})
+        d = details.get(r["id"], {})
+        out_labels.append({**_plain(lb), "gold": g["label"] if g else None, "trust_score": d.get("trust_score")})
         predictions.append({"id": r["id"], "text": r["text"], "date": r["date"], "label": lb.label,
                             "confidence": lb.confidence, "gold": g["label"] if g else None, "facts": rf,
-                            "evidence": ev, "explanation": _explain(lb, ev, classifier)})
+                            "evidence": ev, "explanation": _explain(lb, ev, classifier),
+                            "trust_score": d.get("trust_score"), "trust_parts": d.get("trust_parts"),
+                            "probabilities": d.get("probabilities"), "sources": d.get("facts", [])})
 
     held_out_gold = {r["id"]: gold_by_id[r["id"]]["label"] for r in rows if r["id"] in gold_by_id}
     metrics = collector.build(
@@ -227,6 +261,9 @@ def run_rows(rows: list[dict], source: str = "rows", claims_limit: int = 50, run
     for d in details:
         if d["id"] == "generate":
             d["note"] = claims_note
+    # the classifier's own steps, so the diagram can show them one by one (their seconds sum to "classify")
+    shown_stages, timings, details = collector.expand_classify(STAGE_ORDER, timings, details,
+                                                               class_report.get("seconds"), pipeline_mode)
     # every claim carries the sentences it was built from (debug; never in output.csv)
     claims_plain = [{**_plain(c), "sources": (getattr(c, "meta", None) or {}).get("sources", [])} for c in claims]
     return {
@@ -234,7 +271,9 @@ def run_rows(rows: list[dict], source: str = "rows", claims_limit: int = 50, run
         "rows": [{"id": r["id"], "text": r["text"], "date": r["date"]} for r in rows],
         "labels": out_labels, "predictions": predictions, "facts": facts_plain,
         "claims": claims_plain[:claims_limit], "claims_total": len(claims_plain),
-        "claims_by_type": report.get("by_type", {}), "timings": timings, "stages": STAGE_ORDER,
+        "classifier": {"mode": pipeline_mode, **{k: v for k, v in class_report.items() if k != "generated"},
+                       "generated": class_report.get("generated")},
+        "claims_by_type": report.get("by_type", {}), "timings": timings, "stages": shown_stages,
         "stage_details": details, "metrics": metrics, "errors": stages.errors,
         "_claims_all": claims_plain, "_labels_obj": labels, "_validation": report.get("_validation_report"),
     }
@@ -269,9 +308,9 @@ def _latest_done() -> dict | None:
     return None
 
 
-def _execute(run_id: str, rows: list[dict], source: str, claims_limit: int) -> dict:
+def _execute(run_id: str, rows: list[dict], source: str, claims_limit: int, pipeline_mode: str = "prod") -> dict:
     try:
-        res = run_rows(rows, source, claims_limit, run_id)
+        res = run_rows(rows, source, claims_limit, run_id, pipeline_mode)
         entry = {"run_id": run_id, "status": res["status"], "source": source, "created_at": res["created_at"],
                  "rows": len(rows), "result": res}
     except Exception as e:  # noqa: BLE001 - the stage wrappers make this rare; report it, never 500 silently
@@ -291,7 +330,9 @@ def health():
 
 
 @app.post("/run")
-async def run(request: Request, claims_limit: int = 50, mode: str = "sync"):
+async def run(request: Request, claims_limit: int = 50, mode: str = "sync", pipeline_mode: str = "prod"):
+    if pipeline_mode not in ("prod", "debug"):
+        raise HTTPException(400, "pipeline_mode is prod or debug")
     rows, source = await _parse_request(request)
     if not rows:
         raise HTTPException(400, "no rows (need columns id,text,date)")
@@ -302,9 +343,9 @@ async def run(request: Request, claims_limit: int = 50, mode: str = "sync"):
     if mode == "async":
         _store(run_id, {"run_id": run_id, "status": "running", "source": source, "created_at": collector.now_iso(),
                         "rows": len(rows), "result": None})
-        threading.Thread(target=_execute, args=(run_id, rows, source, claims_limit), daemon=True).start()
+        threading.Thread(target=_execute, args=(run_id, rows, source, claims_limit, pipeline_mode), daemon=True).start()
         return JSONResponse({"run_id": run_id, "status": "running", "poll": f"/runs/{run_id}"}, status_code=202)
-    entry = _execute(run_id, rows, source, claims_limit)
+    entry = _execute(run_id, rows, source, claims_limit, pipeline_mode)
     if entry["status"] == "failed":
         raise HTTPException(500, {"run_id": run_id, "status": "failed", "error": entry.get("error")})
     return _public(entry["result"])

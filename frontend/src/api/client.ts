@@ -1,7 +1,7 @@
 import runMock from '@/mocks/run.json'
 import architectureMock from '@/mocks/architecture.json'
 import metricsMock from '@/mocks/metrics.json'
-import { ApiError, type Architecture, type ClaimsPage, type Health, type InputRow, type Metrics, type RunResponse, type Sourced } from './types'
+import { ApiError, type Architecture, type ClaimsPage, type Health, type InputRow, type Metrics, type PipelineMode, type RunResponse, type Sourced } from './types'
 
 export const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
 /** VITE_MOCK=1: never call the API; every page shows demo data and says so. */
@@ -89,7 +89,8 @@ export type RunInput = { kind: 'sample' } | { kind: 'file'; file: File } | { kin
  * POST /run?mode=async, then poll GET /runs/{id} every 500 ms (202 = running, 200 = done, 500 = failed).
  * Async keeps the API free to answer /health while it works. Throws ApiError; never substitutes demo data itself.
  */
-export async function runPipeline(input: RunInput, claimsLimit = 50, onStarted?: (runId: string) => void): Promise<Sourced<RunResponse>> {
+export async function runPipeline(input: RunInput, claimsLimit = 50, onStarted?: (runId: string) => void,
+  pipelineMode: PipelineMode = 'prod'): Promise<Sourced<RunResponse>> {
   if (MOCK) {
     await sleep(1400)
     return { data: demoRun, source: 'demo' }
@@ -103,7 +104,8 @@ export async function runPipeline(input: RunInput, claimsLimit = 50, onStarted?:
     const body = input.kind === 'rows' ? { rows: input.rows } : { use: 'sample' }
     init = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
   }
-  const started = await call<RunResponse | { run_id: string; status: string; poll?: string }>(`/run?mode=async&claims_limit=${claimsLimit}`, init)
+  const started = await call<RunResponse | { run_id: string; status: string; poll?: string }>(
+    `/run?mode=async&claims_limit=${claimsLimit}&pipeline_mode=${pipelineMode}`, init)
   // An API without async mode answers 200 with the finished result straight away.
   if (started.status === 200 && 'labels' in started.body) return { data: started.body, source: 'api' }
   const runId = started.body.run_id

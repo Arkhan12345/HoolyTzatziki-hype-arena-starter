@@ -182,7 +182,7 @@ const FlowEdgeView = memo(function FlowEdgeView(props: EdgeProps<FlowEdge>) {
     }
     if (anim.state === 'waiting') {
       spark.style.opacity = '0.9'
-      const ctl = animate(0, 1, { duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay: (anim.delay % 900) / 1000, onUpdate: place })
+      const ctl = animate(0, 1, { duration: 2.6, repeat: Infinity, ease: 'easeInOut', delay: (anim.delay % 900) / 1000, onUpdate: place })
       return () => ctl.stop()
     }
     spark.style.opacity = '0'
@@ -322,18 +322,22 @@ function autoLayout(nodes: ArchNode[], allEdges: ArchEdge[]) {
  */
 const COL = 330
 const ROW = 190
+// Three lanes: labels on top (read -> label-free KB -> train -> infer), training data in the middle (gold -> truth
+// KB -> generated items, feeding the trainer), claims at the bottom (truth KB -> generator -> validator).
 const GRID: Record<string, [number, number]> = {
-  gold: [2, 0],
-  neuro: [3, 0],
-  universe: [0, 1],
-  extractor: [1, 1],
-  kb: [2, 1],
-  classifier: [3, 1],
-  labels: [4, 1],
+  universe: [0, 0],
+  extractor: [1, 0],
+  lkb: [2, 0],
+  trainer: [3, 0],
+  classifier: [4, 0],
+  labels: [5, 0],
+  gold: [0, 1],
+  truthkb: [1, 1],
+  datagen: [2, 1],
+  writer: [5, 1],
+  output: [6, 1],
   generator: [2, 2],
   validator: [3, 2],
-  writer: [4, 2],
-  output: [4, 3],
 }
 const SPREAD = { x: 1.3, y: 1.6 }
 
@@ -494,9 +498,27 @@ function FitOnResize({ padding }: { padding: number }) {
 }
 
 /** How long each stage gets in the replay: a floor so fast stages stay visible, plus a share by measured time. */
+/** Demo pace: every step stays on screen long enough to say one sentence about it (3–6 s, longer for slower stages). */
+const STEP_MIN_MS = 3000
+const STEP_MAX_MS = 6000
 function stepDurations(stages: string[], timings: Record<string, number | null>) {
   const total = stages.reduce((a, s) => a + (timings[s] ?? 0), 0) || 1
-  return stages.map((s) => Math.round(Math.min(2400, 700 + ((timings[s] ?? 0) / total) * 3600)))
+  return stages.map((s) => Math.round(Math.min(STEP_MAX_MS, STEP_MIN_MS + ((timings[s] ?? 0) / total) * 8000)))
+}
+
+/** What each step does, in words a presenter can read out while the diagram replays. */
+// eslint-disable-next-line react-refresh/only-export-components
+export const STAGE_TITLE: Record<string, string> = {
+  load: 'Read the universe',
+  extract: 'Two readers extract the facts',
+  kb: 'Truth KB from the gold forms',
+  items: 'Generate labelled training items',
+  lkb: 'KB pinned by input labels + EM trust',
+  train: 'Train the classifier',
+  classify: 'Label, trust score, sources',
+  generate: 'Generate 1,000 claims',
+  validate: 'Validate every claim',
+  write: 'Write output.csv',
 }
 
 export interface StageCursor {
@@ -513,7 +535,7 @@ export interface StageCursor {
  *   edge a slow pulse.
  * - When it answers, the stages replay one by one in the API's order. For each stage the edges into it fill
  *   (data arriving), the node lights up with a progress bar, then it settles in the status the API reported.
- *   Each step lasts 0.7–2.4 s, longer for stages that took longer.
+ *   Each step lasts 3–6 s (a sentence of narration), longer for stages that took longer.
  * - With no run in this session, the statuses of the API's latest run come from GET /architecture.
  * The replay runs under reduced motion too: it is the explanation of what happened, not decoration. Only the
  * moving spark is left out then.
@@ -540,7 +562,7 @@ export function usePipelineStatus(architecture: Architecture, job: Job | null, r
       t = setTimeout(next, ms)
     }
     // a short beat after the answer lands, so the eye can follow from the first edge
-    t = setTimeout(next, 250)
+    t = setTimeout(next, 900)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [replayKey, result])
