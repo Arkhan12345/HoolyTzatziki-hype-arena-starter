@@ -9,4 +9,7 @@ __pycache__/
 .venv-eda/
 .venv-neuro/
 eda/out/*.pkl
+eda/out/h300_work/
+eda/out/synth_work/
+eda/out/*_smoke.*
 .claude/worktrees/

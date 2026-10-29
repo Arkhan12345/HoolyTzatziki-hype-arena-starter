@@ -58,6 +58,8 @@ A run that passes here can still fail ours on what the practice data does not ho
 **Docs map → [`docs/README.md`](docs/README.md)** (what to read, and when) · roles: [`team/README.md`](team/README.md) · every result: [`docs/RESULTS.md`](docs/RESULTS.md).
 
 **Current best (research, gold facts):** L6 = staircase timeline + page trust + failure statuses + hard rules + evidence-sum calibrator: macro-F1 **0.801** vs 0.735 for plain LightGBM on the same folds (ECE 0.050). Liquid, spiking and character-level nets: no gain on true/false. Not yet in `app/`: the shipped labels are still the all-true baseline (83.3% on all rows, 85.3% on check.sh's hidden rows).
+More detail: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md), [`docs/EDA.md`](docs/EDA.md), [`team/README.md`](team/README.md).
+Model research and measured results: [`eda/README.md`](eda/README.md) (research index) and [`tests/runtime/README.md`](tests/runtime/README.md) (leak-free evaluation protocol and results: realistic accuracy is 0.867 CV / 0.846 holdout against 0.834 / 0.802 all-true).
 
 ### Repository layout
 

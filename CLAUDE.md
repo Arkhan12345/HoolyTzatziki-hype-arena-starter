@@ -17,3 +17,6 @@ Read `team/README.md` (who owns what) and the official `contracts/` first; the c
   `app.classify.classify(rows, facts, kb)` (see `app/kb/adapter.py` for the fact shape the KB accepts).
 - **Before pushing backend changes:** `.venv/Scripts/python -m pytest -q tests/runtime`; before a milestone,
   `sh scripts/check.sh` (WSL on Windows). P2's runtime skill: `.claude/skills/arena-runtime/SKILL.md`.
+- **Model research changes:** run `eda/10_h300_validation.py` (300 statements) and report real-row numbers
+  (extracted facts) next to all-true; gold-`form` numbers are oracle only. Research index: `eda/README.md`;
+  evaluation protocol and results: `tests/runtime/README.md`.
