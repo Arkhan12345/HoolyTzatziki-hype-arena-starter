@@ -1,0 +1,177 @@
+{
+ "name": "FINAL",
+ "config": {
+  "groups": [
+   "core",
+   "text",
+   "hist"
+  ],
+  "synth": [
+   "practice",
+   0.3
+  ],
+  "reg": "strong"
+ },
+ "training_rows": {
+  "practice_labelled": 1897,
+  "synthetic": 10000
+ },
+ "synth_version": "script",
+ "synth_weight": 0.3,
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "features": [
+  "has_reading",
+  "known_pair",
+  "p_attr",
+  "attr_maxp",
+  "margin",
+  "parse_conf",
+  "matches_latest",
+  "status_no_subject",
+  "status_no_attr",
+  "text_joke",
+  "text_first_person",
+  "stale",
+  "ever_false",
+  "seen_value",
+  "n_true_values",
+  "n_mentions",
+  "days_since_change",
+  "log_ratio_latest",
+  "perturb_hit",
+  "pages_for",
+  "pages_against",
+  "kind_none",
+  "kind_quantity",
+  "kind_money",
+  "kind_percent",
+  "kind_duration",
+  "kind_date",
+  "kind_version",
+  "kind_name",
+  "kind_boolean"
+ ],
+ "gates": {
+  "learning_curve_pass": true,
+  "held_out_subjects_pass": true,
+  "time_forward_pass": true,
+  "train_validation_difference_pass": true,
+  "seed_spread_pass": true,
+  "permutation_pass": true,
+  "synthetic_case_accuracy_pass": true
+ },
+ "generalisation_checks": {
+  "learning_curve": {
+   "values": [
+    0.5153,
+    0.5508,
+    0.5785,
+    0.6044
+   ],
+   "pass": true
+  },
+  "held_out_subjects": {
+   "ftf": 0.6085,
+   "all_true": 0.4554,
+   "pass": true
+  },
+  "time_forward": {
+   "ftf": 0.5778,
+   "all_true": 0.4559,
+   "pass": true
+  },
+  "train_validation_difference": {
+   "gap": 0.0002,
+   "pass": true
+  },
+  "seed_spread": {
+   "values": [
+    0.6524,
+    0.6512,
+    0.6554
+   ],
+   "std": 0.0018,
+   "pass": true
+  },
+  "permutation": {
+   "values": [
+    0.4554,
+    0.4552,
+    0.4554
+   ],
+   "pass": true
+  },
+  "synthetic_case_accuracy": {
+   "by_case": {
+    "chain": 0.8578,
+    "joke": 0.0,
+    "perturbed": 0.4091,
+    "premature": 0.1636,
+    "stale": 0.5439,
+    "swapped": 0.3152,
+    "true_current": 0.992,
+    "unseen_pair": 0.9934,
+    "update": 0.9921
+   },
+   "relation_mean": 0.7007,
+   "pass": true
+  },
+  "all_pass": true
+ },
+ "scores": {
+  "practice_cv": {
+   "acc": 0.8613,
+   "f3": 0.4349,
+   "ftf": 0.6524,
+   "f_unsure": 0.0,
+   "ece": 0.0283
+  },
+  "practice_holdout_single_look": {
+   "acc": 0.8487,
+   "f3": 0.4468,
+   "ftf": 0.6702,
+   "f_unsure": 0.0,
+   "ece": 0.0453,
+   "all_true_acc": 0.8191
+  },
+  "h300_cv_practice_trained": {
+   "acc": 0.3957,
+   "f3": 0.2883,
+   "ftf": 0.4325,
+   "f_unsure": 0.0,
+   "ece": 0.428
+  }
+ },
+ "robustness": {
+  "new_ids_no_labels": "ok",
+  "date_iso": "ok, agrees 1.00",
+  "date_slash": "ok, agrees 1.00",
+  "date_day_mon": "ok, agrees 1.00",
+  "date_mon_day": "ok, agrees 1.00",
+  "empty_and_odd_rows": "ok -> [np.str_('true'), np.str_('true')]",
+  "passed": true
+ },
+ "sha256": "613b7be5980c21846f7e84db1d77cfa09b949278715a2fd9c9b2995a67f31239",
+ "created": "2026-10-29T09:15:42",
+ "predict_entry": "h300.lib.model:predict_rows",
+ "load_requires_sys_path": "eda/h300",
+ "frozen_inference": "python eda/h300/predict_frozen.py INPUT.csv --model eda/models/FINAL",
+ "reader": "extractor + wide extractor + attribute model + KB fitted on all 1,897 practice rows",
+ "lockbox_looks": 0,
+ "practice_holdout_looks": 2,
+ "training_ids_file": "eda\\models\\training_ids\\FINAL.csv",
+ "training_note": "refitted once on every labelled practice row incl. the holdout pages, after their look (by design of the freeze step)",
+ "permutation_learned_max": 0.4554,
+ "train_val_gap": 0.0002,
+ "file": "eda\\models\\FINAL\\model.joblib",
+ "role": "ship_candidate",
+ "post_lockbox_refit": {
+  "refit_on_all_practice_after_single_holdout_look": true,
+  "holdout_scored_before_refit": "scores.practice_holdout_single_look",
+  "note": "the practice holdout pages were scored once with the CV-trained config, then the same config was refit on all 1,897 labelled rows; the h300 lockbox is never used for training"
+ }
+}
