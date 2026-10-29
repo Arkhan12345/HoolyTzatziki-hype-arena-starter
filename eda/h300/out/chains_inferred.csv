@@ -1,0 +1,47 @@
+kind,subject,link,target,attribute,value,start,end
+link_link,Hooly,cto,Bertram Gilfoil,previous_employer,"{'kind': 'name', 'value': 'Kestrel Bank'}",2026-10-09,
+relation,Hooly,cto,Bertram Gilfoil,joined,"{'kind': 'date', 'value': '2026-07-01'}",2026-07-01,
+relation,Hooly,cto,Bertram Gilfoil,previous_employer,"{'kind': 'name', 'value': 'Kestrel Bank'}",2026-10-09,
+relation,Hooly,head_of_product,Dinesh Chugtay,joined,"{'kind': 'date', 'value': '2026-02-01'}",2026-03-05,
+relation,Hooly,head_of_security,Ron LaFlame,joined,"{'kind': 'date', 'value': '2026-08-03'}",2026-08-26,
+relation,Hooly,head_of_workspace,Patreese,team_size,"{'kind': 'quantity', 'value': 40, 'unit': 'member'}",2026-09-01,
+relation,Hooly Board,chair,Peter Gregori,chairs,"{'kind': 'name', 'value': 'Hooly Board'}",2026-07-14,
+relation,Hooly Board,chair,Peter Gregori,chairs_audit_committee,"{'kind': 'boolean', 'value': True}",2026-07-14,
+relation,Hooly Board,chair,Peter Gregori,independent_director,"{'kind': 'boolean', 'value': True}",2026-07-14,
+link_link,Hooly Cloud,reliability_lead,Holdan,previous_employer,"{'kind': 'name', 'value': 'Nimbus Cloud'}",2026-01-12,2026-08-04
+link_link,Hooly Cloud,reliability_lead,Holdan,previous_employer,"{'kind': 'name', 'value': 'Nimbus'}",2026-08-04,2026-09-03
+link_link,Hooly Cloud,reliability_lead,Holdan,previous_employer,"{'kind': 'name', 'value': 'Nimbus Cloud'}",2026-09-03,
+relation,Hooly Cloud,reliability_lead,Holdan,joined,"{'kind': 'date', 'value': '2026-01-12'}",2026-01-12,2026-09-03
+relation,Hooly Cloud,reliability_lead,Holdan,joined,"{'kind': 'date', 'value': '2026-01'}",2026-09-03,
+relation,Hooly Cloud,reliability_lead,Holdan,previous_employer,"{'kind': 'name', 'value': 'Nimbus Cloud'}",2026-01-12,2026-08-04
+relation,Hooly Cloud,reliability_lead,Holdan,previous_employer,"{'kind': 'name', 'value': 'Nimbus'}",2026-08-04,2026-09-03
+relation,Hooly Cloud,reliability_lead,Holdan,previous_employer,"{'kind': 'name', 'value': 'Nimbus Cloud'}",2026-09-03,
+relation,Hooly Cloud,reliability_lead,Holdan,team_size,"{'kind': 'quantity', 'value': 4, 'unit': 'engineer'}",2026-01-12,2026-07-02
+relation,Hooly Cloud,reliability_lead,Holdan,team_size,"{'kind': 'quantity', 'value': 11, 'unit': 'engineer'}",2026-07-02,2026-09-03
+relation,Hooly Cloud,reliability_lead,Holdan,team_size,"{'kind': 'quantity', 'value': 17, 'unit': 'engineer'}",2026-09-03,
+relation,Hooly Employee Survey,run_by,Erlich Bachmann,joined,"{'kind': 'date', 'value': '2026-01-15'}",2026-03-31,
+link_link,Hooly Hiring Programme,executive_sponsor,Bertram Gilfoil,previous_employer,"{'kind': 'name', 'value': 'Kestrel Bank'}",2026-10-09,
+relation,Hooly Hiring Programme,executive_sponsor,Bertram Gilfoil,joined,"{'kind': 'date', 'value': '2026-07-01'}",2026-09-16,
+relation,Hooly Hiring Programme,executive_sponsor,Bertram Gilfoil,previous_employer,"{'kind': 'name', 'value': 'Kestrel Bank'}",2026-10-09,
+relation,Hooly Maps Day,venue,Quayside Hall,capacity,"{'kind': 'quantity', 'value': 3200, 'unit': 'seat'}",2026-04-24,
+relation,Hooly Photos,head,Erlich Bachmann,joined,"{'kind': 'date', 'value': '2026-01-15'}",2026-03-31,2026-04-02
+link_link,Hooly Search,executive_owner,Bertram Gilfoil,previous_employer,"{'kind': 'name', 'value': 'Kestrel Bank'}",2026-10-09,
+relation,Hooly Search,executive_owner,Bertram Gilfoil,joined,"{'kind': 'date', 'value': '2026-07-01'}",2026-09-18,
+relation,Hooly Search,executive_owner,Bertram Gilfoil,previous_employer,"{'kind': 'name', 'value': 'Kestrel Bank'}",2026-10-09,
+relation,Hooly Sustainability Report,owner,Hoovar,desks_managed,"{'kind': 'quantity', 'value': 108, 'unit': 'desk'}",2026-10-14,
+relation,Hooly Sustainability Report,owner,Hoovar,facilities_team,"{'kind': 'quantity', 'value': 3, 'unit': 'employee'}",2026-10-14,
+relation,Hooly Sustainability Report,owner,Hoovar,joined,"{'kind': 'date', 'value': '2025-11-17'}",2026-10-14,
+relation,Hooly Sustainability Report,owner,Hoovar,offices_run,"{'kind': 'quantity', 'value': 2, 'unit': 'office'}",2026-10-14,
+relation,Made by Hooly 2026,venue,Rheinhalle,capacity,"{'kind': 'quantity', 'value': 9000, 'unit': 'seat'}",2026-02-20,
+link_link,Peter Gregori,chairs,Hooly Board,chair,"{'kind': 'name', 'value': 'Gavin Bellson'}",2026-07-02,2026-07-14
+relation,Peter Gregori,chairs,Hooly Board,attendance,"{'kind': 'percent', 'value': 94}",2026-07-02,
+relation,Peter Gregori,chairs,Hooly Board,audit_committee,"{'kind': 'boolean', 'value': True}",2026-07-02,
+relation,Peter Gregori,chairs,Hooly Board,chair,"{'kind': 'name', 'value': 'Gavin Bellson'}",2026-07-02,2026-07-14
+relation,Peter Gregori,chairs,Hooly Board,chair,"{'kind': 'name', 'value': 'Peter Gregori'}",2026-07-14,
+relation,Peter Gregori,chairs,Hooly Board,chair_since,"{'kind': 'date', 'value': '2026-02-17'}",2026-07-02,
+relation,Peter Gregori,chairs,Hooly Board,independent_members,"{'kind': 'quantity', 'value': 3, 'unit': 'member'}",2026-07-02,
+relation,Peter Gregori,chairs,Hooly Board,meetings_per_year,"{'kind': 'quantity', 'value': 6, 'unit': 'sitting'}",2026-07-02,
+relation,Peter Gregori,chairs,Hooly Board,next_meeting,"{'kind': 'date', 'value': '2026-09-22'}",2026-07-02,
+relation,Peter Gregori,chairs,Hooly Board,raviqa_seat,"{'kind': 'boolean', 'value': True}",2026-07-02,
+relation,Peter Gregori,chairs,Hooly Board,seats,"{'kind': 'quantity', 'value': 8, 'unit': 'seat'}",2026-07-02,
+relation,Peter Gregori,chairs,Hooly Board,sessions_held,"{'kind': 'quantity', 'value': 7, 'unit': 'session'}",2026-07-02,

@@ -1,0 +1,3 @@
+inputs built (17s), coverage {'practice': 0.889826041117554, 'h300': 0.7695473251028807}
+R1 lgbm seed=0: practice f1_tf 0.462 acc 0.832 | h300 f1_3 0.166 (1s)
+R1 cfc seed=0: practice f1_tf 0.463 acc 0.834 | h300 f1_3 0.168 (86s)

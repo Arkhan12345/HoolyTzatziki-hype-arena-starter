@@ -1,0 +1,3 @@
+h300 parts: {'cv': 230, 'lockbox': 57, 'train_only': 13}  dedupe 13
+WROTE C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\eda\h300\out\synth10k_practice_rule.csv  {'n': 10000, 'tried': 11751, 'dropped_near_copies': 64, 'chain_rows': 0, 'chain_note': "chains failed (KeyError: 'kind')", 'rule_agreement': 0.9981, 'mix': {'true': 0.83, 'false': 0.15, 'unsure': 0.02}}  (5s)
+WROTE C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\eda\h300\out\synth10k_closed_world.csv  {'n': 10000, 'tried': 10943, 'dropped_near_copies': 27, 'chain_rows': 0, 'chain_note': "chains failed (KeyError: 'kind')", 'rule_agreement': 0.9988, 'mix': {'true': 0.333, 'false': 0.334, 'unsure': 0.333}}  (10s)

@@ -1,0 +1,60 @@
+src,attribute,dst,dst_entity,start,end,rows
+Bertram Gilfoil,previous_employer,Kestrel Bank,False,2026-10-09,,1
+Gemini Launch Night,city,Berlin,False,2025-10-10,,2
+Holdan,previous_employer,Nimbus Cloud,False,2026-01-12,2026-08-04,1
+Holdan,previous_employer,Nimbus,False,2026-08-04,2026-09-03,1
+Holdan,previous_employer,Nimbus Cloud,False,2026-09-03,,1
+Hooly,ceo,Gavin,False,2026-02-03,2026-02-17,1
+Hooly,ceo,Gavin Bellson,False,2026-02-17,2026-04-17,1
+Hooly,ceo,Gavin,False,2026-04-17,2026-07-01,1
+Hooly,ceo,Gavin Bellson,False,2026-07-01,,2
+Hooly,cto,Richard Hendrix,False,2025-12-10,2026-07-01,6
+Hooly,cto,Bertram Gilfoil,True,2026-07-01,,3
+Hooly,head_of_product,Dinesh Chugtay,True,2026-03-05,,3
+Hooly,head_of_security,Ron LaFlame,True,2026-08-26,,3
+Hooly,head_of_workspace,Patreese,True,2026-08-25,,3
+Hooly,headquarters,Berlin,False,2025-11-04,2026-05-01,7
+Hooly,headquarters,Lisbon,False,2026-05-01,,8
+Hooly,series_a_lead,Raviqa Capital,False,2026-02-17,2026-02-18,1
+Hooly,series_a_lead,Raviqa,False,2026-02-17,2026-02-18,1
+Hooly,series_a_lead,Raviqa Capital,False,2026-02-17,2026-06-10,3
+Hooly,series_a_lead,Raviqa,False,2026-06-10,,1
+Hooly,soc2_auditor,Certiq Assurance,False,2026-09-17,,3
+Hooly Android,lead,Nelson Bighettie,False,2025-12-15,2026-03-05,1
+Hooly Android,lead,Davis Bannerchek,False,2026-03-05,,4
+Hooly Board,chair,Gavin Bellson,False,2025-11-18,2026-07-14,2
+Hooly Board,chair,Peter Gregori,True,2026-07-14,,1
+Hooly Chrome,lead,Gwartt,False,2026-06-02,,4
+Hooly Cloud,home_region,Frankfurt,False,2025-11-04,,6
+Hooly Cloud,newest_region,Warsaw,False,2026-03-02,2026-07-15,2
+Hooly Cloud,newest_region,Montreal,False,2026-07-15,,2
+Hooly Cloud,reliability_lead,Holdan,True,2026-01-12,,6
+Hooly Cloud Next 2026,city,Dublin,False,2026-01-21,,7
+Hooly Cloud Next 2026,opening_keynote,Gavin Bellson,False,2026-01-21,,4
+Hooly Cloud Next 2026,venue,Ringsend Forum,False,2026-03-18,,5
+Hooly Devices,head,Gavin Bellson,False,2025-12-12,2026-02-02,2
+Hooly Devices,head,Jack Barkor,False,2026-02-02,,6
+Hooly Devices,manufacturing_partner,Tessel Works,False,2025-12-02,,7
+Hooly Employee Survey,run_by,Erlich Bachmann,True,2026-03-12,,2
+Hooly Gemini,cloud_provider,Nimbus Cloud,False,2025-10-10,,12
+Hooly Gemini,primary_region,Frankfurt,False,2025-10-10,,7
+Hooly Hiring Programme,executive_sponsor,Richard Hendrix,False,2026-05-20,2026-09-16,2
+Hooly Hiring Programme,executive_sponsor,Bertram Gilfoil,True,2026-09-16,,2
+Hooly I/O 2026,city,Berlin,False,2026-02-01,,6
+Hooly I/O 2027,city,Lisbon,False,2026-09-24,,1
+Hooly Jules,lead,Nelson Bighettie,False,2026-04-17,,4
+Hooly Maps,lead,Jian-Yeng,False,2026-04-16,,2
+Hooly Maps Day,city,Dublin,False,2026-04-24,,2
+Hooly Maps Day,host,Gavin Bellson,False,2026-04-24,,2
+Hooly Maps Day,keynote_speaker,Jian-Yeng,False,2026-04-24,,2
+Hooly Maps Day,venue,Quayside Hall,True,2026-04-24,,2
+Hooly Photos,head,Erlich Bachmann,True,2025-10-19,2026-04-02,2
+Hooly Photos,head,Tarra,False,2026-04-02,,4
+Hooly Search,executive_owner,Richard Hendrix,False,2025-11-04,2026-09-18,5
+Hooly Search,executive_owner,Bertram Gilfoil,True,2026-09-18,,3
+Hooly Sustainability Report,owner,Hoovar,True,2026-10-14,,1
+Made by Hooly 2026,city,Frankfurt,False,2026-02-20,,3
+Made by Hooly 2026,devices_keynote_speaker,Jack Barkor,False,2026-02-18,,3
+Made by Hooly 2026,host,Gavin Bellson,False,2026-02-20,,1
+Made by Hooly 2026,venue,Rheinhalle,True,2026-02-20,,3
+Peter Gregori,chairs,Hooly Board,True,2026-07-02,,1
