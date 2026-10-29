@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { BarChart3, Bug, Database, FileText, LayoutDashboard, Menu, Presentation, ScanSearch, Sparkles, Workflow, X } from 'lucide-react'
+import { BarChart3, Bug, Database, FileCheck2, FileText, LayoutDashboard, Menu, Presentation, ScanSearch, Sparkles, Workflow, X } from 'lucide-react'
 import { MOCK } from '@/api/client'
 import { Backdrop } from '@/components/fx/Backdrop'
 import { BootSequence } from '@/components/fx/BootSequence'
@@ -18,6 +18,7 @@ const NAV = [
   { to: '/', label: 'Run', icon: LayoutDashboard },
   { to: '/generate', label: '1,000 claims', icon: Sparkles },
   { to: '/output', label: 'output.csv', icon: FileText },
+  { to: '/validate', label: 'Validate CSV', icon: FileCheck2 },
   { to: '/architecture', label: 'Pipeline', icon: Workflow },
   { to: '/pitch', label: 'Pitch', icon: Presentation },
   { to: '/verify', label: 'Verify a claim', icon: ScanSearch, debug: true },

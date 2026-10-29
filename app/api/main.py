@@ -453,3 +453,9 @@ def architecture():
         return collector.architecture()
     res = e["result"]
     return collector.architecture(res["metrics"]["runtime"]["stage_status"], res["timings"], res["run_id"])
+
+
+# Training CSV vs validation CSV (POST /training, POST /validate): app/api/validation.py
+from app.api.validation import router as _validation_router  # noqa: E402
+
+app.include_router(_validation_router)

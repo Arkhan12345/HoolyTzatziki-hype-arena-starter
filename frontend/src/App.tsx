@@ -13,6 +13,7 @@ const ArchitecturePage = lazy(() => import('@/pages/Architecture'))
 const MetricsPage = lazy(() => import('@/pages/Metrics'))
 const PitchPage = lazy(() => import('@/pages/Pitch'))
 const OutputPage = lazy(() => import('@/pages/Output'))
+const ValidatePage = lazy(() => import('@/pages/Validate'))
 
 function Loading() {
   return (
@@ -40,6 +41,7 @@ export default function App() {
                 <Route path="output" element={<OutputPage />} />
                 <Route path="architecture" element={<ArchitecturePage />} />
                 <Route path="metrics" element={<MetricsPage />} />
+                <Route path="validate" element={<ValidatePage />} />
                 <Route path="pitch" element={<PitchPage />} />
                 <Route path="*" element={<Dashboard />} />
               </Route>

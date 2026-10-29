@@ -21,7 +21,7 @@ function explainStatus(status: number, detail: string) {
   return `${status}: ${detail}`
 }
 
-async function call<T>(path: string, init?: RequestInit, timeoutMs = 60_000): Promise<{ status: number; body: T }> {
+export async function call<T>(path: string, init?: RequestInit, timeoutMs = 60_000): Promise<{ status: number; body: T }> {
   const ctl = new AbortController()
   const t = setTimeout(() => ctl.abort(), timeoutMs)
   let res: Response
