@@ -1,0 +1,25 @@
+model,track,features,cv,macro_f1_tf,acc,ece,brier,false_precision,false_recall,n
+0: majority (all true),reference,none,group,0.4546,0.8334,,,0.0000,0.0000,1897
+0: majority (all true),reference,none,time,0.4449,0.8014,,,0.0000,0.0000,438
+SVM text-only + threshold,classic,TF-IDF word+char,group,0.5623,0.7217,,,0.2440,0.3750,1897
+SVM text-only + threshold,classic,TF-IDF word+char,time,0.4978,0.6826,,,0.1860,0.1950,438
+D: stack,neuro,A + CfC liquid net over fact timelines (2-seed mean),group,0.7089,,,,,,1897
+D: stack,neuro,A + CfC liquid net over fact timelines (2-seed mean),time,0.6720,,,,,,438
+D: CfC alone,neuro,A + CfC liquid net over fact timelines (2-seed mean),group,0.5997,,,,,,1897
+D: CfC alone,neuro,A + CfC liquid net over fact timelines (2-seed mean),time,0.6192,,,,,,438
+D-GRU: stack,neuro,"A + GRU over fact timelines, control (2-seed mean)",group,0.7195,,,,,,1897
+D-GRU: stack,neuro,"A + GRU over fact timelines, control (2-seed mean)",time,0.6451,,,,,,438
+D-GRU: GRU alone,neuro,"A + GRU over fact timelines, control (2-seed mean)",group,0.6799,,,,,,1897
+D-GRU: GRU alone,neuro,"A + GRU over fact timelines, control (2-seed mean)",time,0.5274,,,,,,438
+A: LightGBM,classic,"judged rows extracted, labelled rows hand-labelled + KB + support + text",group,0.7233,0.8677,0.0170,0.0859,0.5496,0.5199,1897
+A: LogReg L2,classic,"judged rows extracted, labelled rows hand-labelled + KB + support + text",group,0.7218,0.8645,0.0078,0.0906,0.5365,0.5307,1897
+A: stack,classic,"judged rows extracted, labelled rows hand-labelled + KB + support + text",group,0.7355,0.8740,0.0143,0.0841,0.5731,0.5379,1897
+A: LightGBM,classic,"judged rows extracted, labelled rows hand-labelled + KB + support + text",time,0.6440,0.8311,0.0535,0.1247,0.6000,0.2927,438
+A: LogReg L2,classic,"judged rows extracted, labelled rows hand-labelled + KB + support + text",time,0.7219,0.8630,0.0652,0.1205,0.7391,0.4146,438
+A: stack,classic,"judged rows extracted, labelled rows hand-labelled + KB + support + text",time,0.6440,0.8311,0.0615,0.1223,0.6000,0.2927,438
+B: LightGBM,classic,"A + truth discovery (EM, tau 60 d)",group,0.7269,0.8661,0.0124,0.0862,0.5415,0.5415,1897
+B: LogReg L2,classic,"A + truth discovery (EM, tau 60 d)",group,0.7124,0.8619,0.0138,0.0902,0.5283,0.5054,1897
+B: stack,classic,"A + truth discovery (EM, tau 60 d)",group,0.7378,0.8745,0.0122,0.0847,0.5741,0.5451,1897
+B: LightGBM,classic,"A + truth discovery (EM, tau 60 d)",time,0.6862,0.8242,0.0708,0.1260,0.5373,0.4390,438
+B: LogReg L2,classic,"A + truth discovery (EM, tau 60 d)",time,0.7155,0.8607,0.0616,0.1188,0.7333,0.4024,438
+B: stack,classic,"A + truth discovery (EM, tau 60 d)",time,0.7116,0.8402,0.0638,0.1205,0.5909,0.4756,438
