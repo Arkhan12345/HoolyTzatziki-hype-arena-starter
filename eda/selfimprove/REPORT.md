@@ -143,3 +143,74 @@ Accepted changes, in order: `tau_days=45.0`, `min_child_samples=20`.
 Figures: `figs/trial_gains.png` (mean gain per trial, green = accepted), `figs/accepted_path.png` (base score along the run).
 
 Rerun: `.venv/Scripts/python eda/selfimprove/loop.py` (resumes) · `--fresh` to start over · `--report` to rebuild this file.
+
+
+## Round: combinations
+
+Started 2026-10-29 03:26 · 9 combination trials · 3.4 min of the 45-min combination budget · same `goal.json` rule (checked unchanged). Base = the final configuration above; the first trial re-ran it through the combination pipeline (all combinations off) and reproduced it (mean 0.8182). Every combination is tuned only on the training folds' inner out-of-fold predictions (stack weights, blend weight, thresholds); neural members (CfC / spiking unsure heads, char BiGRU) come from `eda/out/neuro_combo_oof.pkl` (`eda/neuro/combo_oof.py`, GPU) on exactly the same inner splits. Extra CPU s = what the neural members add to predicting 20k rows on 2 threads.
+
+| trial | combination | value | acc | macro-F1 (pooled) | macro-F1 (mean) | ECE | unsure recall | folds better | gain | extra CPU s | accepted | note |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| c1q00 | 4 · ExtraTrees soft vote (LightGBM weight) | 0.5 | 0.9002 | 0.8192 | 0.818 | 0.0126 | 0.0 | 3/5 | -0.0002 | 0.0 | no |  |
+| c1q01 | 4 · ExtraTrees soft vote (LightGBM weight) | 0.7 | 0.8983 | 0.8208 | 0.82 | 0.0105 | 0.0 | 2/5 | +0.0018 | 0.0 | no |  |
+| c1q02 | 5 · LightGBM seed bag | 5 | 0.897 | 0.8136 | 0.8123 | 0.0391 | 0.0 | 0/5 | -0.0059 | 0.0 | no |  |
+| c1q03 | 3 · char BiGRU blend (model weight) | auto | 0.8996 | 0.8125 | 0.8108 | 0.0509 | 0.0 | 2/5 | -0.0074 | 6.85 | no | needs torch / WITH_NEURO |
+| c1q04 | 3 · char BiGRU blend (model weight) | 0.85 | 0.8996 | 0.8125 | 0.8108 | 0.0509 | 0.0 | 2/5 | -0.0074 | 6.85 | no | needs torch / WITH_NEURO |
+| c1q05 | 3 · char BiGRU blend (model weight) | 0.7 | 0.8952 | 0.7913 | 0.7889 | 0.0575 | 0.0 | 1/5 | -0.0293 | 6.85 | no | needs torch / WITH_NEURO |
+| c1q06 | 1 · CfC + spiking stack | True | 0.9021 | 0.8213 | 0.8204 | 0.0162 | 0.0 | 3/5 | +0.0022 | 2.77 | no | needs torch / WITH_NEURO |
+| c1q07 | 2 · unsure flag from a neural head | snn | 0.8977 | 0.8191 | 0.8182 | 0.0398 | 0.0 | 0/5 | +0.0000 | 1.03 | no | needs torch / WITH_NEURO |
+| c1q08 | 2 · unsure flag from a neural head | cfc | 0.8977 | 0.8191 | 0.8182 | 0.0398 | 0.0 | 0/5 | +0.0000 | 1.74 | no | needs torch / WITH_NEURO |
+
+| | acc | pooled macro-F1 | mean macro-F1 | ECE | unsure recall | retrain s (max fold) | predict 20k s |
+|---|---|---|---|---|---|---|---|
+| final model (start) | 0.8977 | 0.8191 | 0.8182 | 0.0398 | 0.000 | 2.4 | 0.65 |
+| after combinations | 0.8977 | 0.8191 | 0.8182 | 0.0398 | 0.000 | 2.4 | 0.65 |
+
+Accepted, in order: none. Gain over the final model: **+0.0000** mean macro-F1.
+
+### Overfitting gates
+
+Every combination that passes the accept rule must also pass all of these before it is kept: (a) nested selection — the rule decided on 4 folds must still see a gain on the left-out 5th fold in ≥ 4 of 5 rotations; (b) the train−OOF macro-F1 gap must not widen by more than 0.02; (c) the gain keeps its sign over 3 seeds with std < mean gain; (d) the gain keeps its sign on `fold_row5` (FAIL if it flips) and on the time split (WARN if it flips).
+
+No combination passed the accept rule, so no overfitting gate was needed.
+
+**Label-permutation test (final configuration):** training labels shuffled inside every fold, 3 refits, scored out of fold on the true labels → macro-F1 [0.6095, 0.6096, 0.6096] (must be ≤ 0.50): **FAIL**. The shuffle covers the classifier stage (LightGBM, calibrator, stack, thresholds); the knowledge-base features and any neural members keep their true-label training.
+Rules-only floor: a constant classifier (training-label prior) plus the two hard rules scores **0.6096** on the same folds. The permuted runs land exactly on that floor, so the learned stages pick up nothing from shuffled labels; what stays above 0.50 is the label-free rule path (outdated value → false, single-value pair → never false) running on per-fold timeline features. The 0.50 bar does not fit a pipeline with a deterministic rule floor; the meaningful check is permuted ≈ rules-only floor, which holds.
+
+**Multiple testing (main loop + combinations).** 59 distinct trials; mean standard error of a trial's gain 0.0038, so the best gain noise alone would give is about 0.0038 × √(2 ln 59) = **0.0108**.
+
+### Lockbox (holdout pages)
+
+| look | configuration | rows | accuracy | macro-F1 | ECE | unsure recall | all-true accuracy |
+|---|---|---|---|---|---|---|---|
+| 1st (main loop final) | see "Final configuration" | 304 | 0.8454 | 0.7445 | 0.0422 | 0.0 | 0.8191 |
+| 2nd (after combinations) | below | 304 | 0.8454 | 0.7445 | 0.0422 | 0.0 | 0.8191 |
+
+This is the second look at the holdout; nothing was tuned on either look.
+
+```json
+{
+ "switch": 1.5,
+ "tau_days": 45.0,
+ "anchor": 6.0,
+ "two_page_rule": true,
+ "trust_rounds": 3,
+ "trust_pseudo": 3.0,
+ "genre_pseudo": 10.0,
+ "num_leaves": 15,
+ "min_child_samples": 20,
+ "n_estimators": 200,
+ "learning_rate": 0.05,
+ "drop_family": null,
+ "weak_features": false,
+ "cfc_feature": false,
+ "calibrator": "evidence_sum",
+ "et_vote": 0.0,
+ "lgbm_seeds": 1,
+ "bigru_blend": 1.0,
+ "neural_stack": false,
+ "unsure_head": "none"
+}
+```
+
+Figure: `figs/combo_gains.png`. Rerun: `.venv-neuro/Scripts/python eda/neuro/combo_oof.py`, then `LOKY_MAX_CPU_COUNT=2 .venv/Scripts/python eda/selfimprove/loop.py --combos` (resumes).

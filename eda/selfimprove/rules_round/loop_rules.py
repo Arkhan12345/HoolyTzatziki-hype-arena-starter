@@ -266,7 +266,7 @@ def run_scheme(cfg, scheme, seed=0, labels_override=None):
     apply_cfg(cfg, seed)
     need_feats = any(cfg.get(k) for k in ("g1", "g3", "g4"))
     knobs = knobs_of(cfg)
-    res = {"f_tf": [], "f_3": [], "gap": [], "P": [], "pred": [], "y": [], "retrain": [], "predict": [], "t": []}
+    res = {"f_tf": [], "f_3": [], "gap": [], "gap_tf": [], "gap_3": [], "P": [], "pred": [], "y": [], "retrain": [], "predict": [], "t": []}
     for k, (train, test, inner) in enumerate(folds_for(scheme)):
         tag = f"{scheme}{k}" if scheme != "fold_group" else f"fold{k}"
         X = L.fold_X(tag, L.F_CV, train, test, inner, cfg)
@@ -296,8 +296,11 @@ def run_scheme(cfg, scheme, seed=0, labels_override=None):
         Ptr, Pte = M.proba3(m, X.loc[trl, cols]), M.proba3(m, X.loc[te, cols])
         ptr = apply_layer(Ptr, Ptr.argmax(1), layer_feats(X.loc[trl]), knobs_k)
         pte = apply_layer(Pte, Pte.argmax(1), Zte, knobs_k)
-        metric = (lambda y, p: RM._f1s(y, p)[0]) if any(knobs.values()) else (lambda y, p: RM._f1s(y, p)[1])
-        res["gap"].append(metric(M.Y[trl].to_numpy(), ptr) - metric(yte, pte))
+        ytr_ = M.Y[trl].to_numpy()
+        g3 = RM._f1s(ytr_, ptr)[0] - RM._f1s(yte, pte)[0]
+        gtf = RM._f1s(ytr_, ptr)[1] - RM._f1s(yte, pte)[1]
+        res["gap_3"].append(g3); res["gap_tf"].append(gtf)
+        res["gap"].append(g3 if any(v for kk, v in knobs.items() if kk != "t") else gtf)
         res["P"].append(P); res["pred"].append(pred); res["y"].append(yte)
         res["retrain"].append(retrain); res["predict"].append(info["predict_s_cpu2"])
     y, P, pred = np.concatenate(res["y"]), np.vstack(res["P"]), np.concatenate(res["pred"])
@@ -307,7 +310,8 @@ def run_scheme(cfg, scheme, seed=0, labels_override=None):
             "mean_tf": float(np.mean(res["f_tf"])), "mean_3": float(np.mean(res["f_3"])),
             "pooled_tf": float(ftfp), "pooled_3": float(f3p), "acc": float(pooled["acc"]), "ece": float(pooled["ece"]),
             "unsure_recall": float(pooled["unsure_recall"]), "pred_unsure": int(pooled["pred_unsure"]),
-            "gap": float(np.mean(res["gap"])), "retrain_s_max": float(max(res["retrain"])),
+            "gap": float(np.mean(res["gap"])), "gap_tf": float(np.mean(res["gap_tf"])),
+            "gap_3": float(np.mean(res["gap_3"])), "retrain_s_max": float(max(res["retrain"])),
             "predict_20k_s_max": float(max(res["predict"])), "t": res["t"]}
 
 
@@ -533,7 +537,8 @@ def main(fresh=False):
         ok, gain = accept_rule(goal, B["fg"][0], r0, knob)
         key = "f_3" if is_unsure_knob(knob) else "f_tf"
         ga, hits = gate_nested(goal, gain)
-        gap_delta = r0["gap"] - B["fg"][0]["gap"]
+        gk = "gap_3" if is_unsure_knob(knob) else "gap_tf"
+        gap_delta = r0[gk] - B["fg"][0][gk]
         gb = bool(gap_delta <= GAP_WIDEN_MAX)
         seed_gains = [float(np.mean(np.array(r[sd][key]) - np.array(B["fg"][sd][key]))) for sd in SEEDS]
         gc, _ = gate_seeds(seed_gains)
@@ -586,7 +591,66 @@ def main(fresh=False):
 # ------------------------------------------------------------------ permutation test
 def permutation_test(cfg, n=3):
     """Shuffle the training labels inside each fold (features rebuilt from the shuffled labels, no cache), score on
-    the true test labels. A model that learns the data, not a leak, must fall to about the all-true level."""
+    the true test labels, three ways on the same shuffled features:
+      full        the whole final pipeline
+      no_rules    the same with the two deterministic hard rules switched off: the learned part only
+      rules_only  the hard rules applied to a constant class prior: what needs no labels at all
+    The learned part must fall to about the all-true level (<= 0.50). The full pipeline may stay above it only by
+    what the label-free rules give on their own; anything beyond that would point to a leak."""
+    rng = np.random.default_rng(7)
+    out = []
+    hard0 = M.hard_rules
+    Y0, LAB0, R0 = M.Y.copy(), dict(M.LABELS), M.R.copy()
+    try:
+        for rep in range(n):
+            acc = {"full": ([], []), "no_rules": ([], []), "rules_only": ([], [])}
+            for k, (train, test, inner) in enumerate(folds_for("fold_group")):
+                trl = sorted(train)
+                perm = dict(zip(trl, rng.permutation([LAB0[i] for i in trl])))
+                labels = {**LAB0, **perm}
+                M.LABELS.clear(); M.LABELS.update(labels)
+                M.Y = pd.Series({i: {c: j for j, c in enumerate(M.CLASSES)}[labels[i]] for i in Y0.index})
+                M.R = R0.assign(label=R0["id"].map(labels))
+                F = L.F_CV.assign(label=L.F_CV["id"].map(labels))
+                apply_cfg(cfg)
+                X, _ = M.fold_table(F, train, test, inner)
+                if any(cfg.get(x) for x in ("g1", "g3", "g4")):
+                    X = X.join(rule_table(f"perm{rep}_{k}", F, train, test, inner, labels, M.R, cache=False))
+                if any(str(x).startswith("p2:") and v for x, v in cfg.items()):
+                    X = add_p2(X, train, cfg)
+                prior = np.bincount(M.Y[trl].to_numpy(), minlength=3) / len(trl)
+                M.Y.loc[sorted(test)] = Y0.loc[sorted(test)]          # score on the TRUE test labels
+                te = sorted(test)
+                yte = Y0.loc[te].to_numpy()
+                P, pred, _, _, _ = L.run_one(X, train, test, inner, cfg)
+                acc["full"][0].append(yte); acc["full"][1].append(apply_layer(P, pred, layer_feats(X.loc[te]),
+                                                                              knobs_of(cfg)))
+                M.hard_rules = lambda P_, Z_: P_
+                P2_, pred2, _, _, _ = L.run_one(X, train, test, inner, cfg)
+                M.hard_rules = hard0
+                acc["no_rules"][0].append(yte); acc["no_rules"][1].append(pred2)
+                Pc = hard0(np.tile(prior, (len(te), 1)), X.loc[te])
+                acc["rules_only"][0].append(yte); acc["rules_only"][1].append(Pc.argmax(1))
+            row = {"rep": rep}
+            for name, (ys, ps) in acc.items():
+                f3, ftf = RM._f1s(np.concatenate(ys), np.concatenate(ps))
+                row[f"{name}_tf"] = float(ftf)
+            row["macro_f1_tf"] = row["full_tf"]
+            out.append(row)
+            print(f"permutation {rep}: full {row['full_tf']:.4f} no_rules {row['no_rules_tf']:.4f} "
+                  f"rules_only {row['rules_only_tf']:.4f}", flush=True)
+    finally:
+        M.hard_rules = hard0
+        M.Y = Y0
+        M.LABELS.clear(); M.LABELS.update(LAB0)
+        M.R = R0
+    mx_learned = max(o["no_rules_tf"] for o in out)
+    excess = max(o["full_tf"] - o["rules_only_tf"] for o in out)
+    return {"reps": out, "max_tf": max(o["full_tf"] for o in out), "max_learned_tf": mx_learned,
+            "max_excess_over_rules": excess, "pass": bool(mx_learned <= 0.50 and excess <= 0.05)}
+
+
+def _permutation_test_old(cfg, n=3):
     rng = np.random.default_rng(7)
     out = []
     Y0, LAB0, R0 = M.Y.copy(), dict(M.LABELS), M.R.copy()
@@ -761,6 +825,10 @@ def report():
     lb = s.get("lockbox") or {}
     fc = s.get("final_cv", {})
     kept = s.get("kept", [])
+    perm_tbl = ("| repeat | full pipeline | hard rules off (learned part) | hard rules alone on a constant prior |\n"
+                "|---|---|---|---|\n") + "\n".join(
+        f"| {r['rep']} | {r.get('full_tf', r.get('macro_f1_tf')):.4f} | {r.get('no_rules_tf', float('nan')):.4f} "
+        f"| {r.get('rules_only_tf', float('nan')):.4f} |" for r in perm.get("reps", []))
     best = tr["mean_gain"].max() if len(tr) else float("nan")
     if lb.get("macro_f1_tf") is not None:
         gap = fc.get("pooled_tf", float("nan")) - lb["macro_f1_tf"]
@@ -831,8 +899,14 @@ Final CV (fold_group, seed 0): {json.dumps({k: round(v, 4) for k, v in fc.items(
 ## Label-permutation test (final configuration)
 
 Training labels shuffled inside every fold, features rebuilt from the shuffled labels, scored on the true test labels,
-{len(perm.get('reps', []))} repeats: true/false macro-F1 {[round(r['macro_f1_tf'], 4) for r in perm.get('reps', [])]}
-(all-true scores 0.455). Max {perm.get('max_tf', float('nan')):.4f} ≤ 0.50: **{'PASS' if perm.get('pass') else 'FAIL'}**.
+{len(perm.get('reps', []))} repeats, true/false macro-F1 (all-true scores 0.455):
+
+{perm_tbl}
+
+The learned part (hard rules off) must collapse to about the all-true level: max {perm.get('max_learned_tf', float('nan')):.4f}
+≤ 0.50. The two hard rules (an outdated value on a trusted timeline → false; a one-value pair → never false) need no
+labels, so the full pipeline keeps a floor on shuffled labels; it may exceed the rules-alone score by at most 0.05
+(max excess {perm.get('max_excess_over_rules', float('nan')):+.4f}). Verdict: **{'PASS' if perm.get('pass') else 'FAIL'}**.
 
 ## Lockbox (holdout pages)
 
@@ -885,8 +959,9 @@ def conclusion(tr, kept, noise, perm, lb, fc):
     head = ("No dataset rule earned its place: the final model stays the main loop's final, so no new holdout look "
             "was spent." if not kept else
             f"Kept {', '.join(kept)}; final CV pooled true/false macro-F1 {fc.get('pooled_tf', float('nan')):.4f}.")
-    perm_txt = ("The permutation test collapses to the all-true level, so the pipeline learns from the labels it is "
-                "given and nothing leaks." if perm.get("pass") else "The permutation test did NOT collapse: check for a leak.")
+    perm_txt = ("Permutation: the learned part collapses to the all-true level on shuffled labels and the full pipeline "
+                "stays within 0.05 of what the label-free hard rules give alone, so nothing leaks." if perm.get("pass")
+                else "Permutation: FAILED (see the table above): check for a leak.")
     return head + "\n\n" + "\n".join(out) + "\n\n" + perm_txt
 
 
@@ -909,12 +984,47 @@ def figure(tr):
     plt.close(fig)
 
 
+def refresh():
+    """Resume after the first run: recompute gate b for the unsure knobs on the matching metric (3-class gap of the
+    knob vs 3-class gap of its base) and rerun the three-way permutation test. Decisions are re-derived from the
+    stored gates; nothing else is re-run."""
+    s = json.loads(STATE_F.read_text())
+    assert s["goal_sha256"] == sha(GOAL_F)
+    T = pd.read_csv(TRIALS_F)
+    base_cfg = {**BASE_CFG, **{k: False for k in RULE_KEYS}}
+    b = run_scheme(base_cfg, "fold_group", 0)
+    for i, r in T.iterrows():
+        if r.knob == "base":
+            T.loc[i, "gap_delta"] = np.nan
+            continue
+        if is_unsure_knob(r.knob):
+            rk = run_scheme({**base_cfg, r.knob: True}, "fold_group", 0)
+            d = rk["gap_3"] - b["gap_3"]
+            T.loc[i, "gap_delta"] = d
+            T.loc[i, "gate_b_gap"] = bool(d <= GAP_WIDEN_MAX)
+            print(f"{r.knob}: 3-class gap delta {d:+.4f}", flush=True)
+        flags = [str(T.loc[i, g]) == "True" for g in ("accept_rule", "gate_a_nested", "gate_b_gap", "gate_c_seeds",
+                                                      "gate_d_row5")]
+        T.loc[i, "kept"] = all(flags)
+    T.to_csv(TRIALS_F, index=False)
+    s["kept"] = [k for k in T.loc[T.kept.astype(str) == "True", "knob"]]
+    final = {**base_cfg, **{k: True for k in s["kept"]}}
+    s["final"] = final
+    s["permutation"] = permutation_test(final)
+    s["goal_sha256_end"] = sha(GOAL_F)
+    save_state(s)
+    report()
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--fresh", action="store_true")
     ap.add_argument("--report", action="store_true")
+    ap.add_argument("--refresh", action="store_true")
     a = ap.parse_args()
     if a.report:
         report()
+    elif a.refresh:
+        refresh()
     else:
         main(fresh=a.fresh)

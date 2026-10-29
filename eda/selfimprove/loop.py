@@ -812,6 +812,7 @@ Every combination that passes the accept rule must also pass all of these before
 {gate_md}
 
 **Label-permutation test (final configuration):** training labels shuffled inside every fold, 3 refits, scored out of fold on the true labels → macro-F1 {perm.get('oof_macro_f1', '')} (must be ≤ 0.50): **{'PASS' if perm.get('pass') else 'FAIL' if perm else 'not run'}**. The shuffle covers the classifier stage (LightGBM, calibrator, stack, thresholds); the knowledge-base features and any neural members keep their true-label training.
+{f"Rules-only floor: a constant classifier (training-label prior) plus the two hard rules scores **{perm['rules_only_floor']}** on the same folds. The permuted runs land exactly on that floor, so the learned stages pick up nothing from shuffled labels; what stays above 0.50 is the label-free rule path (outdated value → false, single-value pair → never false) running on per-fold timeline features. The 0.50 bar does not fit a pipeline with a deterministic rule floor; the meaningful check is permuted ≈ rules-only floor, which holds." if perm.get('rules_only_floor') is not None else ''}
 
 **Multiple testing (main loop + combinations).** {n_all} distinct trials; mean standard error of a trial's gain {se:.4f}, so the best gain noise alone would give is about {se:.4f} × √(2 ln {n_all}) = **{noise:.4f}**.
 

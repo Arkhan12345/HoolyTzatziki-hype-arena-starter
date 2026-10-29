@@ -151,5 +151,165 @@
   "rows": 304,
   "all_true_acc": 0.8191
  },
- "round": 2
+ "round": 2,
+ "combo": {
+  "started": "2026-10-29 03:26",
+  "elapsed_s": 202.5751850605011,
+  "done": [
+   "c1q00",
+   "c1q01",
+   "c1q02",
+   "c1q03",
+   "c1q04",
+   "c1q05",
+   "c1q06",
+   "c1q07",
+   "c1q08"
+  ],
+  "accepted": [],
+  "base_cfg": {
+   "switch": 1.5,
+   "tau_days": 45.0,
+   "anchor": 6.0,
+   "two_page_rule": true,
+   "trust_rounds": 3,
+   "trust_pseudo": 3.0,
+   "genre_pseudo": 10.0,
+   "num_leaves": 15,
+   "min_child_samples": 20,
+   "n_estimators": 200,
+   "learning_rate": 0.05,
+   "drop_family": null,
+   "weak_features": false,
+   "cfc_feature": false,
+   "calibrator": "evidence_sum",
+   "et_vote": 0.0,
+   "lgbm_seeds": 1,
+   "bigru_blend": 1.0,
+   "neural_stack": false,
+   "unsure_head": "none"
+  },
+  "base": {
+   "fold_f1": [
+    0.8035592060232717,
+    0.863292772861357,
+    0.8253221288515407,
+    0.8248871524485073,
+    0.7739568043615013
+   ],
+   "mean_f1": 0.8182036129092356,
+   "acc": 0.8976773383553045,
+   "macro_f1_tf": 0.8190796780752867,
+   "ece": 0.03977747234419746,
+   "unsure_recall": 0.0,
+   "false_precision": 0.7614213197969543,
+   "pred_unsure": 6.0,
+   "pred_false": 197.0,
+   "retrain_s_max": 2.437420129776001,
+   "predict_20k_s_max": 0.6495757275317089,
+   "train_f1": 0.9912575555365869,
+   "gap": 0.1730539426273513
+  },
+  "start": {
+   "fold_f1": [
+    0.8035592060232717,
+    0.863292772861357,
+    0.8253221288515407,
+    0.8248871524485073,
+    0.7739568043615013
+   ],
+   "mean_f1": 0.8182036129092356,
+   "acc": 0.8976773383553045,
+   "macro_f1_tf": 0.8190796780752867,
+   "ece": 0.03977747234419746,
+   "unsure_recall": 0.0,
+   "false_precision": 0.7614213197969543,
+   "pred_unsure": 6.0,
+   "pred_false": 197.0,
+   "retrain_s_max": 2.437420129776001,
+   "predict_20k_s_max": 0.6495757275317089,
+   "train_f1": 0.9912575555365869,
+   "gap": 0.1730539426273513
+  },
+  "lockbox": {
+   "acc": 0.8454,
+   "macro_f1_tf": 0.7445,
+   "ece": 0.0422,
+   "unsure_recall": 0.0,
+   "false_precision": 0.5652,
+   "pred_unsure": 0.0,
+   "pred_false": 46.0,
+   "rows": 304,
+   "all_true_acc": 0.8191
+  },
+  "round": 1,
+  "extras": {
+   "c1q00": {
+    "extra_cpu_s": 0.0,
+    "note": "",
+    "pooled_f1": 0.8192
+   },
+   "c1q01": {
+    "extra_cpu_s": 0.0,
+    "note": "",
+    "pooled_f1": 0.8208
+   },
+   "c1q02": {
+    "extra_cpu_s": 0.0,
+    "note": "",
+    "pooled_f1": 0.8136
+   },
+   "c1q03": {
+    "extra_cpu_s": 6.85,
+    "note": "needs torch / WITH_NEURO",
+    "pooled_f1": 0.8125
+   },
+   "c1q04": {
+    "extra_cpu_s": 6.85,
+    "note": "needs torch / WITH_NEURO",
+    "pooled_f1": 0.8125
+   },
+   "c1q05": {
+    "extra_cpu_s": 6.85,
+    "note": "needs torch / WITH_NEURO",
+    "pooled_f1": 0.7913
+   },
+   "c1q06": {
+    "extra_cpu_s": 2.77,
+    "note": "needs torch / WITH_NEURO",
+    "pooled_f1": 0.8213
+   },
+   "c1q07": {
+    "extra_cpu_s": 1.03,
+    "note": "needs torch / WITH_NEURO",
+    "pooled_f1": 0.8191
+   },
+   "c1q08": {
+    "extra_cpu_s": 1.74,
+    "note": "needs torch / WITH_NEURO",
+    "pooled_f1": 0.8191
+   }
+  },
+  "rule_ok": {
+   "c1q00": false,
+   "c1q01": false,
+   "c1q02": false,
+   "c1q03": false,
+   "c1q04": false,
+   "c1q05": false,
+   "c1q06": false,
+   "c1q07": false,
+   "c1q08": false
+  },
+  "permutation": {
+   "oof_macro_f1": [
+    0.6095,
+    0.6096,
+    0.6096
+   ],
+   "pass": false,
+   "rules_only_floor": 0.6096,
+   "vs_floor": "permuted == rules-only floor (learned stages add nothing under shuffled labels)"
+  }
+ }
 }
