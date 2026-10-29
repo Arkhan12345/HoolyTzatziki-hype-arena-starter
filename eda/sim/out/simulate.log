@@ -1,0 +1,71 @@
+training universe 1235 rows; outside 1324 rows (incl. renamed); FINAL {'groups': ['core', 'text', 'hist'], 'synth': ['practice', 0.3], 'reg': 'strong'} w=0.3; FALLBACK {'groups': ['core', 'text', 'misread'], 'reg': 'strong', 'misread_gate': True}
+runtime: 5.2 s, exit 0, claims 1000, check exit 0
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+full reader fitted (29s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  oof fold 0 (38s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  oof fold 1 (48s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  oof fold 2 (57s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  oof fold 3 (66s)
+C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\.venv\Lib\site-packages\sklearn\linear_model\_logistic.py:455: OptimizeWarning: Unknown solver options: iprint
+  opt_res = optimize.minimize(
+  oof fold 4 (76s)
+synthetic 9841 rows from the training universe, rule agreement 0.9945 (156s)
+                      system                             slice  rows    acc     f3    ftf  f_unsure    ece
+                    all-true         all original outside rows   662 0.8187 0.3001 0.4502    0.0000 0.0113
+                    all-true                   unseen subjects   178 0.8315 0.3027 0.4540    0.0000 0.0015
+                    all-true                      last 6 weeks   328 0.8140 0.2992 0.4487    0.0000 0.0160
+                    all-true                      random pages   156 0.8141 0.2992 0.4488    0.0000 0.0159
+                    all-true renamed subjects (invented names)   662 0.8187 0.3001 0.4502    0.0000 0.0113
+          runtime as shipped         all original outside rows   662 0.8187 0.3001 0.4502    0.0000 0.0113
+          runtime as shipped                   unseen subjects   178 0.8315 0.3027 0.4540    0.0000 0.0015
+          runtime as shipped                      last 6 weeks   328 0.8140 0.2992 0.4487    0.0000 0.0160
+          runtime as shipped                      random pages   156 0.8141 0.2992 0.4488    0.0000 0.0159
+          runtime as shipped renamed subjects (invented names)   662 0.8187 0.3001 0.4502    0.0000 0.0113
+           FINAL (retrained)         all original outside rows   662 0.8459 0.4362 0.6542    0.0000 0.0631
+           FINAL (retrained)                   unseen subjects   178 0.8371 0.3620 0.5431    0.0000 0.0727
+           FINAL (retrained)                      last 6 weeks   328 0.8415 0.4373 0.6560    0.0000 0.0873
+           FINAL (retrained)                      random pages   156 0.8654 0.5220 0.7830    0.0000 0.0646
+           FINAL (retrained) renamed subjects (invented names)   662 0.8233 0.3690 0.4868    0.1333 0.0489
+        FALLBACK (retrained)         all original outside rows   662 0.8187 0.3001 0.4502    0.0000 0.0390
+        FALLBACK (retrained)                   unseen subjects   178 0.8315 0.3027 0.4540    0.0000 0.0483
+        FALLBACK (retrained)                      last 6 weeks   328 0.8140 0.2992 0.4487    0.0000 0.0621
+        FALLBACK (retrained)                      random pages   156 0.8141 0.2992 0.4488    0.0000 0.0523
+        FALLBACK (retrained) renamed subjects (invented names)   662 0.8187 0.3001 0.4502    0.0000 0.0424
+FINAL, 50% of training pages         all original outside rows   662 0.8248 0.4229 0.6343    0.0000 0.0417
+FINAL, 50% of training pages                   unseen subjects   178 0.8315 0.3592 0.5388    0.0000 0.0583
+FINAL, 50% of training pages                      last 6 weeks   328 0.8049 0.4172 0.6259    0.0000 0.0621
+FINAL, 50% of training pages                      random pages   156 0.8590 0.5133 0.7699    0.0000 0.0615
+FINAL, 50% of training pages renamed subjects (invented names)   662 0.8202 0.3291 0.4937    0.0000 0.0378
+{
+ "exit": 0,
+ "seconds": 5.2,
+ "check_exit": 0,
+ "check": "labels: 1324 of the 1324 hidden rows labelled; 542 right, 106 wrong, 0 unsure, against the practice labels\nclaims: 1000 new claims\nthe format checks pass",
+ "claims": 1000,
+ "claims_by_type": {
+  "compare": 698,
+  "change": 171,
+  "at_event": 109,
+  "fact": 21,
+  "relation": 1
+ }
+}

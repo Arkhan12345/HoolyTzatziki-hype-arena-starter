@@ -1,0 +1,26 @@
+system,slice,rows,acc,f3,ftf,f_unsure,ece
+all-true,all original outside rows,662,0.8187,0.3001,0.4502,0.0,0.0113
+all-true,unseen subjects,178,0.8315,0.3027,0.454,0.0,0.0015
+all-true,last 6 weeks,328,0.814,0.2992,0.4487,0.0,0.016
+all-true,random pages,156,0.8141,0.2992,0.4488,0.0,0.0159
+all-true,renamed subjects (invented names),662,0.8187,0.3001,0.4502,0.0,0.0113
+runtime as shipped,all original outside rows,662,0.8187,0.3001,0.4502,0.0,0.0113
+runtime as shipped,unseen subjects,178,0.8315,0.3027,0.454,0.0,0.0015
+runtime as shipped,last 6 weeks,328,0.814,0.2992,0.4487,0.0,0.016
+runtime as shipped,random pages,156,0.8141,0.2992,0.4488,0.0,0.0159
+runtime as shipped,renamed subjects (invented names),662,0.8187,0.3001,0.4502,0.0,0.0113
+FINAL (retrained),all original outside rows,662,0.8459,0.4362,0.6542,0.0,0.0631
+FINAL (retrained),unseen subjects,178,0.8371,0.362,0.5431,0.0,0.0727
+FINAL (retrained),last 6 weeks,328,0.8415,0.4373,0.656,0.0,0.0873
+FINAL (retrained),random pages,156,0.8654,0.522,0.783,0.0,0.0646
+FINAL (retrained),renamed subjects (invented names),662,0.8233,0.369,0.4868,0.1333,0.0489
+FALLBACK (retrained),all original outside rows,662,0.8187,0.3001,0.4502,0.0,0.039
+FALLBACK (retrained),unseen subjects,178,0.8315,0.3027,0.454,0.0,0.0483
+FALLBACK (retrained),last 6 weeks,328,0.814,0.2992,0.4487,0.0,0.0621
+FALLBACK (retrained),random pages,156,0.8141,0.2992,0.4488,0.0,0.0523
+FALLBACK (retrained),renamed subjects (invented names),662,0.8187,0.3001,0.4502,0.0,0.0424
+"FINAL, 50% of training pages",all original outside rows,662,0.8248,0.4229,0.6343,0.0,0.0417
+"FINAL, 50% of training pages",unseen subjects,178,0.8315,0.3592,0.5388,0.0,0.0583
+"FINAL, 50% of training pages",last 6 weeks,328,0.8049,0.4172,0.6259,0.0,0.0621
+"FINAL, 50% of training pages",random pages,156,0.859,0.5133,0.7699,0.0,0.0615
+"FINAL, 50% of training pages",renamed subjects (invented names),662,0.8202,0.3291,0.4937,0.0,0.0378

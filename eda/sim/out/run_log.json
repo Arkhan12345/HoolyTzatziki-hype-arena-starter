@@ -1,0 +1,67 @@
+{
+ "runs": [
+  {
+   "when": "2026-10-29T14:31:26",
+   "forced": false,
+   "outside_sha256": "a1d7051102202965817d0776f2438647ac5e4250957103f7e62fba39326baedc",
+   "configs_fixed_before_run": {
+    "FINAL": {
+     "groups": [
+      "core",
+      "text",
+      "hist"
+     ],
+     "synth": [
+      "practice",
+      0.3
+     ],
+     "reg": "strong"
+    },
+    "FINAL_synth_weight": 0.3,
+    "FALLBACK": {
+     "groups": [
+      "core",
+      "text",
+      "misread"
+     ],
+     "reg": "strong",
+     "misread_gate": true
+    }
+   },
+   "training_rows": 1235,
+   "synthetic_rows": 9841,
+   "synthetic_stats": {
+    "n": 9841,
+    "tried": 13926,
+    "dropped_near_copies": 53,
+    "chain_rows": 1641,
+    "chain_note": "chains ok (14160)",
+    "short_of_quota": {
+     "chain": 159
+    },
+    "rule_agreement": 0.9945,
+    "mix": {
+     "true": 0.814,
+     "false": 0.169,
+     "unsure": 0.017
+    }
+   },
+   "runtime": {
+    "exit": 0,
+    "seconds": 5.2,
+    "check_exit": 0,
+    "check": "labels: 1324 of the 1324 hidden rows labelled; 542 right, 106 wrong, 0 unsure, against the practice labels\nclaims: 1000 new claims\nthe format checks pass",
+    "claims": 1000,
+    "claims_by_type": {
+     "compare": 698,
+     "change": 171,
+     "at_event": 109,
+     "fact": 21,
+     "relation": 1
+    }
+   },
+   "seconds_total": 161.5,
+   "training_ids_sha256": "8ea90f489ea866ee9e78d95efacb66131b48ca8310fad04752a32f47e88fcfcb"
+  }
+ ]
+}

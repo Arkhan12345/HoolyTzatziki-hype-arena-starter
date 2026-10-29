@@ -18,3 +18,4 @@ eda/h300/out/cache/
 *.pkl
 eda/models/rejected/*.joblib
 eda/models/h300_r*.joblib
+eda/sim/out/runtime/aux/
