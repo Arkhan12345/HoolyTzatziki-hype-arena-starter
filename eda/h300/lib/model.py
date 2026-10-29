@@ -51,7 +51,9 @@ def parse_reliability(F: pd.DataFrame, y: np.ndarray) -> dict:
 def lgbm(cfg: dict, seed: int = 0) -> LGBMClassifier:
     p = dict(n_estimators=200, learning_rate=0.05, num_leaves=15, min_child_samples=10, subsample=1.0,
              colsample_bytree=1.0, random_state=seed, n_jobs=2, verbose=-1, deterministic=True)
-    if cfg.get("reg"):
+    if cfg.get("reg") == "strong":   # our default for anything we ship: shallow, few, well-populated leaves
+        p.update(n_estimators=100, num_leaves=7, min_child_samples=50, reg_lambda=20.0)
+    elif cfg.get("reg"):
         p.update(reg_lambda=10.0, min_child_weight=20.0 / 100, min_child_samples=20)
     if seed:
         p.update(subsample=0.8, subsample_freq=1, colsample_bytree=0.8)
@@ -171,18 +173,54 @@ def tune_offsets(P, y, grid=(-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5)) -> np.ndarra
     return off
 
 
+NO_READING_CAP = 0.6   # a row we could not read into a known fact never gets a confident label
+
+
 class SavedModel:
-    """Reader + learned layer: label(rows) -> [{id, label, confidence}] (confidence None for unsure)."""
+    """Reader + learned layer, frozen. label(rows) -> [{id, label, confidence}] (confidence None for unsure).
+
+    Nothing is fitted at prediction time. Rows we cannot read into a known (subject, attribute) - unseen subjects or
+    attributes, no extracted fact, empty text - keep the learned layer's label but their confidence is capped at
+    NO_READING_CAP, and become unsure when the learned layer itself is undecided (max probability < 0.45)."""
 
     def __init__(self, reader, learned: Learned, name: str):
         self.reader, self.learned, self.name = reader, learned, name
 
     def label(self, rows):
+        rows = [{"id": str(r.get("id", i)), "text": str(r.get("text") or ""), "date": str(r.get("date") or ""),
+                 "label": ""} for i, r in enumerate(rows)]
         F = pd.DataFrame(self.reader.read(rows))
+        for c in ("has_reading", "known_pair"):
+            if c not in F:
+                F[c] = 0
         pred, P = self.learned.predict(F)
+        read_ok = (pd.to_numeric(F["has_reading"], errors="coerce").fillna(0).values == 1) & \
+                  (pd.to_numeric(F["known_pair"], errors="coerce").fillna(0).values == 1)
         out = []
-        for r, c, p in zip(rows, pred, P):
+        for r, c, p, ok in zip(rows, pred, P, read_ok):
             lab = CLASSES[c]
-            out.append({"id": r["id"], "label": lab,
-                        "confidence": None if lab == "unsure" else float(min(max(p[c], 0.5), 1.0))})
+            conf = float(min(max(p[c], 0.5), 1.0))
+            if not ok:
+                if p.max() < 0.45:
+                    lab = "unsure"
+                conf = min(conf, NO_READING_CAP)
+            out.append({"id": r["id"], "label": lab, "confidence": None if lab == "unsure" else conf})
         return out
+
+    def predict_rows(self, rows, lexicon=None):
+        """Entry point for tests/tools: rows (dicts with id, text, date[, label]) -> label dicts. Fits nothing."""
+        return self.label(rows)
+
+
+def load_and_predict(model_file, rows, lexicon=None):
+    """predict_entry used in the manifests: load a frozen model and label rows without fitting anything."""
+    import joblib
+    return joblib.load(model_file).predict_rows(rows, lexicon)
+
+
+def predict_rows(model, rows, lexicon=None):
+    """predict_entry of the manifests: `model` is a loaded SavedModel (or a path to its .joblib). Fits nothing."""
+    if isinstance(model, (str, bytes)) or hasattr(model, "__fspath__"):
+        import joblib
+        model = joblib.load(model)
+    return model.predict_rows(rows, lexicon)

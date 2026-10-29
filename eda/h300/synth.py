@@ -46,8 +46,8 @@ JOKES = [", and the curve is vertical.", ", which is more than anyone expected, 
          " and I am not even tired.", ", and nobody believed it.", ", while I wait for my coffee."]
 PRACTICE_MIX = {"true_current": 0.50, "update": 0.20, "unseen_pair": 0.13, "stale": 0.05, "perturbed": 0.04,
                 "premature": 0.02, "swapped": 0.04, "joke": 0.02}
-CLOSED_MIX = {"true_current": 0.20, "update": 0.133, "stale": 0.10, "perturbed": 0.10, "premature": 0.067,
-              "swapped": 0.067, "unseen_pair": 0.233, "joke": 0.10}
+CLOSED_MIX = {"true_current": 0.17, "update": 0.136, "stale": 0.10, "perturbed": 0.10, "premature": 0.067,
+              "swapped": 0.067, "unseen_pair": 0.26, "joke": 0.10}
 LABEL = {"practice": {"true_current": "true", "update": "true", "stale": "false", "perturbed": "false",
                       "premature": "false", "swapped": "false", "unseen_pair": "true", "joke": "unsure"},
          "closed_world": {"true_current": "true", "update": "true", "stale": "false", "perturbed": "false",
@@ -205,7 +205,7 @@ def rule_label(kb, row, mode):
 
 
 COLUMNS = ["id", "text", "date", "label", "form", "case_type", "chain_length", "broken_link", "fold", "mode"]
-CHAIN_SHARE = 0.17
+CHAIN_SHARE = 0.18
 
 
 def _chain_rows(train_rows, lexicon, kb, n, rng, mode):
@@ -226,13 +226,30 @@ def _chain_rows(train_rows, lexicon, kb, n, rng, mode):
                                 "practice" if mode == "practice" else "closed", lexicon)
     except Exception as e:
         return [], f"chains failed ({type(e).__name__}: {e})"
+    lex = {x["name"]: set(x.get("attributes", [])) for x in lexicon.get("subjects", [])}
+    for e in lexicon.get("events", []):
+        lex.setdefault(e["name"] if isinstance(e, dict) else e, set())
     out = []
     for r in df.to_dict("records"):
-        out.append({"text": str(r["text"]), "date": _clamp(str(r["date"])[:10]),
+        forms = json.loads(r["form"]) if isinstance(r["form"], str) else r["form"]
+        if any(f.get("subject") not in lex or (lex[f["subject"]] and f.get("attribute") not in lex[f["subject"]])
+               for f in forms):
+            continue   # only facts on lexicon subjects/attributes
+        broken = int(str(r.get("case_type", "")).startswith("broken"))
+        date = _clamp(str(r["date"])[:10])
+        labs = []
+        for f in forms:   # the same timeline rule as every other case (one rule for the whole generator)
+            key = (f["subject"], f["attribute"])
+            if key not in kb.tl:
+                labs.append("true" if mode == "practice" else "unsure")
+                continue
+            latest = kb.latest_at(key, date)
+            labs.append("true" if latest is not None and canonical(latest) == canonical(f["value"]) else "false")
+        lab = "false" if broken or "false" in labs else "unsure" if "unsure" in labs else "true"
+        out.append({"text": str(r["text"]), "date": date,
                     "form": r["form"] if isinstance(r["form"], str) else json.dumps(r["form"], default=str),
-                    "label": str(r["label"]), "case_type": "chain_" + str(r.get("case_type", "valid")),
-                    "chain_length": int(r.get("chain_length", 1) or 1),
-                    "broken_link": int(r.get("broken_link", 0) if r.get("broken_link") == r.get("broken_link") else 0)})
+                    "label": lab, "case_type": "chain",
+                    "chain_length": int(r.get("chain_length", 1) or 1), "broken_link": broken})
     return out, f"chains ok ({len(out)})"
 
 
@@ -242,8 +259,9 @@ def generate(train_rows, lexicon, heldout_texts, mode, n, seed, prefix, fold="al
     kb = FoldKB(train_rows, lexicon)
     mix = PRACTICE_MIX if mode == "practice" else CLOSED_MIX
     held = [t.strip() for t in heldout_texts if t]
-    chain_rows, chain_note = _chain_rows(train_rows, lexicon, kb, int(CHAIN_SHARE * n), rng, mode)
-    n_plain = n - len(chain_rows)
+    chain_quota = int(CHAIN_SHARE * n)
+    chain_rows, chain_note = _chain_rows(train_rows, lexicon, kb, chain_quota * 8, rng, mode)
+    n_plain = n - (chain_quota if chain_rows else 0)
     out, tries, dropped = [], 0, 0
     seen, short = set(), {}
 
@@ -254,7 +272,7 @@ def generate(train_rows, lexicon, heldout_texts, mode, n, seed, prefix, fold="al
             return False
         if held:
             best = process.extractOne(t, held, scorer=fuzz.ratio)
-            if best and best[1] >= 90:
+            if best and best[1] >= 89.5:   # the checks round the ratio: 89.5 counts as a copy
                 dropped += 1
                 return False
         seen.add(t)
@@ -273,13 +291,17 @@ def generate(train_rows, lexicon, heldout_texts, mode, n, seed, prefix, fold="al
             r.update(label=LABEL[mode][case], case_type=case, chain_length=0, broken_link=0)
             got += accept(r)
         short[case] = quota - got
+    got_chain = 0
     for r in chain_rows:
-        accept(r)
+        if got_chain >= chain_quota:
+            break
+        got_chain += accept(r)
+    short["chain"] = chain_quota - got_chain if chain_rows else 0
     rng.shuffle(out)
     non_chain = [r for r in out if not r["chain_length"]]
     agree = sum(rule_label(kb, r, mode) == r["label"] for r in non_chain) / max(len(non_chain), 1)
     labs = [r["label"] for r in out]
-    return out, {"n": len(out), "tried": tries, "dropped_near_copies": dropped, "chain_rows": len(chain_rows),
+    return out, {"n": len(out), "tried": tries, "dropped_near_copies": dropped, "chain_rows": sum(1 for r in out if r["chain_length"]),
                  "chain_note": chain_note,
                  "short_of_quota": {k: v for k, v in short.items() if v > 0}, "rule_agreement": round(agree, 4),
                  "mix": {k: round(labs.count(k) / max(len(labs), 1), 3) for k in ("true", "false", "unsure")}}

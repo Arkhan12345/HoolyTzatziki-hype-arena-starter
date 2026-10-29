@@ -1,0 +1,685 @@
+fold 0: {'practice': {'n': 2001, 'tried': 1777, 'dropped_near_copies': 16, 'chain_rows': 360, 'chain_note': 'chains ok (2815)', 'short_of_quota': {}, 'rule_agreement': 0.9994, 'mix': {'true': 0.832, 'false': 0.152, 'unsure': 0.016}}, 'closed_world': {'n': 2000, 'tried': 1820, 'dropped_near_copies': 11, 'chain_rows': 360, 'chain_note': 'chains ok (2654)', 'short_of_quota': {}, 'rule_agreement': 0.9988, 'mix': {'true': 0.376, 'false': 0.324, 'unsure': 0.3}}}
+fold 1: {'practice': {'n': 2001, 'tried': 1876, 'dropped_near_copies': 18, 'chain_rows': 360, 'chain_note': 'chains ok (2815)', 'short_of_quota': {}, 'rule_agreement': 0.9988, 'mix': {'true': 0.829, 'false': 0.155, 'unsure': 0.016}}, 'closed_world': {'n': 2000, 'tried': 2125, 'dropped_near_copies': 26, 'chain_rows': 360, 'chain_note': 'chains ok (2615)', 'short_of_quota': {}, 'rule_agreement': 1.0, 'mix': {'true': 0.365, 'false': 0.337, 'unsure': 0.298}}}
+fold 2: {'practice': {'n': 2001, 'tried': 1784, 'dropped_near_copies': 35, 'chain_rows': 360, 'chain_note': 'chains ok (2822)', 'short_of_quota': {}, 'rule_agreement': 1.0, 'mix': {'true': 0.825, 'false': 0.159, 'unsure': 0.016}}, 'closed_world': {'n': 2000, 'tried': 1785, 'dropped_near_copies': 15, 'chain_rows': 360, 'chain_note': 'chains ok (2693)', 'short_of_quota': {}, 'rule_agreement': 0.9994, 'mix': {'true': 0.359, 'false': 0.331, 'unsure': 0.31}}}
+fold 3: {'practice': {'n': 2001, 'tried': 1757, 'dropped_near_copies': 12, 'chain_rows': 360, 'chain_note': 'chains ok (2825)', 'short_of_quota': {}, 'rule_agreement': 0.9994, 'mix': {'true': 0.828, 'false': 0.155, 'unsure': 0.016}}, 'closed_world': {'n': 2000, 'tried': 1785, 'dropped_near_copies': 24, 'chain_rows': 360, 'chain_note': 'chains ok (2661)', 'short_of_quota': {}, 'rule_agreement': 0.9988, 'mix': {'true': 0.361, 'false': 0.324, 'unsure': 0.316}}}
+fold 4: {'practice': {'n': 2001, 'tried': 1824, 'dropped_near_copies': 23, 'chain_rows': 360, 'chain_note': 'chains ok (2799)', 'short_of_quota': {}, 'rule_agreement': 0.9988, 'mix': {'true': 0.832, 'false': 0.151, 'unsure': 0.016}}, 'closed_world': {'n': 2000, 'tried': 1948, 'dropped_near_copies': 14, 'chain_rows': 360, 'chain_note': 'chains ok (2662)', 'short_of_quota': {}, 'rule_agreement': 0.9988, 'mix': {'true': 0.37, 'false': 0.325, 'unsure': 0.304}}}
+h300 parts: {'cv': 230, 'lockbox': 57, 'train_only': 13}  dedupe 13
+synth10k[script] read  (157s)
+done in 157s
+[R1] base {'acc': 0.3696, 'f3': 0.2435, 'ftf': 0.3652, 'f_unsure': 0.0, 'ece': 0.5137, 'fold_f3': [0.2905, 0.3188, 0.222, 0.1456, 0.2298]}
+[R1] A1_regularised: gain +0.0162 3/5 -> rejected: accept rule  (0s)
+[R1] A7_closed_world_feature: gain +0.0270 4/5 -> kept  (1s)
+[R1] A4_staircase_history: gain -0.0273 2/5 -> rejected: accept rule  (1s)
+[R1] A14_date_windows: gain -0.0289 2/5 -> rejected: accept rule  (1s)
+[R1] A15_credible_dissent: gain -0.0490 0/5 -> rejected: accept rule  (2s)
+[R1] A3_confidence_check: gain -0.0003 3/5 -> rejected: accept rule  (2s)
+[R1] A6_attribute_smoothing: gain -0.0088 1/5 -> rejected: accept rule  (2s)
+[R1] A12_second_chance_parse: gain +0.0000 0/5 -> rejected: accept rule  (2s)
+[R1] A2_parse_reliability: gain -0.0165 0/5 -> rejected: accept rule  (2s)
+[R1] A13_parse_aware_verdict: gain -0.0313 0/5 -> rejected: accept rule  (2s)
+[R1] A5_extratrees_vote: gain -0.0152 0/5 -> rejected: accept rule  (3s)
+[R1] A11_per_label_isotonic: gain -0.0806 0/5 -> rejected: accept rule  (3s)
+[R1] A8_hybrid_stack: gain -0.0965 0/5 -> rejected: accept rule  (3s)
+[R1] A9_tuned_offsets: gain +0.0781 4/5 -> kept  (6s)
+[R1] A10_self_training: gain +0.0167 2/5 -> rejected: accept rule  (7s)
+[R1] A16_synth_closed_world_0.3: gain +0.1206 5/5 -> kept  (13s)
+[R1] A16_synth_closed_world_1.0: gain +0.0062 2/5 -> rejected: accept rule  (14s)
+[R1] A16_synth_practice_0.3: gain -0.0086 2/5 -> rejected: accept rule  (15s)
+[R1] final cfg {'groups': ['core', 'text', 'cw'], 'offsets': True, 'synth': ('closed_world', 0.3)}  (15s)
+[R2] base {'acc': 0.6609, 'f3': 0.661, 'ftf': 0.6663, 'f_unsure': 0.6504, 'ece': 0.2225, 'fold_f3': [0.7475, 0.565, 0.6262, 0.6573, 0.6071]}
+[R2] A1_regularised: gain +0.0085 2/5 -> rejected: accept rule  (1s)
+[R2] A7_closed_world_feature: gain +0.0155 2/5 -> rejected: accept rule  (2s)
+[R2] A4_staircase_history: gain -0.0458 0/5 -> rejected: accept rule  (2s)
+[R2] A14_date_windows: gain -0.0236 2/5 -> rejected: accept rule  (3s)
+[R2] A15_credible_dissent: gain -0.0428 1/5 -> rejected: accept rule  (3s)
+[R2] A3_confidence_check: gain +0.0011 2/5 -> rejected: accept rule  (4s)
+[R2] A6_attribute_smoothing: gain -0.0273 2/5 -> rejected: accept rule  (5s)
+[R2] A12_second_chance_parse: gain +0.0000 0/5 -> rejected: accept rule  (5s)
+[R2] A2_parse_reliability: gain -0.0180 1/5 -> rejected: accept rule  (6s)
+[R2] A13_parse_aware_verdict: gain +0.0283 3/5 -> rejected: accept rule  (6s)
+[R2] A5_extratrees_vote: gain +0.0007 2/5 -> rejected: accept rule  (8s)
+[R2] A11_per_label_isotonic: gain -0.0130 2/5 -> rejected: accept rule  (10s)
+[R2] A8_hybrid_stack: gain +0.0854 5/5 -> kept  (24s)
+[R2] A9_tuned_offsets: gain +0.0544 3/5 -> rejected: accept rule  (26s)
+[R2] A10_self_training: gain +0.0000 0/5 -> rejected: accept rule  (29s)
+[R2] A16_synth_closed_world_0.3: gain -0.0043 3/5 -> rejected: accept rule  (34s)
+[R2] A16_synth_closed_world_1.0: gain -0.0481 1/5 -> rejected: accept rule  (38s)
+[R2] A16_synth_practice_0.3: gain -0.0275 2/5 -> rejected: accept rule  (43s)
+[R2] final cfg {'groups': ['core', 'text', 'cw'], 'stack': True}  (58s)
+[R3] base {'acc': 0.8435, 'f3': 0.8415, 'ftf': 0.806, 'f_unsure': 0.9125, 'ece': 0.1805, 'fold_f3': [0.892, 0.8139, 0.7604, 0.8528, 0.8482]}
+[R3] A1_regularised: gain +0.0104 3/5 -> rejected: accept rule  (0s)
+[R3] A7_closed_world_feature: gain +0.0444 5/5 -> kept  (3s)
+[R3] A4_staircase_history: gain +0.0065 2/5 -> rejected: accept rule  (4s)
+[R3] A14_date_windows: gain +0.0086 3/5 -> rejected: accept rule  (4s)
+[R3] A15_credible_dissent: gain -0.0011 2/5 -> rejected: accept rule  (4s)
+[R3] A3_confidence_check: gain -0.0058 2/5 -> rejected: accept rule  (5s)
+[R3] A6_attribute_smoothing: gain -0.0066 2/5 -> rejected: accept rule  (5s)
+[R3] A12_second_chance_parse: gain +0.0000 0/5 -> rejected: accept rule  (5s)
+[R3] A2_parse_reliability: gain -0.0010 1/5 -> rejected: accept rule  (6s)
+[R3] A13_parse_aware_verdict: gain -0.0054 2/5 -> rejected: accept rule  (6s)
+[R3] A5_extratrees_vote: gain +0.0000 0/5 -> rejected: accept rule  (7s)
+[R3] A11_per_label_isotonic: gain -0.0049 0/5 -> rejected: accept rule  (8s)
+[R3] A8_hybrid_stack: gain +0.0068 2/5 -> rejected: accept rule  (9s)
+[R3] A9_tuned_offsets: gain -0.0100 0/5 -> rejected: accept rule  (10s)
+[R3] A10_self_training: gain +0.0025 2/5 -> rejected: accept rule  (11s)
+[R3] A16_synth_closed_world_0.3: gain -0.0585 1/5 -> rejected: accept rule  (12s)
+[R3] A16_synth_closed_world_1.0: gain -0.1001 0/5 -> rejected: accept rule  (13s)
+[R3] A16_synth_practice_0.3: gain -0.1171 0/5 -> rejected: accept rule  (15s)
+[R3] final cfg {'groups': ['core', 'text', 'cw']}  (72s)
+[P] base {'acc': 0.8198, 'f3': 0.363, 'ftf': 0.5445, 'f_unsure': 0.0, 'ece': 0.0641, 'fold_ftf': [0.5806, 0.5508, 0.5388, 0.553, 0.5024]}
+[P] A1_regularised: gain +0.0036 2/5 -> rejected: accept rule  (1s)
+[P] A7_closed_world_feature: gain +0.0036 2/5 -> rejected: accept rule  (2s)
+[P] A4_staircase_history: gain +0.0585 5/5 -> kept  (6s)
+[P] A14_date_windows: gain +0.0036 3/5 -> rejected: accept rule  (7s)
+[P] A15_credible_dissent: gain +0.0015 1/5 -> rejected: accept rule  (8s)
+[P] A3_confidence_check: gain -0.0010 0/5 -> rejected: accept rule  (9s)
+[P] A6_attribute_smoothing: gain -0.0022 2/5 -> rejected: accept rule  (10s)
+[P] A12_second_chance_parse: gain +0.0000 0/5 -> rejected: accept rule  (11s)
+[P] A2_parse_reliability: gain -0.0029 2/5 -> rejected: accept rule  (12s)
+[P] A13_parse_aware_verdict: gain +0.0062 3/5 -> rejected: accept rule  (13s)
+[P] A5_extratrees_vote: gain +0.0033 2/5 -> rejected: accept rule  (16s)
+[P] A11_per_label_isotonic: gain -0.0233 0/5 -> rejected: accept rule  (19s)
+[P] A8_hybrid_stack: gain -0.0124 2/5 -> rejected: accept rule  (24s)
+[P] A9_tuned_offsets: gain -0.0071 2/5 -> rejected: accept rule  (27s)
+[P] A10_self_training: gain +0.0036 2/5 -> rejected: accept rule  (29s)
+[P] A16_synth_practice_0.3: gain +0.0406 4/5 -> kept  (37s)
+[P] final cfg {'groups': ['core', 'text', 'hist'], 'synth': ('practice', 0.3)}  (109s)
+[R1] perm [0.23373104322363533, 0.27785061841702724, 0.1737785511089016] lockbox {'regime': 'R1', 'synth': 'script', 'when': '2026-10-29T09:09:49', 'n': 57, 'look_number': 1, 'acc': 0.5614, 'f3': 0.4553, 'ftf': 0.683, 'f_unsure': 0.0, 'ece': 0.235, 'looks': 1} saved eda\models\h300_r1_practice_trained.joblib
+[R2] perm [0.16720955483170466, 0.16720955483170466, 0.16720955483170466] lockbox {'regime': 'R2', 'synth': 'script', 'when': '2026-10-29T09:10:06', 'n': 57, 'look_number': 2, 'acc': 0.7544, 'f3': 0.748, 'ftf': 0.7886, 'f_unsure': 0.6667, 'ece': 0.216, 'looks': 1} saved eda\models\h300_r2_h300_augmented.joblib
+[R3] perm [0.34784804282272147, 0.2911605937921728, 0.2751448526750831] lockbox {'regime': 'R3', 'synth': 'script', 'when': '2026-10-29T09:10:14', 'n': 57, 'look_number': 3, 'acc': 0.9123, 'f3': 0.9114, 'ftf': 0.9197, 'f_unsure': 0.8947, 'ece': 0.1054, 'looks': 1} saved eda\models\h300_r3_h300_only.joblib
+[P] perm [0.47216892791346105, 0.48810925359076995, 0.4686570226736432] lockbox None saved eda\models\practice_cv_best.joblib
+{
+ "deflation": {
+  "distinct_trials": 70,
+  "mean_se": 0.0559,
+  "noise_max_gain": 0.163
+ },
+ "synth_version": "script",
+ "regimes": {
+  "R1": {
+   "cfg": {
+    "groups": [
+     "core",
+     "text",
+     "cw"
+    ],
+    "offsets": true,
+    "synth": [
+     "closed_world",
+     0.3
+    ]
+   },
+   "cv": {
+    "acc": 0.5739,
+    "f3": 0.4765,
+    "ftf": 0.7148,
+    "f_unsure": 0.0,
+    "ece": 0.2562,
+    "fold_f3": [
+     0.5873,
+     0.4469,
+     0.3973,
+     0.4583,
+     0.4454
+    ]
+   },
+   "permutation": [
+    0.2337,
+    0.2779,
+    0.1738
+   ],
+   "permutation_pass": true,
+   "lockbox": {
+    "regime": "R1",
+    "synth": "script",
+    "when": "2026-10-29T09:09:49",
+    "n": 57,
+    "look_number": 1,
+    "acc": 0.5614,
+    "f3": 0.4553,
+    "ftf": 0.683,
+    "f_unsure": 0.0,
+    "ece": 0.235,
+    "looks": 1
+   },
+   "kept_steps": [
+    "A7_closed_world_feature",
+    "A9_tuned_offsets",
+    "A16_synth_closed_world_0.3"
+   ],
+   "all_gates_pass": true,
+   "saved": "eda\\models\\h300_r1_practice_trained.joblib",
+   "robustness": {
+    "new_ids_no_labels": "ok",
+    "date_iso": "ok, agrees 1.00",
+    "date_slash": "ok, agrees 1.00",
+    "date_day_mon": "ok, agrees 1.00",
+    "date_mon_day": "ok, agrees 1.00",
+    "empty_and_odd_rows": "ok -> [np.str_('true'), np.str_('true')]",
+    "passed": true
+   }
+  },
+  "R2": {
+   "cfg": {
+    "groups": [
+     "core",
+     "text",
+     "cw"
+    ],
+    "stack": true
+   },
+   "cv": {
+    "acc": 0.7391,
+    "f3": 0.7394,
+    "ftf": 0.7679,
+    "f_unsure": 0.6825,
+    "ece": 0.1064,
+    "fold_f3": [
+     0.7696,
+     0.6321,
+     0.6768,
+     0.8307,
+     0.7208
+    ]
+   },
+   "permutation": [
+    0.1672,
+    0.1672,
+    0.1672
+   ],
+   "permutation_pass": true,
+   "lockbox": {
+    "regime": "R2",
+    "synth": "script",
+    "when": "2026-10-29T09:10:06",
+    "n": 57,
+    "look_number": 2,
+    "acc": 0.7544,
+    "f3": 0.748,
+    "ftf": 0.7886,
+    "f_unsure": 0.6667,
+    "ece": 0.216,
+    "looks": 1
+   },
+   "kept_steps": [
+    "A8_hybrid_stack"
+   ],
+   "all_gates_pass": true,
+   "saved": "eda\\models\\h300_r2_h300_augmented.joblib",
+   "robustness": {
+    "new_ids_no_labels": "ok",
+    "date_iso": "ok, agrees 1.00",
+    "date_slash": "ok, agrees 1.00",
+    "date_day_mon": "ok, agrees 1.00",
+    "date_mon_day": "ok, agrees 1.00",
+    "empty_and_odd_rows": "ok -> [np.str_('true'), np.str_('true')]",
+    "passed": true
+   }
+  },
+  "R3": {
+   "cfg": {
+    "groups": [
+     "core",
+     "text",
+     "cw"
+    ]
+   },
+   "cv": {
+    "acc": 0.887,
+    "f3": 0.8856,
+    "ftf": 0.8717,
+    "f_unsure": 0.9136,
+    "ece": 0.1263,
+    "fold_f3": [
+     1.0,
+     0.8311,
+     0.8082,
+     0.8808,
+     0.8693
+    ]
+   },
+   "permutation": [
+    0.3478,
+    0.2912,
+    0.2751
+   ],
+   "permutation_pass": true,
+   "lockbox": {
+    "regime": "R3",
+    "synth": "script",
+    "when": "2026-10-29T09:10:14",
+    "n": 57,
+    "look_number": 3,
+    "acc": 0.9123,
+    "f3": 0.9114,
+    "ftf": 0.9197,
+    "f_unsure": 0.8947,
+    "ece": 0
+[R1] base {'acc': 0.3696, 'f3': 0.2435, 'ftf': 0.3652, 'f_unsure': 0.0, 'ece': 0.5137, 'fold_f3': [0.2905, 0.3188, 0.222, 0.1456, 0.2298]}
+[R1] A1_regularised: gain +0.0162 3/5 -> rejected: accept rule  (0s)
+[R1] A7_closed_world_feature: gain +0.0270 4/5 -> kept  (1s)
+[R1] A4_staircase_history: gain -0.0273 2/5 -> rejected: accept rule  (1s)
+[R1] A14_date_windows: gain -0.0289 2/5 -> rejected: accept rule  (2s)
+[R1] A15_credible_dissent: gain -0.0490 0/5 -> rejected: accept rule  (2s)
+[R1] A3_confidence_check: gain -0.0003 3/5 -> rejected: accept rule  (2s)
+[R1] A6_attribute_smoothing: gain -0.0088 1/5 -> rejected: accept rule  (2s)
+[R1] A12_second_chance_parse: gain +0.0000 0/5 -> rejected: accept rule  (2s)
+[R1] A2_parse_reliability: gain -0.0165 0/5 -> rejected: accept rule  (3s)
+[R1] A13_parse_aware_verdict: gain -0.0313 0/5 -> rejected: accept rule  (3s)
+[R1] A5_extratrees_vote: gain -0.0152 0/5 -> rejected: accept rule  (3s)
+[R1] A11_per_label_isotonic: gain -0.0806 0/5 -> rejected: accept rule  (4s)
+[R1] A8_hybrid_stack: gain -0.0965 0/5 -> rejected: accept rule  (5s)
+[R1] A9_tuned_offsets: gain +0.0781 4/5 -> kept  (8s)
+[R1] A10_self_training: gain +0.0167 2/5 -> rejected: accept rule  (9s)
+[R1] A16_synth_closed_world_0.3: gain +0.0236 2/5 -> rejected: accept rule  (10s)
+[R1] A16_synth_closed_world_1.0: gain +0.0410 4/5 -> kept  (16s)
+[R1] A16_synth_practice_0.3: gain -0.0372 1/5 -> rejected: accept rule  (16s)
+[R1] final cfg {'groups': ['core', 'text', 'cw'], 'offsets': True, 'synth': ('closed_world', 1.0)}  (16s)
+[R2] base {'acc': 0.6609, 'f3': 0.661, 'ftf': 0.6663, 'f_unsure': 0.6504, 'ece': 0.2225, 'fold_f3': [0.7475, 0.565, 0.6262, 0.6573, 0.6071]}
+[R2] A1_regularised: gain +0.0085 2/5 -> rejected: accept rule  (2s)
+[R2] A7_closed_world_feature: gain +0.0155 2/5 -> rejected: accept rule  (3s)
+[R2] A4_staircase_history: gain -0.0458 0/5 -> rejected: accept rule  (4s)
+[R2] A14_date_windows: gain -0.0236 2/5 -> rejected: accept rule  (4s)
+[R2] A15_credible_dissent: gain -0.0428 1/5 -> rejected: accept rule  (5s)
+[R2] A3_confidence_check: gain +0.0011 2/5 -> rejected: accept rule  (6s)
+[R2] A6_attribute_smoothing: gain -0.0273 2/5 -> rejected: accept rule  (7s)
+[R2] A12_second_chance_parse: gain +0.0000 0/5 -> rejected: accept rule  (8s)
+[R2] A2_parse_reliability: gain -0.0180 1/5 -> rejected: accept rule  (8s)
+[R2] A13_parse_aware_verdict: gain +0.0283 3/5 -> rejected: accept rule  (9s)
+[R2] A5_extratrees_vote: gain +0.0007 2/5 -> rejected: accept rule  (11s)
+[R2] A11_per_label_isotonic: gain -0.0130 2/5 -> rejected: accept rule  (14s)
+[R2] A8_hybrid_stack: gain +0.0854 5/5 -> kept  (36s)
+[R2] A9_tuned_offsets: gain +0.0544 3/5 -> rejected: accept rule  (39s)
+[R2] A10_self_training: gain +0.0000 0/5 -> rejected: accept rule  (42s)
+[R2] A16_synth_closed_world_0.3: gain -0.0170 2/5 -> rejected: accept rule  (46s)
+[R2] A16_synth_closed_world_1.0: gain -0.0135 3/5 -> rejected: accept rule  (49s)
+[R2] A16_synth_practice_0.3: gain -0.0105 3/5 -> rejected: accept rule  (53s)
+[R2] final cfg {'groups': ['core', 'text', 'cw'], 'stack': True}  (69s)
+[P] base {'acc': 0.8198, 'f3': 0.363, 'ftf': 0.5445, 'f_unsure': 0.0, 'ece': 0.0641, 'fold_ftf': [0.5806, 0.5508, 0.5388, 0.553, 0.5024]}
+[P] A1_regularised: gain +0.0036 2/5 -> rejected: accept rule  (2s)
+[P] A7_closed_world_feature: gain +0.0036 2/5 -> rejected: accept rule  (2s)
+[P] A4_staircase_history: gain +0.0585 5/5 -> kept  (8s)
+[P] A14_date_windows: gain +0.0036 3/5 -> rejected: accept rule  (9s)
+[P] A15_credible_dissent: gain +0.0015 1/5 -> rejected: accept rule  (10s)
+[P] A3_confidence_check: gain -0.0010 0/5 -> rejected: accept rule  (11s)
+[P] A6_attribute_smoothing: gain -0.0022 2/5 -> rejected: accept rule  (12s)
+[P] A12_second_chance_parse: gain +0.0000 0/5 -> rejected: accept rule  (13s)
+[P] A2_parse_reliability: gain -0.0029 2/5 -> rejected: accept rule  (14s)
+[P] A13_parse_aware_verdict: gain +0.0062 3/5 -> rejected: accept rule  (15s)
+[P] A5_extratrees_vote: gain +0.0033 2/5 -> rejected: accept rule  (17s)
+[P] A11_per_label_isotonic: gain -0.0233 0/5 -> rejected: accept rule  (20s)
+[P] A8_hybrid_stack: gain -0.0124 2/5 -> rejected: accept rule  (23s)
+[P] A9_tuned_offsets: gain -0.0071 2/5 -> rejected: accept rule  (26s)
+[P] A10_self_training: gain +0.0036 2/5 -> rejected: accept rule  (28s)
+[P] final cfg {'groups': ['core', 'text', 'hist']}  (97s)
+[R1] perm [0.23373104322363533, 0.27785061841702724, 0.1737785511089016] lockbox {'regime': 'R1', 'synth': 'claude', 'when': '2026-10-29T09:12:09', 'n': 57, 'look_number': 4, 'acc': 0.4035, 'f3': 0.3306, 'ftf': 0.4959, 'f_unsure': 0.0, 'ece': 0.4782, 'looks': 1} saved eda\models\h300_r1_practice_trained_synth_claude.joblib
+[R2] perm [0.16720955483170466, 0.16720955483170466, 0.16720955483170466] lockbox {'regime': 'R2', 'synth': 'claude', 'when': '2026-10-29T09:12:25', 'n': 57, 'look_number': 5, 'acc': 0.7544, 'f3': 0.748, 'ftf': 0.7886, 'f_unsure': 0.6667, 'ece': 0.216, 'looks': 1} saved eda\models\h300_r2_h300_augmented_synth_claude.joblib
+[P] perm [0.47216892791346105, 0.48810925359076995, 0.4686570226736432] lockbox None saved eda\models\practice_cv_best_synth_claude.joblib
+{
+ "deflation": {
+  "distinct_trials": 51,
+  "mean_se": 0.0494,
+  "noise_max_gain": 0.1386
+ },
+ "synth_version": "claude",
+ "regimes": {
+  "R1": {
+   "cfg": {
+    "groups": [
+     "core",
+     "text",
+     "cw"
+    ],
+    "offsets": true,
+    "synth": [
+     "closed_world",
+     1.0
+    ]
+   },
+   "cv": {
+    "acc": 0.4652,
+    "f3": 0.396,
+    "ftf": 0.5732,
+    "f_unsure": 0.0417,
+    "ece": 0.4463,
+    "fold_f3": [
+     0.4485,
+     0.4834,
+     0.2835,
+     0.3778,
+     0.3438
+    ]
+   },
+   "permutation": [
+    0.2337,
+    0.2779,
+    0.1738
+   ],
+   "permutation_pass": true,
+   "lockbox": {
+    "regime": "R1",
+    "synth": "claude",
+    "when": "2026-10-29T09:12:09",
+    "n": 57,
+    "look_number": 4,
+    "acc": 0.4035,
+    "f3": 0.3306,
+    "ftf": 0.4959,
+    "f_unsure": 0.0,
+    "ece": 0.4782,
+    "looks": 1
+   },
+   "kept_steps": [
+    "A7_closed_world_feature",
+    "A9_tuned_offsets",
+    "A16_synth_closed_world_1.0"
+   ],
+   "all_gates_pass": true,
+   "saved": "eda\\models\\h300_r1_practice_trained_synth_claude.joblib",
+   "robustness": {
+    "new_ids_no_labels": "ok",
+    "date_iso": "ok, agrees 1.00",
+    "date_slash": "ok, agrees 1.00",
+    "date_day_mon": "ok, agrees 1.00",
+    "date_mon_day": "ok, agrees 1.00",
+    "empty_and_odd_rows": "ok -> [np.str_('true'), np.str_('true')]",
+    "passed": true
+   }
+  },
+  "R2": {
+   "cfg": {
+    "groups": [
+     "core",
+     "text",
+     "cw"
+    ],
+    "stack": true
+   },
+   "cv": {
+    "acc": 0.7391,
+    "f3": 0.7394,
+    "ftf": 0.7679,
+    "f_unsure": 0.6825,
+    "ece": 0.1064,
+    "fold_f3": [
+     0.7696,
+     0.6321,
+     0.6768,
+     0.8307,
+     0.7208
+    ]
+   },
+   "permutation": [
+    0.1672,
+    0.1672,
+    0.1672
+   ],
+   "permutation_pass": true,
+   "lockbox": {
+    "regime": "R2",
+    "synth": "claude",
+    "when": "2026-10-29T09:12:25",
+    "n": 57,
+    "look_number": 5,
+    "acc": 0.7544,
+    "f3": 0.748,
+    "ftf": 0.7886,
+    "f_unsure": 0.6667,
+    "ece": 0.216,
+    "looks": 1
+   },
+   "kept_steps": [
+    "A8_hybrid_stack"
+   ],
+   "all_gates_pass": true,
+   "saved": "eda\\models\\h300_r2_h300_augmented_synth_claude.joblib",
+   "robustness": {
+    "new_ids_no_labels": "ok",
+    "date_iso": "ok, agrees 1.00",
+    "date_slash": "ok, agrees 1.00",
+    "date_day_mon": "ok, agrees 1.00",
+    "date_mon_day": "ok, agrees 1.00",
+    "empty_and_odd_rows": "ok -> [np.str_('true'), np.str_('true')]",
+    "passed": true
+   }
+  },
+  "P": {
+   "cfg": {
+    "groups": [
+     "core",
+     "text",
+     "hist"
+    ]
+   },
+   "cv": {
+    "acc": 0.8343,
+    "f3": 0.4024,
+    "ftf": 0.6035,
+    "f_unsure": 0.0,
+    "ece": 0.0541,
+    "fold_ftf": [
+     0.6402,
+     0.5564,
+     0.5908,
+     0.6421,
+     0.5887
+    ]
+   },
+   "permutation": [
+    0.4722,
+    0.4881,
+    0.4687
+   ],
+   "permutation_pass": true,
+   "lockbox": null,
+   "kept_steps": [
+    "A4_staircase_history"
+   ],
+   "all_gates_pass": true,
+   "saved": "eda\\models\\practice_cv_best_synth_claude.joblib",
+   "robustness": {
+    
+{
+ "chosen_by_ladder": {
+  "groups": [
+   "core",
+   "text",
+   "hist"
+  ],
+  "synth": [
+   "practice",
+   0.3
+  ]
+ },
+ "chosen_checks": {
+  "learning_curve": {
+   "values": [
+    0.5709,
+    0.5967,
+    0.591,
+    0.6035
+   ],
+   "pass": true
+  },
+  "held_out_subjects": {
+   "ftf": 0.6072,
+   "all_true": 0.4554,
+   "pass": true
+  },
+  "time_forward": {
+   "ftf": 0.5703,
+   "all_true": 0.4559,
+   "pass": true
+  },
+  "train_val_gap": {
+   "gap": 0.1926,
+   "pass": false
+  },
+  "seed_spread": {
+   "values": [
+    0.6471,
+    0.6526,
+    0.6397
+   ],
+   "std": 0.0053,
+   "pass": true
+  },
+  "permutation": {
+   "values": [
+    0.4722,
+    0.4881,
+    0.4687
+   ],
+   "pass": true
+  },
+  "synthetic_case_accuracy": {
+   "by_case": {
+    "chain": 0.8644,
+    "joke": 0.0,
+    "perturbed": 0.4636,
+    "premature": 0.2485,
+    "stale": 0.7707,
+    "swapped": 0.3818,
+    "true_current": 0.9844,
+    "unseen_pair": 0.9831,
+    "update": 0.9823
+   },
+   "relation_mean": 0.7702,
+   "pass": true
+  },
+  "all_pass": false
+ },
+ "fallback_checks": {
+  "learning_curve": {
+   "values": [
+    0.5278,
+    0.5567,
+    0.5447,
+    0.5519
+   ],
+   "pass": true
+  },
+  "held_out_subjects": {
+   "ftf": 0.5149,
+   "all_true": 0.4554,
+   "pass": true
+  },
+  "time_forward": {
+   "ftf": 0.5112,
+   "all_true": 0.4559,
+   "pass": true
+  },
+  "train_val_gap": {
+   "gap": 0.1649,
+   "pass": false
+  },
+  "seed_spread": {
+   "values": [
+    0.5519,
+    0.54,
+    0.5438
+   ],
+   "std": 0.005,
+   "pass": true
+  },
+  "permutation": {
+   "values": [
+    0.452,
+    0.4599,
+    0.4761
+   ],
+   "pass": true
+  },
+  "synthetic_case_accuracy": {
+   "by_case": {
+    "chain": 0.8367,
+    "joke": 0.0061,
+    "perturbed": 0.1667,
+    "premature": 0.2424,
+    "stale": 0.161,
+    "swapped": 0.1333,
+    "true_current": 0.9939,
+    "unseen_pair": 0.9972,
+    "update": 0.997
+   },
+   "relation_mean": 0.5403
+  },
+  "all_pass": false
+ },
+ "frozen_final_is": "fallback (ladder choice failed a check)",
+ "FINAL": {
+  "config": {
+   "groups": [
+    "core",
+    "text",
+    "misread"
+   ],
+   "reg": true,
+   "misread_gate": true
+  },
+  "scores": {
+   "practice_cv": {
+    "acc": 0.8336,
+    "f3": 0.3679,
+    "ftf": 0.5519,
+    "f_unsure": 0.0,
+    "ece": 0.044
+   },
+   "practice_holdout_single_look": {
+    "acc": 0.8257,
+    "f3": 0.365,
+    "ftf": 0.5475,
+    "f_unsure": 0.0,
+    "ece": 0.0576,
+    "all_true_acc": 0.8191
+   },
+   "h300_cv_practice_trained": {
+    "acc": 0.3826,
+    "f3": 0.2659,
+    "ftf": 0.3989,
+    "f_unsure": 0.0,
+    "ece": 0.4964
+   }
+  },
+  "sha256": "01effddfa970d01b90a6ab88e5a8b4e5c88dbd456f8bc1194d5992b110fc59fc",
+  "created": "2026-10-29T09:14:17"
+ },
+ "FALLBACK": {
+  "config": {
+   "groups": [
+    "core",
+    "text",
+    "misread"
+   ],
+   "reg": true,
+   "misread_gate": true
+  },
+  "scores": {
+   "practice_cv": {
+    "acc": 0.8336,
+    "f3": 0.3679,
+    "ftf": 0.5519,
+    "f_unsure": 0.0,
+    "ece": 0.044
+   },
+   "practice_holdout_single_look": {
+    "acc": 0.8257,
+    "f3": 0.365,
+    "ftf": 0.5475,
+    "f_unsure": 0.0,
+    "ece": 0.0576,
+    "all_true_acc": 0.8191
+   },
+   "h300_cv_practice_trained": {
+    "acc": 0.3826,
+    "f3": 0.2659,
+    "ftf": 0.3989,
+    "f_unsure": 0.0,
+    "ece": 0.4964
+   }
+  },
+  "sha256": "65351727daec954bc2b7f5bef03a49cc19a9615fc373ae089079afd7ba87bee8",
+  "created": "2026-10-29T09:14:24"
+ }
+}
+wrote C:\Users\alexandru.mirea\Tzatziki\hype-arena-starter\eda\h300\REPORT.md

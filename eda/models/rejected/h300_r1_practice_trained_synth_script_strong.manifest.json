@@ -1,0 +1,105 @@
+{
+ "name": "h300_r1_practice_trained_synth_script_strong",
+ "regime": "R1",
+ "approach": "reader (extractor + attribute model + practice KB) + learned layer; kept pieces: A1_regularised, A9_tuned_offsets, A16_synth_closed_world_0.3",
+ "training_data": "practice CV rows (1,593; out-of-fold readings) + synthetic ('closed_world', 0.3)",
+ "features": [
+  "has_reading",
+  "known_pair",
+  "p_attr",
+  "attr_maxp",
+  "margin",
+  "parse_conf",
+  "matches_latest",
+  "status_no_subject",
+  "status_no_attr",
+  "text_joke",
+  "text_first_person",
+  "kind_none",
+  "kind_quantity",
+  "kind_money",
+  "kind_percent",
+  "kind_duration",
+  "kind_date",
+  "kind_version",
+  "kind_name",
+  "kind_boolean"
+ ],
+ "hyperparams": {
+  "groups": [
+   "core",
+   "text"
+  ],
+  "reg": true,
+  "offsets": true,
+  "synth": [
+   "closed_world",
+   0.3
+  ]
+ },
+ "scores": {
+  "validation": {
+   "acc": 0.5652,
+   "f3": 0.4732,
+   "ftf": 0.6976,
+   "f_unsure": 0.0244,
+   "ece": 0.2534,
+   "fold_f3": [
+    0.5456,
+    0.4296,
+    0.3802,
+    0.5235,
+    0.4589
+   ]
+  },
+  "lockbox": {
+   "regime": "R1",
+   "synth": "script_strong",
+   "same_rows_looked_before": 2,
+   "when": "2026-10-29T09:20:10",
+   "n": 57,
+   "log_sequence": 6,
+   "acc": 0.5965,
+   "f3": 0.4843,
+   "ftf": 0.7264,
+   "f_unsure": 0.0,
+   "ece": 0.2465,
+   "looks": 1
+  },
+  "permutation": [
+   0.197,
+   0.2374,
+   0.1801
+  ]
+ },
+ "gates": {
+  "all_kept_steps_pass_a_b_c_d": true,
+  "permutation_pass": true
+ },
+ "robustness": {
+  "new_ids_no_labels": "ok",
+  "date_iso": "ok, agrees 1.00",
+  "date_slash": "ok, agrees 1.00",
+  "date_day_mon": "ok, agrees 1.00",
+  "date_mon_day": "ok, agrees 1.00",
+  "empty_and_odd_rows": "ok -> [np.str_('true'), np.str_('true')]",
+  "passed": true
+ },
+ "sha256": "e37d10bfc0135a15892cb1145b0683c4d8e2f8c9536563c0452079659f5874e4",
+ "synth_version": "script",
+ "predict_entry": "h300.lib.model:predict_rows",
+ "load_requires_sys_path": "eda/h300",
+ "created": "2026-10-29T09:20:16",
+ "file": "eda\\models\\h300_r1_practice_trained_synth_script_strong.joblib",
+ "lockbox_looks": 1,
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "training_ids_file": "eda\\models\\training_ids\\h300_r1_practice_trained_synth_script_strong.csv",
+ "permutation_learned_max": 0.2374,
+ "train_val_gap": 0.0825,
+ "train_val_gap_domain": "practice CV (true/false macro-F1)",
+ "status": "rejected: h300 lockbox viewed twice (protocol violation); research only, never ship"
+}

@@ -106,18 +106,20 @@ def main():
 
     MODE_FILE = {"practice": "practice_rule", "closed_world": "closed_world"}
     held_h300 = [r["text"] for r in h300]
-    held_holdout = [r["text"] for r in practice if r["holdout"] == 1]
+    rowset = {i for i in sp.index[(sp.holdout == 1) | (sp.fold_row5 == 0)]}
+    held_holdout = [r["text"] for r in practice if r["id"] in rowset]   # holdout pages + check.sh hidden rows
     stats_all = {}
 
     # ------------------------------------------------ synth10k from all practice CV rows, written EARLY
     for mode in ("practice", "closed_world"):
-        path = OUT / f"synth10k_{MODE_FILE[mode]}.csv"
+        path = OUT / f"synth10k_script_{MODE_FILE[mode]}.csv"
         if path.exists():
             continue
         srows, st = synth.generate(cv_rows, lex_raw, held_h300 + held_holdout, mode, args.synth_all,
                                    seed=SEED + (0 if mode == "practice" else 1), prefix="s10k", fold="all")
         assert st["rule_agreement"] >= 0.95, f"synthetic labels disagree with the timeline rules: {st}"
         pd.DataFrame(srows, columns=synth.COLUMNS).to_csv(path, index=False)
+        pd.DataFrame(srows, columns=synth.COLUMNS).to_csv(OUT / f"synth10k_{MODE_FILE[mode]}.csv", index=False)
         stats_all[mode] = st
         print(f"WROTE {path}  {st}  ({time.time() - t0:.0f}s)", flush=True)
     json.dump(stats_all, open(OUT / "synth10k_stats.json", "w"), indent=1)
@@ -129,15 +131,18 @@ def main():
         pickle.dump({"feats": feats_df(rd, blind_h300), "margin": rd.margin}, open(p, "wb"))
         pickle.dump(rd, open(CACHE / "reader_all.pkl", "wb"))
         print(f"all-practice reader + h300 read  ({time.time() - t0:.0f}s)", flush=True)
-    p = CACHE / "synth10k_feats.pkl"
-    if not p.exists():
+    for ver in ("script", "claude"):
+        p = CACHE / f"synth10k_{ver}_feats.pkl"
+        files = {m: OUT / f"synth10k_{ver}_{MODE_FILE[m]}.csv" for m in MODE_FILE}
+        if p.exists() or not all(f.exists() for f in files.values()):
+            continue
         rd = pickle.load(open(CACHE / "reader_all.pkl", "rb"))
         out = {}
-        for mode in ("practice", "closed_world"):
-            meta = pd.read_csv(OUT / f"synth10k_{MODE_FILE[mode]}.csv", dtype=str, keep_default_na=False)
+        for mode, f in files.items():
+            meta = pd.read_csv(f, dtype=str, keep_default_na=False)
             out[mode] = meta.merge(feats_df(rd, blind(meta.to_dict("records"))), on="id")
         pickle.dump(out, open(p, "wb"))
-        print(f"synth10k read  ({time.time() - t0:.0f}s)", flush=True)
+        print(f"synth10k[{ver}] read  ({time.time() - t0:.0f}s)", flush=True)
 
     for k in range(5):
         p = CACHE / f"outer_{k}.pkl"

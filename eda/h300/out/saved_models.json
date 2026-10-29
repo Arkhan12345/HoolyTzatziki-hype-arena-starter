@@ -1,0 +1,25 @@
+{
+ "kept": [
+  [
+   "h300_r1_practice_trained_synth_script_strong",
+   0.0825
+  ],
+  [
+   "h300_r2_h300_augmented_synth_script_strong",
+   0.0912
+  ],
+  [
+   "h300_r3_h300_only_synth_script_strong",
+   0.0306
+  ],
+  [
+   "FINAL",
+   0.0002
+  ],
+  [
+   "FALLBACK",
+   0.0305
+  ]
+ ],
+ "removed": []
+}

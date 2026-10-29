@@ -16,3 +16,5 @@ eda/out/*_smoke.*
 eda/h300/out/cache/
 **/__pycache__/
 *.pkl
+eda/models/rejected/*.joblib
+eda/models/h300_r*.joblib

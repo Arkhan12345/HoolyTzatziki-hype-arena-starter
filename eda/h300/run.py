@@ -43,7 +43,11 @@ MODE_FILE = {"practice": "practice_rule", "closed_world": "closed_world"}
 
 
 # ------------------------------------------------------------------ data
-def load():
+SYNTH_VERSION = "script"
+BASE_REG = None       # "strong": strong regularisation in the base of every ladder (--strong)
+
+
+def load(ver="script"):
     hs = pd.read_csv(OUT / "h300_splits.csv")
     H = pickle.load(open(CACHE / "h300_all.pkl", "rb"))["feats"].merge(hs, on="id")
     H["y"] = H.label.map(LAB2I)
@@ -60,9 +64,11 @@ def load():
         for F in o["inner"].values():
             F["y"] = F.id.map(lab).map(LAB2I)
     P["y"] = P.id.map(lab).map(LAB2I)
-    S10 = pickle.load(open(CACHE / "synth10k_feats.pkl", "rb"))
-    for m in S10.values():
-        m["y"] = m.label.map(LAB2I)
+    S10 = None
+    if ver != "none" and (CACHE / f"synth10k_{ver}_feats.pkl").exists():
+        S10 = pickle.load(open(CACHE / f"synth10k_{ver}_feats.pkl", "rb"))
+        for m in S10.values():
+            m["y"] = m.label.map(LAB2I)
     for o in outer:
         for m in o["synth"].values():
             m["y"] = m.label.map(LAB2I)
@@ -115,7 +121,7 @@ def fit_predict(cfg, train_F, train_y, test_F, seed=0, w=None, unl_F=None):
 
 
 def synth_aug(cfg, S10, base_F, base_y, base_w=None):
-    if not cfg.get("synth"):
+    if not cfg.get("synth") or S10 is None:
         return base_F, base_y, base_w
     mode, wt = cfg["synth"]
     S = S10[mode]
@@ -171,7 +177,7 @@ def eval_regime(regime, cfg, D, seed=0, foldcol="fold", in_sample=False):
             F = pd.concat(list(o["inner"].values()), ignore_index=True)
             y = F.y.values
             w = None
-            if cfg.get("synth"):
+            if cfg.get("synth") and SYNTH_VERSION == "script":
                 S = o["synth"][cfg["synth"][0]]
                 F = pd.concat([F, S], ignore_index=True)
                 w = np.concatenate([np.ones(len(y)), np.full(len(S), cfg["synth"][1])])
@@ -233,7 +239,7 @@ STEPS = [
     ("A4_staircase_history", {"groups+": ["hist"]}),
     ("A14_date_windows", {"groups+": ["win"]}),
     ("A15_credible_dissent", {"groups+": ["dissent"]}),
-    ("A3_misread_check", {"groups+": ["misread"], "misread_gate": True}),
+    ("A3_confidence_check", {"groups+": ["misread"], "misread_gate": True}),
     ("A6_attribute_smoothing", {"groups+": ["smooth"]}),
     ("A12_second_chance_parse", {"groups+": ["second"]}),
     ("A2_parse_reliability", {"parse_rel": True}),
@@ -270,12 +276,16 @@ def ladder(regime, D, log):
     km = key_metric(regime)
     min_gain = 0.005 if regime == "P" else 0.01
     base = {"groups": ["core", "text"]}
+    if BASE_REG:
+        base["reg"] = BASE_REG
     t0 = time.time()
     base_res = eval_regime(regime, base, D)
     log.append({"regime": regime, "step": "B0_base", "cfg": dict(base), **summarise(base_res, km), "kept": "base"})
     print(f"[{regime}] base {summarise(base_res, km)}", flush=True)
     for name, delta in STEPS:
         if regime == "P" and name.startswith("A16_synth_closed"):
+            continue
+        if name.startswith("A16") and (D[3] is None or (regime == "P" and SYNTH_VERSION != "script")):
             continue
         cand = apply(base, delta)
         if cand == base:
@@ -335,10 +345,12 @@ def permutation(regime, cfg, D, reps=3):
 
 def lockbox(regime, cfg, D, force=False):
     H, P, outer, S10 = D
-    logp = OUT / "lockbox_log.json"
+    logp = HERE / "out" / "lockbox_log.json"   # one log for every synthetic version: every look is counted
     log = json.load(open(logp)) if logp.exists() else []
-    if any(e["regime"] == regime for e in log) and not force:
-        return next(e for e in log if e["regime"] == regime), log
+    ver = SYNTH_VERSION + ("_strong" if BASE_REG else "")
+    mine = [e for e in log if e["regime"] == regime and e.get("synth") == ver]
+    if mine and not force:
+        return mine[0], log
     L = H[H.part == "lockbox"]
     Hc, Ht = H[H.part == "cv"], H[H.part == "train_only"]
     if regime == "R1":
@@ -350,7 +362,8 @@ def lockbox(regime, cfg, D, force=False):
         w = np.concatenate(([np.ones(len(P))] if regime == "R2" else []) + [np.full(len(Hc) + len(Ht), 3.0)])
         F, y, w = synth_aug(cfg, S10, F, y, w)
     pred, Pr, m = fit_predict(cfg, F, y, L, 0, w, unl_F=L)
-    entry = {"regime": regime, "when": datetime.now().isoformat(timespec="seconds"), "n": int(len(L)),
+    entry = {"regime": regime, "synth": ver, "same_rows_looked_before": sum(e["regime"] == regime for e in log), "when": datetime.now().isoformat(timespec="seconds"),
+             "n": int(len(L)), "log_sequence": len(log) + 1,
              **{k: round(v, 4) for k, v in metrics(L.y.values, pred, Pr).items()}, "looks": 1}
     log.append(entry)
     json.dump(log, open(logp, "w"), indent=1)
@@ -419,8 +432,19 @@ def deflation(log):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--regimes", default="R1,R2,R3,P")
+    ap.add_argument("--synth", default="script", choices=("script", "claude", "none"))
+    ap.add_argument("--strong", action="store_true", help="strong regularisation in every base (our default to ship)")
     args = ap.parse_args()
-    D = load()
+    global SYNTH_VERSION, OUT, BASE_REG
+    SYNTH_VERSION = args.synth
+    if args.strong:
+        BASE_REG = "strong"
+    tag = args.synth + ("_strong" if args.strong else "")
+    if tag != "script":
+        OUT = HERE / "out" / f"synth_{tag}"
+        OUT.mkdir(parents=True, exist_ok=True)
+        (OUT / "h300_splits.csv").write_bytes((HERE / "out" / "h300_splits.csv").read_bytes())
+    D = load(args.synth)
     log, finals = [], {}
     t0 = time.time()
     for regime in args.regimes.split(","):
@@ -429,7 +453,7 @@ def main():
         pd.DataFrame(log).to_csv(OUT / "ladder.csv", index=False)
         print(f"[{regime}] final cfg {cfg}  ({time.time() - t0:.0f}s)", flush=True)
     defl = deflation(log)
-    summary = {"deflation": defl, "regimes": {}}
+    summary = {"deflation": defl, "synth_version": args.synth, "regimes": {}}
     reader = pickle.load(open(CACHE / "reader_all.pkl", "rb"))
     MODELS.mkdir(parents=True, exist_ok=True)
     for regime, fr in finals.items():
@@ -448,7 +472,7 @@ def main():
                  "all_gates_pass": gates_ok}
         if perm_ok and gates_ok:
             name = {"R1": "h300_r1_practice_trained", "R2": "h300_r2_h300_augmented",
-                    "R3": "h300_r3_h300_only", "P": "practice_cv_best"}[regime]
+                    "R3": "h300_r3_h300_only", "P": "practice_cv_best"}[regime] +                 ("" if tag == "script" else f"_synth_{tag}")
             learned = final_model(regime, cfg, D)
             sm = SavedModel(reader, learned, name)
             rob = robustness(sm)
@@ -467,7 +491,9 @@ def main():
                         "scores": {"validation": entry["cv"], "lockbox": lb, "permutation": entry["permutation"]},
                         "gates": {"all_kept_steps_pass_a_b_c_d": gates_ok, "permutation_pass": perm_ok,
                                   "lockbox_looks": 1 if lb else 0},
-                        "robustness": rob, "sha256": sha, "created": datetime.now().isoformat(timespec="seconds"),
+                        "robustness": rob, "sha256": sha, "synth_version": args.synth,
+                        "predict_entry": "eda/h300/lib/model.py:load_and_predict",
+                        "load_requires_sys_path": "eda/h300", "created": datetime.now().isoformat(timespec="seconds"),
                         "file": str(path.relative_to(ROOT))}
             json.dump(manifest, open(MODELS / f"{name}.manifest.json", "w"), indent=1, default=str)
             entry["saved"] = manifest["file"]

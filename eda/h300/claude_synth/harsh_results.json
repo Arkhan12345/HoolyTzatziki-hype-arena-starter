@@ -1,0 +1,86 @@
+{
+ "practice": {
+  "schema": {
+   "ok": true,
+   "detail": "3157 rows, schema ok"
+  },
+  "forms": {
+   "ok": true,
+   "detail": "every form is a valid claimed value on a lexicon subject/attribute"
+  },
+  "dates": {
+   "ok": true,
+   "detail": "all dates ISO and within 2025-10-07..2026-10-28"
+  },
+  "label_mix": {
+   "ok": true,
+   "detail": "practice mix ok: {'true': 0.821, 'false': 0.162, 'unsure': 0.017}"
+  },
+  "case_types": {
+   "ok": false,
+   "detail": "case types with < 100 rows: {'chain_broken_known': 88, 'premature': 53, 'joke': 53, 'chain_broken_unknown': 28}"
+  },
+  "chains": {
+   "ok": true,
+   "detail": "chain rows 16.4%; 116 broken links, all false"
+  },
+  "near_copies": {
+   "ok": true,
+   "detail": "max similarity to held-out texts: 89"
+  },
+  "exact_dups": {
+   "ok": true,
+   "detail": "exact duplicate texts 0.00% (max 0.5%)"
+  },
+  "rule_agreement": {
+   "ok": false,
+   "detail": "label agreement with the training-fold timeline 82.6% on 1000 rows (min 95%); disagreements e.g. [('cs10k-pr-454', 'unseen_pair', 'true', 'false'), ('cs10k-pr-1522', 'unseen_pair', 'true', 'false'), ('cs10k-pr-2580', 'unseen_pair', 'true', 'false'), ('cs10k-pr-1659', 'unseen_pair', 'true', 'false'), ('cs10k-pr-2888', 'unseen_pair', 'true', 'false')]"
+  },
+  "parse_back": {
+   "ok": true,
+   "detail": "98.0% of 1000 texts parse back to their own form (min 90%); misses e.g. [('cs10k-pr-2688', 'The board chaired by Peter Gregori has no seat for Raviqa Capital.'), ('cs10k-pr-2245', 'The board Peter Gregori chairs has an audit committee.'), ('cs10k-pr-549', 'The board chaired by Peter Gregori reports 94% attendance.'), ('cs10k-pr-662', 'The CTO of Hooly joined on 1 July 2026.'), ('cs10k-pr-2727', 'H"
+  }
+ },
+ "closed_world": {
+  "schema": {
+   "ok": true,
+   "detail": "3072 rows, schema ok"
+  },
+  "forms": {
+   "ok": true,
+   "detail": "every form is a valid claimed value on a lexicon subject/attribute"
+  },
+  "dates": {
+   "ok": true,
+   "detail": "all dates ISO and within 2025-10-07..2026-10-28"
+  },
+  "label_mix": {
+   "ok": true,
+   "detail": "closed_world mix ok: {'true': 0.378, 'unsure': 0.316, 'false': 0.306}"
+  },
+  "case_types": {
+   "ok": false,
+   "detail": "case types with < 100 rows: {'chain_broken_known': 87, 'chain_broken_unknown': 27, 'chain_unknown_end': 26}"
+  },
+  "chains": {
+   "ok": true,
+   "detail": "chain rows 17.0%; 140 broken links, all false"
+  },
+  "near_copies": {
+   "ok": true,
+   "detail": "max similarity to held-out texts: 89"
+  },
+  "exact_dups": {
+   "ok": true,
+   "detail": "exact duplicate texts 0.00% (max 0.5%)"
+  },
+  "rule_agreement": {
+   "ok": false,
+   "detail": "label agreement with the training-fold timeline 80.3% on 1000 rows (min 95%); disagreements e.g. [('cs10k-cl-1431', 'unseen_pair', 'unsure', 'false'), ('cs10k-cl-1038', 'unseen_pair', 'unsure', 'false'), ('cs10k-cl-616', 'unseen_pair', 'unsure', 'false'), ('cs10k-cl-1239', 'unseen_pair', 'unsure', 'false'), ('cs10k-cl-2805', 'unseen_pair', 'unsure', 'false')]"
+  },
+  "parse_back": {
+   "ok": true,
+   "detail": "97.2% of 1000 texts parse back to their own form (min 90%); misses e.g. [('cs10k-cl-1225', 'The board Peter Gregori chairs has held 7 sessions.'), ('cs10k-cl-1006', 'The board that Peter Gregori chairs counts 3 independent members.'), ('cs10k-cl-3014', 'Hooly Cloud Next 2026 and Hooly Maps Day are both in Dublin, and Hooly'), ('cs10k-cl-1398', 'Hooly Cloud is not carbon neutral.'), ('cs10k-cl-203'"
+  }
+ }
+}

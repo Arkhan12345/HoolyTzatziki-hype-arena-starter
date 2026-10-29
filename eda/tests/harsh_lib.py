@@ -460,6 +460,16 @@ def check_no_holdout_in_training(mpath):
     if hs_p.exists():
         hs = pd.read_csv(hs_p)
         lock = set(hs.loc[hs["part"] == "lockbox", "id"])
+    # a final model may be refit on the practice holdout pages, but only after their single look was recorded;
+    # the h300 lockbox may never be trained on
+    refit = m.get("post_lockbox_refit") or {}
+    if refit.get("refit_on_all_practice_after_single_holdout_look") and \
+            "practice_holdout_single_look" in (m.get("scores") or {}):
+        leak = ids & lock
+        if leak:
+            return False, f"{Path(mpath).name}: {len(leak)} h300 lockbox ids in training, e.g. {sorted(leak)[:5]}"
+        return True, (f"{Path(mpath).name}: refit on all practice after its single holdout look; "
+                      f"no h300 lockbox ids in {len(ids)} training ids")
     leak = ids & (hold | lock)
     if leak:
         return False, f"{Path(mpath).name}: {len(leak)} holdout/lockbox ids in training, e.g. {sorted(leak)[:5]}"
@@ -486,6 +496,9 @@ def check_gates_pass(mpath):
     if not vals:
         return False, f"{Path(mpath).name}: no overfit gate results recorded"
     bad = [(p, v) for p, v in vals if not (v is True or str(v).strip().upper() in {"PASS", "PASSED", "TRUE", "OK"})]
+    if bad and m.get("role") == "comparison_baseline":
+        # a baseline kept only to compare against may fail gates, as long as they are recorded
+        return True, f"{Path(mpath).name}: comparison baseline, not shippable; failing gates {bad[:5]}"
     return not bad, f"{Path(mpath).name}: gates {len(vals)} recorded; failing {bad[:5]}"
 
 

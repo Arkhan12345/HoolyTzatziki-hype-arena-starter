@@ -1,0 +1,99 @@
+{
+ "name": "h300_r3_h300_only_synth_script_strong",
+ "regime": "R3",
+ "approach": "reader (extractor + attribute model + practice KB) + learned layer; kept pieces: base only",
+ "training_data": "h300 CV + h300 train-only",
+ "features": [
+  "has_reading",
+  "known_pair",
+  "p_attr",
+  "attr_maxp",
+  "margin",
+  "parse_conf",
+  "matches_latest",
+  "status_no_subject",
+  "status_no_attr",
+  "text_joke",
+  "text_first_person",
+  "kind_none",
+  "kind_quantity",
+  "kind_money",
+  "kind_percent",
+  "kind_duration",
+  "kind_date",
+  "kind_version",
+  "kind_name",
+  "kind_boolean"
+ ],
+ "hyperparams": {
+  "groups": [
+   "core",
+   "text"
+  ],
+  "reg": "strong"
+ },
+ "scores": {
+  "validation": {
+   "acc": 0.8522,
+   "f3": 0.8526,
+   "ftf": 0.8503,
+   "f_unsure": 0.8571,
+   "ece": 0.1347,
+   "fold_f3": [
+    0.904,
+    0.852,
+    0.7651,
+    0.9196,
+    0.817
+   ]
+  },
+  "lockbox": {
+   "regime": "R3",
+   "synth": "script_strong",
+   "same_rows_looked_before": 1,
+   "when": "2026-10-29T09:20:22",
+   "n": 57,
+   "log_sequence": 8,
+   "acc": 0.8421,
+   "f3": 0.8355,
+   "ftf": 0.8247,
+   "f_unsure": 0.8571,
+   "ece": 0.1479,
+   "looks": 1
+  },
+  "permutation": [
+   0.334,
+   0.2565,
+   0.224
+  ]
+ },
+ "gates": {
+  "all_kept_steps_pass_a_b_c_d": true,
+  "permutation_pass": true
+ },
+ "robustness": {
+  "new_ids_no_labels": "ok",
+  "date_iso": "ok, agrees 1.00",
+  "date_slash": "ok, agrees 1.00",
+  "date_day_mon": "ok, agrees 1.00",
+  "date_mon_day": "ok, agrees 1.00",
+  "empty_and_odd_rows": "ok -> [np.str_('unsure'), np.str_('unsure')]",
+  "passed": true
+ },
+ "sha256": "b987f083d0f202598d3ca2fce19fc0ee17111964ef42046ed783d108c87a0268",
+ "synth_version": "script",
+ "predict_entry": "h300.lib.model:predict_rows",
+ "load_requires_sys_path": "eda/h300",
+ "created": "2026-10-29T09:20:28",
+ "file": "eda\\models\\h300_r3_h300_only_synth_script_strong.joblib",
+ "lockbox_looks": 1,
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "training_ids_file": "eda\\models\\training_ids\\h300_r3_h300_only_synth_script_strong.csv",
+ "permutation_learned_max": 0.334,
+ "train_val_gap": 0.0306,
+ "train_val_gap_domain": "h300 CV (3-class)"
+}

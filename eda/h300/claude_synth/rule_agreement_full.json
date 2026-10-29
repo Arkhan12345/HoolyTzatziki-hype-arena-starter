@@ -1,0 +1,50 @@
+{
+ "practice": {
+  "wide_all_nonholdout": {
+   "agreement": 0.822,
+   "rows": 3157,
+   "disagree_by_case": {
+    "unseen_pair": 525,
+    "chain_valid": 21,
+    "true_current": 10,
+    "stale": 2,
+    "perturbed": 2,
+    "premature": 2
+   }
+  },
+  "spec_kb_no_fold_row5_0": {
+   "agreement": 0.9975,
+   "rows": 3157,
+   "disagree_by_case": {
+    "true_current": 6,
+    "perturbed": 2
+   }
+  }
+ },
+ "closed_world": {
+  "wide_all_nonholdout": {
+   "agreement": 0.7992,
+   "rows": 3072,
+   "disagree_by_case": {
+    "unseen_pair": 525,
+    "chain_broken_unknown": 27,
+    "chain_unknown_end": 26,
+    "chain_valid": 20,
+    "premature": 9,
+    "true_current": 5,
+    "perturbed": 3,
+    "stale": 2
+   }
+  },
+  "spec_kb_no_fold_row5_0": {
+   "agreement": 0.9805,
+   "rows": 3072,
+   "disagree_by_case": {
+    "chain_broken_unknown": 27,
+    "chain_unknown_end": 26,
+    "true_current": 4,
+    "perturbed": 3
+   }
+  }
+ }
+}

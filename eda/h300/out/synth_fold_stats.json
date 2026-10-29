@@ -1,0 +1,142 @@
+{
+ "fold0_practice": {
+  "n": 2001,
+  "tried": 1777,
+  "dropped_near_copies": 16,
+  "chain_rows": 360,
+  "chain_note": "chains ok (2815)",
+  "short_of_quota": {},
+  "rule_agreement": 0.9994,
+  "mix": {
+   "true": 0.832,
+   "false": 0.152,
+   "unsure": 0.016
+  }
+ },
+ "fold0_closed_world": {
+  "n": 2000,
+  "tried": 1820,
+  "dropped_near_copies": 11,
+  "chain_rows": 360,
+  "chain_note": "chains ok (2654)",
+  "short_of_quota": {},
+  "rule_agreement": 0.9988,
+  "mix": {
+   "true": 0.376,
+   "false": 0.324,
+   "unsure": 0.3
+  }
+ },
+ "fold1_practice": {
+  "n": 2001,
+  "tried": 1876,
+  "dropped_near_copies": 18,
+  "chain_rows": 360,
+  "chain_note": "chains ok (2815)",
+  "short_of_quota": {},
+  "rule_agreement": 0.9988,
+  "mix": {
+   "true": 0.829,
+   "false": 0.155,
+   "unsure": 0.016
+  }
+ },
+ "fold1_closed_world": {
+  "n": 2000,
+  "tried": 2125,
+  "dropped_near_copies": 26,
+  "chain_rows": 360,
+  "chain_note": "chains ok (2615)",
+  "short_of_quota": {},
+  "rule_agreement": 1.0,
+  "mix": {
+   "true": 0.365,
+   "false": 0.337,
+   "unsure": 0.298
+  }
+ },
+ "fold2_practice": {
+  "n": 2001,
+  "tried": 1784,
+  "dropped_near_copies": 35,
+  "chain_rows": 360,
+  "chain_note": "chains ok (2822)",
+  "short_of_quota": {},
+  "rule_agreement": 1.0,
+  "mix": {
+   "true": 0.825,
+   "false": 0.159,
+   "unsure": 0.016
+  }
+ },
+ "fold2_closed_world": {
+  "n": 2000,
+  "tried": 1785,
+  "dropped_near_copies": 15,
+  "chain_rows": 360,
+  "chain_note": "chains ok (2693)",
+  "short_of_quota": {},
+  "rule_agreement": 0.9994,
+  "mix": {
+   "true": 0.359,
+   "false": 0.331,
+   "unsure": 0.31
+  }
+ },
+ "fold3_practice": {
+  "n": 2001,
+  "tried": 1757,
+  "dropped_near_copies": 12,
+  "chain_rows": 360,
+  "chain_note": "chains ok (2825)",
+  "short_of_quota": {},
+  "rule_agreement": 0.9994,
+  "mix": {
+   "true": 0.828,
+   "false": 0.155,
+   "unsure": 0.016
+  }
+ },
+ "fold3_closed_world": {
+  "n": 2000,
+  "tried": 1785,
+  "dropped_near_copies": 24,
+  "chain_rows": 360,
+  "chain_note": "chains ok (2661)",
+  "short_of_quota": {},
+  "rule_agreement": 0.9988,
+  "mix": {
+   "true": 0.361,
+   "false": 0.324,
+   "unsure": 0.316
+  }
+ },
+ "fold4_practice": {
+  "n": 2001,
+  "tried": 1824,
+  "dropped_near_copies": 23,
+  "chain_rows": 360,
+  "chain_note": "chains ok (2799)",
+  "short_of_quota": {},
+  "rule_agreement": 0.9988,
+  "mix": {
+   "true": 0.832,
+   "false": 0.151,
+   "unsure": 0.016
+  }
+ },
+ "fold4_closed_world": {
+  "n": 2000,
+  "tried": 1948,
+  "dropped_near_copies": 14,
+  "chain_rows": 360,
+  "chain_note": "chains ok (2662)",
+  "short_of_quota": {},
+  "rule_agreement": 0.9988,
+  "mix": {
+   "true": 0.37,
+   "false": 0.325,
+   "unsure": 0.304
+  }
+ }
+}

@@ -1,0 +1,174 @@
+{
+ "deflation": {
+  "distinct_trials": 51,
+  "mean_se": 0.0494,
+  "noise_max_gain": 0.1386
+ },
+ "synth_version": "claude",
+ "regimes": {
+  "R1": {
+   "cfg": {
+    "groups": [
+     "core",
+     "text",
+     "cw"
+    ],
+    "offsets": true,
+    "synth": [
+     "closed_world",
+     1.0
+    ]
+   },
+   "cv": {
+    "acc": 0.4652,
+    "f3": 0.396,
+    "ftf": 0.5732,
+    "f_unsure": 0.0417,
+    "ece": 0.4463,
+    "fold_f3": [
+     0.4485,
+     0.4834,
+     0.2835,
+     0.3778,
+     0.3438
+    ]
+   },
+   "permutation": [
+    0.2337,
+    0.2779,
+    0.1738
+   ],
+   "permutation_pass": true,
+   "lockbox": {
+    "regime": "R1",
+    "synth": "claude",
+    "when": "2026-10-29T09:12:09",
+    "n": 57,
+    "look_number": 4,
+    "acc": 0.4035,
+    "f3": 0.3306,
+    "ftf": 0.4959,
+    "f_unsure": 0.0,
+    "ece": 0.4782,
+    "looks": 1
+   },
+   "kept_steps": [
+    "A7_closed_world_feature",
+    "A9_tuned_offsets",
+    "A16_synth_closed_world_1.0"
+   ],
+   "all_gates_pass": true,
+   "saved": "eda\\models\\h300_r1_practice_trained_synth_claude.joblib",
+   "robustness": {
+    "new_ids_no_labels": "ok",
+    "date_iso": "ok, agrees 1.00",
+    "date_slash": "ok, agrees 1.00",
+    "date_day_mon": "ok, agrees 1.00",
+    "date_mon_day": "ok, agrees 1.00",
+    "empty_and_odd_rows": "ok -> [np.str_('true'), np.str_('true')]",
+    "passed": true
+   }
+  },
+  "R2": {
+   "cfg": {
+    "groups": [
+     "core",
+     "text",
+     "cw"
+    ],
+    "stack": true
+   },
+   "cv": {
+    "acc": 0.7391,
+    "f3": 0.7394,
+    "ftf": 0.7679,
+    "f_unsure": 0.6825,
+    "ece": 0.1064,
+    "fold_f3": [
+     0.7696,
+     0.6321,
+     0.6768,
+     0.8307,
+     0.7208
+    ]
+   },
+   "permutation": [
+    0.1672,
+    0.1672,
+    0.1672
+   ],
+   "permutation_pass": true,
+   "lockbox": {
+    "regime": "R2",
+    "synth": "claude",
+    "when": "2026-10-29T09:12:25",
+    "n": 57,
+    "look_number": 5,
+    "acc": 0.7544,
+    "f3": 0.748,
+    "ftf": 0.7886,
+    "f_unsure": 0.6667,
+    "ece": 0.216,
+    "looks": 1
+   },
+   "kept_steps": [
+    "A8_hybrid_stack"
+   ],
+   "all_gates_pass": true,
+   "saved": "eda\\models\\h300_r2_h300_augmented_synth_claude.joblib",
+   "robustness": {
+    "new_ids_no_labels": "ok",
+    "date_iso": "ok, agrees 1.00",
+    "date_slash": "ok, agrees 1.00",
+    "date_day_mon": "ok, agrees 1.00",
+    "date_mon_day": "ok, agrees 1.00",
+    "empty_and_odd_rows": "ok -> [np.str_('true'), np.str_('true')]",
+    "passed": true
+   }
+  },
+  "P": {
+   "cfg": {
+    "groups": [
+     "core",
+     "text",
+     "hist"
+    ]
+   },
+   "cv": {
+    "acc": 0.8343,
+    "f3": 0.4024,
+    "ftf": 0.6035,
+    "f_unsure": 0.0,
+    "ece": 0.0541,
+    "fold_ftf": [
+     0.6402,
+     0.5564,
+     0.5908,
+     0.6421,
+     0.5887
+    ]
+   },
+   "permutation": [
+    0.4722,
+    0.4881,
+    0.4687
+   ],
+   "permutation_pass": true,
+   "lockbox": null,
+   "kept_steps": [
+    "A4_staircase_history"
+   ],
+   "all_gates_pass": true,
+   "saved": "eda\\models\\practice_cv_best_synth_claude.joblib",
+   "robustness": {
+    "new_ids_no_labels": "ok",
+    "date_iso": "ok, agrees 1.00",
+    "date_slash": "ok, agrees 1.00",
+    "date_day_mon": "ok, agrees 1.00",
+    "date_mon_day": "ok, agrees 1.00",
+    "empty_and_odd_rows": "ok -> [np.str_('true'), np.str_('true')]",
+    "passed": true
+   }
+  }
+ }
+}

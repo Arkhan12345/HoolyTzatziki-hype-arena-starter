@@ -1,0 +1,168 @@
+{
+ "name": "FALLBACK",
+ "config": {
+  "groups": [
+   "core",
+   "text",
+   "misread"
+  ],
+  "reg": "strong",
+  "misread_gate": true
+ },
+ "training_rows": {
+  "practice_labelled": 1897,
+  "synthetic": 0
+ },
+ "synth_version": null,
+ "synth_weight": 0,
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "features": [
+  "has_reading",
+  "known_pair",
+  "p_attr",
+  "attr_maxp",
+  "margin",
+  "parse_conf",
+  "matches_latest",
+  "status_no_subject",
+  "status_no_attr",
+  "text_joke",
+  "text_first_person",
+  "misread_n_numbers",
+  "misread_range",
+  "misread_negation",
+  "misread_hedge",
+  "misread_risk",
+  "kind_none",
+  "kind_quantity",
+  "kind_money",
+  "kind_percent",
+  "kind_duration",
+  "kind_date",
+  "kind_version",
+  "kind_name",
+  "kind_boolean"
+ ],
+ "gates": {
+  "learning_curve_pass": true,
+  "held_out_subjects_pass": true,
+  "time_forward_pass": true,
+  "train_validation_difference_pass": true,
+  "seed_spread_pass": false,
+  "permutation_pass": true,
+  "synthetic_case_accuracy_pass": true
+ },
+ "generalisation_checks": {
+  "learning_curve": {
+   "values": [
+    0.4919,
+    0.489,
+    0.4902,
+    0.5185
+   ],
+   "pass": true
+  },
+  "held_out_subjects": {
+   "ftf": 0.5014,
+   "all_true": 0.4554,
+   "pass": true
+  },
+  "time_forward": {
+   "ftf": 0.5242,
+   "all_true": 0.4559,
+   "pass": true
+  },
+  "train_validation_difference": {
+   "gap": 0.0305,
+   "pass": true
+  },
+  "seed_spread": {
+   "values": [
+    0.5185,
+    0.4975,
+    0.4964
+   ],
+   "std": 0.0102,
+   "pass": false
+  },
+  "permutation": {
+   "values": [
+    0.4554,
+    0.4554,
+    0.4554
+   ],
+   "pass": true
+  },
+  "synthetic_case_accuracy": {
+   "by_case": {
+    "chain": 0.8344,
+    "joke": 0.0,
+    "perturbed": 0.0909,
+    "premature": 0.103,
+    "stale": 0.0756,
+    "swapped": 0.0758,
+    "true_current": 0.9998,
+    "unseen_pair": 1.0,
+    "update": 0.9994
+   },
+   "relation_mean": 0.5001
+  },
+  "all_pass": false
+ },
+ "scores": {
+  "practice_cv": {
+   "acc": 0.8362,
+   "f3": 0.3457,
+   "ftf": 0.5185,
+   "f_unsure": 0.0,
+   "ece": 0.0229
+  },
+  "practice_holdout_single_look": {
+   "acc": 0.8257,
+   "f3": 0.3303,
+   "ftf": 0.4954,
+   "f_unsure": 0.0,
+   "ece": 0.0519,
+   "all_true_acc": 0.8191
+  },
+  "h300_cv_practice_trained": {
+   "acc": 0.3478,
+   "f3": 0.1957,
+   "ftf": 0.2936,
+   "f_unsure": 0.0,
+   "ece": 0.4975
+  }
+ },
+ "robustness": {
+  "new_ids_no_labels": "ok",
+  "date_iso": "ok, agrees 1.00",
+  "date_slash": "ok, agrees 1.00",
+  "date_day_mon": "ok, agrees 1.00",
+  "date_mon_day": "ok, agrees 1.00",
+  "empty_and_odd_rows": "ok -> [np.str_('true'), np.str_('true')]",
+  "passed": true
+ },
+ "sha256": "e44d2991dd83735a73a248208a4eee1dab696ede2421bdcc78def7536da0f498",
+ "created": "2026-10-29T09:15:48",
+ "predict_entry": "h300.lib.model:predict_rows",
+ "load_requires_sys_path": "eda/h300",
+ "frozen_inference": "python eda/h300/predict_frozen.py INPUT.csv --model eda/models/FALLBACK",
+ "reader": "extractor + wide extractor + attribute model + KB fitted on all 1,897 practice rows",
+ "lockbox_looks": 0,
+ "practice_holdout_looks": 2,
+ "training_ids_file": "eda\\models\\training_ids\\FALLBACK.csv",
+ "training_note": "refitted once on every labelled practice row incl. the holdout pages, after their look (by design of the freeze step)",
+ "permutation_learned_max": 0.4554,
+ "train_val_gap": 0.0305,
+ "file": "eda\\models\\FALLBACK\\model.joblib",
+ "role": "comparison_baseline",
+ "post_lockbox_refit": {
+  "refit_on_all_practice_after_single_holdout_look": true,
+  "holdout_scored_before_refit": "scores.practice_holdout_single_look",
+  "note": "the practice holdout pages were scored once with the CV-trained config, then the same config was refit on all 1,897 labelled rows; the h300 lockbox is never used for training"
+ }
+}

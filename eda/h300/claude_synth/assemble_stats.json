@@ -1,0 +1,84 @@
+{
+ "written": 4340,
+ "accepted": 3859,
+ "rejections": {
+  "fact outside the lexicon": 35,
+  "value not parsed back": 56,
+  "extra value": 47,
+  "near-copy": 131,
+  "duplicate": 212
+ },
+ "by_style": {
+  "blog_hype": "272/289",
+  "chain_list": "343/406",
+  "chain_nested": "203/278",
+  "faq": "439/481",
+  "headline": "403/481",
+  "interview_quote": "470/481",
+  "press_release": "445/481",
+  "pronoun_followup": "465/481",
+  "release_note": "437/481",
+  "spec_line": "382/481"
+ },
+ "by_case": {
+  "chain_broken_known": "88/114",
+  "chain_broken_unknown": "28/54",
+  "chain_unknown_end": "28/35",
+  "chain_valid": "402/481",
+  "joke": "272/289",
+  "perturbed": "253/269",
+  "premature": "171/182",
+  "stale": "255/269",
+  "swapped": "173/182",
+  "true_current": "1334/1505",
+  "unseen_pair": "653/740",
+  "update": "202/220"
+ },
+ "modes": {
+  "practice": {
+   "rows": 3157,
+   "mix": {
+    "true": 0.821,
+    "false": 0.162,
+    "unsure": 0.017
+   },
+   "cases": {
+    "true_current": 1334,
+    "unseen_pair": 653,
+    "chain_valid": 402,
+    "update": 202,
+    "stale": 132,
+    "swapped": 106,
+    "perturbed": 106,
+    "chain_broken_known": 88,
+    "premature": 53,
+    "joke": 53,
+    "chain_broken_unknown": 28
+   },
+   "chain_share": 0.164
+  },
+  "closed_world": {
+   "rows": 3072,
+   "mix": {
+    "true": 0.378,
+    "unsure": 0.316,
+    "false": 0.306
+   },
+   "cases": {
+    "unseen_pair": 653,
+    "true_current": 578,
+    "chain_valid": 382,
+    "joke": 265,
+    "stale": 255,
+    "perturbed": 253,
+    "update": 202,
+    "swapped": 173,
+    "premature": 171,
+    "chain_broken_known": 87,
+    "chain_broken_unknown": 27,
+    "chain_unknown_end": 26
+   },
+   "chain_share": 0.17
+  }
+ }
+}
