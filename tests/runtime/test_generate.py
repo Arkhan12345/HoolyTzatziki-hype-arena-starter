@@ -243,7 +243,8 @@ def test_broken_p3_module_is_not_hidden_behind_the_mock(tmp_path, monkeypatch):
     for sub, body in (("extract", "import not_a_real_package\n"), ("classify", "def classify(*a):\n    return []\n")):
         (tmp_path / "app" / sub).mkdir(parents=True)
         (tmp_path / "app" / sub / "__init__.py").write_text(body, encoding="utf-8")
-    monkeypatch.setattr(app, "__path__", list(app.__path__) + [str(tmp_path / "app")])
+    # the broken modules go first on the path, so they shadow the real app.extract / app.classify
+    monkeypatch.setattr(app, "__path__", [str(tmp_path / "app")] + list(app.__path__))
     for m in ("app.extract", "app.classify"):
         monkeypatch.delitem(sys.modules, m, raising=False)
     with pytest.raises(ModuleNotFoundError) as e:
@@ -253,10 +254,19 @@ def test_broken_p3_module_is_not_hidden_behind_the_mock(tmp_path, monkeypatch):
         sys.modules.pop(m, None)
 
 
-def test_absent_p3_modules_mean_unavailable():
+def test_absent_p3_modules_mean_unavailable(tmp_path, monkeypatch):
+    import sys
+
+    import app
     from app.generate import strategies
 
+    # simulate a tree without P3 modules: only an empty directory on the package path
+    monkeypatch.setattr(app, "__path__", [str(tmp_path)])
+    for m in ("app.extract", "app.classify"):
+        monkeypatch.delitem(sys.modules, m, raising=False)
     assert strategies.from_p3([], {}) is None
+    for m in ("app.extract", "app.classify"):
+        sys.modules.pop(m, None)
 
 
 def test_precise_date_only_from_the_current_run():
