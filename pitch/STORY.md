@@ -67,6 +67,14 @@ in about 4 seconds on 2 CPUs, and every decision can be explained.
 | I7 | 0.725 | fact F1 of our simple extractor against the gold facts (131/131 value-forms examples parse) | `eda/out/extraction.csv` | X | |
 | I8 | 0.806 → 0.752 | L4 macro-F1 with gold facts → with our extracted facts (the cost of real extraction) | `eda/out/improve_labels.csv` | X | |
 | I9 | no gain | liquid (CfC / LTC), GRU, spiking and character-level nets never beat LightGBM on true/false (best sweep 0.697 vs 0.742); they halve calibration error in a stack (0.030) and the CfC head finds 25% of unsure rows | `eda/out/improve_neuro.csv` | X | |
+| O1 | 84.6% vs 81.9% | frozen outside set (662 practice rows never seen: unseen subjects, last 6 weeks, unseen pages), model retrained without them, one run; macro-F1 0.654 vs 0.450 | `eda/sim/REPORT.md` | X | |
+| O2 | 83.7% / 84.2% / 86.5% | outside set slices: unseen subjects / last 6 weeks / unseen pages (all-true 83.2 / 81.4 / 81.4) | `eda/sim/REPORT.md` | X | |
+| O3 | 82.3% vs 81.9% | outside set with subjects renamed to unknown companies: the weak spot | `eda/sim/REPORT.md` | X | |
+| O4 | 0.455 | label shuffle: with shuffled labels the learned model falls to the everything-true level (no leak) | `docs/OVERFIT.md`, `eda/h300/REPORT_V2.md` | X | |
+| O5 | +0.093 → rejected | v2 gained +0.093 macro-F1 on a renamed-subject CV slice with every gate passed, then lost to v1 on every outside-set slice | `eda/h300/REPORT_V2.md` | X | |
+| O6 | 0 of 16 | dataset rules kept after the nested check (each won only on the folds that chose it) | `eda/selfimprove/rules_round/REPORT.md` | X | |
+| O7 | 0.735 → 0.819, then 85.8% < 86.7% | the ladder + self-improvement loop on gold facts, then on extracted facts it lost to plain LightGBM | `docs/IMPROVEMENTS.md` | X | |
+| O8 | ≈ 2 min | classifier time for the arena's ~18k rows (≈ 9 s for 2.5k rows) | PR #23 | X | |
 
 ## Figures (`pitch/figs/`, regenerate with `python3 pitch/figs/make_figs.py`, standard library only)
 

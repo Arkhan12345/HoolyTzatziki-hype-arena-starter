@@ -103,7 +103,7 @@ No LLM inside. Offline. Under 5 seconds on 2 CPUs.
 
 ## Slide 7 — Chapter 5 · Building the label engine, one piece at a time
 
-**Each piece is added on its own, so we can see what it buys** (macro-F1, true/false, pages held out):
+**Each piece is added on its own, so we can see what it buys** (macro-F1, true/false, pages held out, **with perfect facts**):
 
 - Plain LightGBM on the knowledge base: **0.735**
 - + **Staircase timeline** (the value held on each date, from every mention; a new value needs two pages): **0.789**
@@ -112,42 +112,44 @@ No LLM inside. Offline. Under 5 seconds on 2 CPUs.
 - + **Hard rules** from the data: **0.806**
 - + **Evidence-sum calibrator**: **0.801**, with calibration error **0.050** (was 0.060)
 - The timeline alone brings **+0.054**; the whole ladder **+0.071**, 95% interval [+0.042, +0.103] over 248 pages.
+- **But** with the facts our extractor really reads, the ladder loses to plain trees (85.8% vs 86.7%): the next slide is how we found out.
 
 > notes: We never threw everything in at once. Each piece goes on top of the last, on the same folds, so its gain is
 > visible. The staircase timeline is the big one: it rebuilds what was true on every date from all the mentions, and a
 > single page can't move it. Trust, failure types and rules add smaller steps, and the calibrator makes the confidence
-> honest. The gain holds when we resample whole pages. (STORY I1, I2, I3, I4)
+> honest. With perfect facts the gain holds when we resample whole pages, but with real extraction it doesn't, which is why
+> we test everything the next way. (STORY I1, I2, I3, I4, O7)
 
 ## Slide 8 — Chapter 6 · How we guard against overfitting
 
 **1,900 labels is small. So every result has to survive these checks:**
 
-- **Pages never split**: a page's sentences are always together in train or in test.
-- **Frozen holdout pages**: 15% of pages locked away, scored once per round, never used to choose anything.
+- **Pages and subjects never split** between training and validation; every choice is made on inner folds.
 - **Nested selection**: a change is decided on four folds and must still win on the fifth, unseen one.
-- **Seeds, schemes, time**: the gain must hold across random seeds, on the check.sh-style split and on future dates.
-- **Label shuffle**: with shuffled labels the model must fall back to "everything true", which proves nothing leaks.
-- **Counting our tries**: every variant we ran is counted, and the final gain is corrected for it.
+- **Label shuffle**: with shuffled labels the model falls to **0.455**, the everything-true level: nothing leaks.
+- **A frozen outside set** (662 rows never seen: unseen subjects, the last six weeks, unseen pages), scored once:
+  **84.6%** vs **81.9%** for everything-true.
+- **It caught us twice**: rules that won on the folds that chose them (**0 of 16** kept), and a model that gained
+  **+0.093** in cross-validation but lost on every outside slice. Both were rejected.
 
-> notes: With so few labels, the danger is fooling ourselves. So nothing is kept unless it survives all of this: pages never
-> split, a locked holdout we only look at once, a nested check where the choice is made without the fold that scores it,
-> stable seeds and splits, a shuffle test that proves no answer leaks in, and a correction for how many things we tried.
-> FINALISE after docs/OVERFIT.md: add the audit's verdicts and the CV-vs-holdout gap. (STORY I2, I6; docs/AUDIT.md)
+> notes: With so few labels, the danger is fooling ourselves. So nothing is kept unless it survives the nested check, the shuffle
+> test and a frozen outside set we score once. And it works: it threw out sixteen rules that only won where they were chosen,
+> and a whole second model that looked better in cross-validation but lost on data it had never seen. What we ship is what
+> survived. (STORY O1, O4, O5, O6)
 
-## Slide 9 — Chapter 7 · The system improves itself
+## Slide 9 — Chapter 7 · The system improves itself, within rules it can't change
 
-**A short self-improvement loop with rules it is not allowed to change.**
+**A self-improvement loop with a goal file it is not allowed to edit.**
 
-- A **goal file** fixes the metric, the acceptance rule and the time budget; the loop checks it is untouched.
-- It tries **one change at a time**: timeline window, tree settings, extra features, calibrators, combinations.
-- A change is **kept only if** it gains on average, wins on at least 4 of 5 folds, keeps calibration and runtime,
-  **and passes every overfitting check** from the previous slide.
-- Everything is logged: tried, kept, dropped, and why.
+- The goal file fixes the metric, the acceptance rule and the time budget; the loop checks it is untouched.
+- It tries **one change at a time**: timeline window, tree settings, features, calibrators, combinations, dataset rules.
+- A change is **kept only if** it wins on at least 4 of 5 folds **and** passes every overfitting check.
+- **Honest result**: with perfect facts the loop lifted macro-F1 from **0.735 to 0.819**; with the facts we really
+  extract it did not beat plain trees. So the loop's real job became saying **no**: everything is logged, kept or dropped, and why.
 
-> notes: Instead of hand-tuning, we let the system improve itself inside strict rules. The goal file says what counts as
-> better and the loop can't edit it. Each change is one variable, and it has to win across folds and pass the overfitting
-> checks. FINALISE only if the audit passes: the kept changes and their numbers (eda/selfimprove/REPORT.md); if the
-> gain doesn't survive the audit, say so honestly and keep this slide as method only.
+> notes: Instead of hand-tuning, we let the system try changes itself inside strict rules. With perfect facts it found real gains,
+> but when we fed it the facts our extractor actually reads, those gains disappeared, and the loop rejected them. We'd rather show
+> you that than a number that wouldn't survive tomorrow's data. (STORY I1, O7)
 
 ## Slide 10 — Why no LLM inside, and why that's better
 
@@ -182,8 +184,8 @@ No LLM inside. Offline. Under 5 seconds on 2 CPUs.
 
 **Labels**
 - Shipped classifier, offline evaluation: accuracy **{{offline.data.model.accuracy|pct}}**, macro-F1 **{{offline.data.model.macro_f1|pct}}**.
-- Research, pages held out: **0.735 → 0.801** macro-F1 from plain LightGBM to the full label engine;
-  **0.455** for "everything is true", **0.56** for words alone.
+- Honest test, a frozen outside set the model never saw: **84.6%** accuracy vs **81.9%** for "everything is true"
+  (macro-F1 **0.654** vs 0.455); unseen pages **86.5%**, unseen subjects **83.7%**.
 - Baselines, always with their rows: everything-true is **83.3%** on all 1,897 rows and **85.3%** on the 380 rows check.sh hides.
 
 **Claims**
