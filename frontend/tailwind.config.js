@@ -15,7 +15,7 @@ export default {
         verdict: { true: 'rgb(var(--v-true) / <alpha-value>)', false: 'rgb(var(--v-false) / <alpha-value>)', unsure: 'rgb(var(--v-unsure) / <alpha-value>)' },
       },
       fontFamily: {
-        display: ['Syncopate', 'IBM Plex Sans', 'sans-serif'],
+        display: ['IBM Plex Sans', 'system-ui', 'sans-serif'],
         sans: ['IBM Plex Sans', 'system-ui', 'Segoe UI', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'Consolas', 'monospace'],
       },

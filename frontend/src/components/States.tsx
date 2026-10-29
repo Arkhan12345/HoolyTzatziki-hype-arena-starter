@@ -9,12 +9,11 @@ import type { Health } from '@/state/run'
 
 export function EmptyState({ icon, title, children, action, className }: { icon: ReactNode; title: string; children?: ReactNode; action?: ReactNode; className?: string }) {
   return (
-    <div className={cn('grid place-items-center px-6 py-14 text-center', className)}>
-      <div className="relative grid size-16 place-items-center rounded-2xl border border-line bg-surface-2 text-cyan [&_svg]:size-7">
-        <span aria-hidden className="absolute inset-0 animate-ping rounded-2xl border border-cyan/20 [animation-duration:3s]" />
+    <div className={cn('grid place-items-center px-6 py-16 text-center', className)}>
+      <div className="grid size-12 place-items-center rounded-xl border border-line bg-surface-2 text-cyan [&_svg]:size-5">
         {icon}
       </div>
-      <h3 className="mt-5 text-base font-semibold">{title}</h3>
+      <h3 className="mt-5 text-lg font-semibold tracking-tight">{title}</h3>
       {children && <div className="mt-1.5 max-w-md text-sm text-ink-muted">{children}</div>}
       {action && <div className="mt-5 flex flex-wrap justify-center gap-2">{action}</div>}
     </div>
@@ -87,7 +86,7 @@ export function HealthPill({ health, demo }: { health: Health; demo?: boolean })
         ? { text: 'pipeline offline', dot: 'bg-verdict-false', cls: 'text-verdict-false border-verdict-false/40' }
         : { text: 'checking…', dot: 'bg-ink-faint', cls: 'text-ink-muted border-line' }
   return (
-    <span className={cn('num inline-flex items-center gap-1.5 rounded-full border bg-surface-1/80 px-2.5 py-0.5 text-2xs uppercase tracking-wider', cfg.cls)} title={API_URL}>
+    <span className={cn('num inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border bg-surface-1/80 px-2.5 py-0.5 text-2xs uppercase tracking-wider', cfg.cls)} title={API_URL}>
       <span className="relative flex size-1.5">
         {health === 'online' && !demo && <span className={cn('absolute inset-0 animate-ping rounded-full opacity-70', cfg.dot)} />}
         <span className={cn('relative size-1.5 rounded-full', cfg.dot)} />

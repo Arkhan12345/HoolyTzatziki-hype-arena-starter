@@ -4,7 +4,7 @@
     python scripts/claim_holdout.py --hide 0.9 --seeds 5
 
 A page is a run of consecutive ids with the same date. Claims are generated from the kept pages
-only and judged with app/generate/truth.py against the inventory of the whole practice set: a claim
+only and judged with the independent validator (app/validate/claims.py) against the inventory of the whole practice set: a claim
 the hidden pages contradict (a newer value, a different value on the event day, ...) counts as wrong.
 The full set is itself a sample of the universe, so this is a lower bound on the real error rate.
 """
@@ -22,7 +22,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
 from app.generate.select import generate_from_inventory  # noqa: E402
-from app.generate.truth import truth_problems  # noqa: E402
+from app.validate.claims import PASS, UNVERIFIED, ClaimValidator  # noqa: E402
 from app.io.reader import read_lexicon, read_practice  # noqa: E402
 from app.kb.inventory import FactInventory  # noqa: E402
 from app.kb.store import KB  # noqa: E402
@@ -50,11 +50,11 @@ def run(rows, lex, hide, seed, texts, full_inv):
     inv = FactInventory.from_kb(KB(lex).build([], kept))
     claims = generate_from_inventory(inv, texts, 1000, {})
     stats = defaultdict(lambda: [0, 0])
+    judge = ClaimValidator(full_inv)
     for c in claims:
-        problems = truth_problems(c.type, c.form, full_inv)
-        wrong = bool(problems)
-        # "not held"/"no current value" = the full data cannot confirm it; anything else contradicts it
-        unconfirmed = wrong and any(w in problems[0] for w in ("not held on", "no current value", "no trusted day"))
+        status, _, _ = judge.truth(c.type, c.form)
+        wrong = status != PASS
+        unconfirmed = status == UNVERIFIED  # the full data can neither confirm nor refute it
         meta = getattr(c, "meta", {}) or {}
         detail = (f"{c.type}/robust={meta.get('robust')}" if c.type == "compare" else
                   f"{c.type}/{band(c.confidence)}")

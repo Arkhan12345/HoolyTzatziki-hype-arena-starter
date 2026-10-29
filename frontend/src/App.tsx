@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Layout } from '@/components/Layout'
 import Dashboard from '@/pages/Dashboard'
+import { DebugProvider } from '@/state/debug'
 import { RunProvider } from '@/state/run'
 import { ThemeProvider } from '@/lib/theme'
 
@@ -24,6 +25,7 @@ function Loading() {
 export default function App() {
   return (
     <ThemeProvider>
+      <DebugProvider>
       <BrowserRouter>
         <RunProvider>
           <Suspense fallback={<Loading />}>
@@ -43,6 +45,7 @@ export default function App() {
           </Suspense>
         </RunProvider>
       </BrowserRouter>
+      </DebugProvider>
     </ThemeProvider>
   )
 }

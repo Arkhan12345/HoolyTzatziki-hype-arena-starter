@@ -8,7 +8,7 @@
  */
 :root {
   color-scheme: dark;
-  --void: 5 7 13;
+  --void: 7 9 16;
   --surface-1: 10 15 28;
   --surface-2: 14 21 38;
   --surface-3: 20 32 54;
@@ -25,7 +25,8 @@
   --v-false: 239 107 115;
   --v-unsure: 245 184 61;
   --blob-2: 37 64 140;
-  --glow-a: 0.09;
+  --glow-a: 0.1;
+  --stars-a: 0.9;
   --shadow: 0 0 0;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -51,7 +52,8 @@
   --v-false: 192 53 63;
   --v-unsure: 180 83 9;
   --blob-2: 147 197 253;
-  --glow-a: 0.16;
+  --glow-a: 0.12;
+  --stars-a: 0;
   --shadow: 30 41 59;
 }
 
@@ -79,12 +81,19 @@ body {
 
 /* ---------- Atmosphere ---------- */
 
-.fx-grid {
+.fx-stars {
   background-image:
-    linear-gradient(to right, rgb(var(--cyan) / 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(var(--cyan) / 0.07) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 30%, transparent 75%);
+    radial-gradient(1px 1px at 12% 18%, rgb(var(--ink) / 0.5), transparent 60%),
+    radial-gradient(1px 1px at 27% 72%, rgb(var(--ink) / 0.35), transparent 60%),
+    radial-gradient(1.5px 1.5px at 43% 34%, rgb(var(--cyan-ice) / 0.45), transparent 60%),
+    radial-gradient(1px 1px at 58% 82%, rgb(var(--ink) / 0.3), transparent 60%),
+    radial-gradient(1px 1px at 71% 12%, rgb(var(--ink) / 0.4), transparent 60%),
+    radial-gradient(1.5px 1.5px at 86% 56%, rgb(var(--cyan-ice) / 0.35), transparent 60%),
+    radial-gradient(1px 1px at 93% 88%, rgb(var(--ink) / 0.3), transparent 60%),
+    radial-gradient(1px 1px at 6% 52%, rgb(var(--ink) / 0.3), transparent 60%);
+  background-size: 640px 640px;
+  opacity: var(--stars-a);
+  mask-image: linear-gradient(to bottom, #000, transparent 85%);
 }
 
 .fx-noise {
@@ -93,18 +102,14 @@ body {
   mix-blend-mode: overlay;
 }
 
-.fx-scanlines {
-  background: repeating-linear-gradient(to bottom, rgb(var(--ink) / 0.018) 0 1px, transparent 1px 3px);
-}
-
 /* ---------- Surfaces ---------- */
 
 @layer components {
   .panel {
-    @apply relative rounded-xl border border-line bg-surface-1/80 shadow-panel backdrop-blur-sm;
+    @apply relative rounded-2xl border border-line bg-surface-1/70 shadow-panel;
   }
   .eyebrow {
-    @apply font-mono text-2xs uppercase tracking-[0.22em] text-ink-faint;
+    @apply font-mono text-2xs uppercase tracking-[0.14em] text-ink-faint;
   }
   .num {
     @apply font-mono tabular-nums;
@@ -117,103 +122,15 @@ body {
   }
 }
 
-/* Animated conic border for primary panels and buttons */
-@property --angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-.border-beam {
-  position: relative;
-  isolation: isolate;
-}
-.border-beam::before {
+/* The leading panel of a view: a lit top edge instead of an animated border */
+.panel-lead::before {
   content: '';
   position: absolute;
-  inset: -1px;
+  inset: -1px -1px auto;
+  height: 1px;
   border-radius: inherit;
-  padding: 1px;
-  background: conic-gradient(from var(--angle), transparent 0 70%, rgb(var(--cyan) / 0.9) 82%, rgb(var(--v-true) / 0.8) 90%, transparent 100%);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: beam 4s linear infinite;
+  background: linear-gradient(90deg, transparent, rgb(var(--cyan) / 0.7) 50%, transparent);
   pointer-events: none;
-  z-index: -1;
-}
-@keyframes beam {
-  to {
-    --angle: 360deg;
-  }
-}
-
-/* Specular Button (React Bits, see src/components/ui/SpecularButton.tsx). Sizes come from the Button classes. */
-.specular-button {
-  --sb-radius: 18px;
-  --sb-tint: #ffffff;
-  --sb-tint-opacity: 0.04;
-  --sb-blur: 0px;
-  --sb-text-color: #f5f5f5;
-  position: relative;
-  isolation: isolate;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5em;
-  margin: 0;
-  border: 0;
-  border-radius: var(--sb-radius);
-  font: inherit;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  color: var(--sb-text-color);
-  background: color-mix(in srgb, var(--sb-tint) calc(var(--sb-tint-opacity) * 100%), transparent);
-  box-shadow: 0 10px 24px -14px rgb(var(--shadow) / 0.45);
-  -webkit-backdrop-filter: blur(var(--sb-blur));
-  backdrop-filter: blur(var(--sb-blur));
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s;
-}
-.specular-button:active {
-  transform: scale(0.97);
-}
-.specular-button:focus-visible {
-  outline: 2px solid rgb(var(--cyan));
-  outline-offset: 3px;
-}
-.specular-button:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-.specular-button:disabled:active {
-  transform: none;
-}
-.specular-button__light {
-  position: absolute;
-  inset: -24px;
-  z-index: 1;
-  display: block;
-  width: calc(100% + 48px);
-  height: calc(100% + 48px);
-  pointer-events: none;
-}
-.specular-button__label {
-  position: relative;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: inherit;
-}
-
-.text-gradient {
-  background: linear-gradient(100deg, rgb(var(--ink)) 10%, rgb(var(--cyan-ice)) 45%, rgb(var(--cyan)) 70%, rgb(var(--v-true)) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }
 
 .skeleton {
@@ -229,6 +146,10 @@ body {
 }
 
 /* ---------- React Flow ---------- */
+.react-flow {
+  --xy-background-color: transparent;
+  --xy-background-color-default: transparent;
+}
 .react-flow__attribution {
   display: none;
 }
@@ -237,7 +158,7 @@ body {
 }
 .react-flow__edge-text {
   fill: rgb(var(--ink-muted));
-  font-size: 11px;
+  font-size: 13px;
   font-family: 'JetBrains Mono', monospace;
 }
 .react-flow__controls {
@@ -252,36 +173,81 @@ body {
   background: rgb(var(--surface-3));
 }
 
-/* ---------- Pitch slides ---------- */
+/* ---------- Pitch slides (sizes in em of the auto-fitted body) ---------- */
 .slide-body > * + * {
-  margin-top: 0.6em;
+  margin-top: 0.7em;
 }
-.slide-body ul {
+.slide-body h3 {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.55em;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(var(--cyan));
+}
+.slide-body p:first-child strong:only-child,
+.slide-body h3 + p strong:only-child {
+  font-size: 1.35em;
+  letter-spacing: -0.02em;
+}
+.slide-body ul,
+.slide-body ol {
   list-style: none;
   padding: 0;
 }
 .slide-body li {
   position: relative;
-  padding-left: 1.2em;
-  margin-top: 0.35em;
+  padding-left: 1.3em;
+  margin-top: 0.4em;
 }
-.slide-body li::before {
+.slide-body ul > li::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 0.55em;
-  width: 0.4em;
-  height: 0.4em;
-  border-radius: 2px;
+  left: 0.1em;
+  top: 0.62em;
+  width: 0.5em;
+  height: 1px;
   background: rgb(var(--cyan));
 }
+.slide-body ol {
+  counter-reset: step;
+}
+.slide-body ol > li {
+  counter-increment: step;
+  padding-left: 1.8em;
+}
+.slide-body ol > li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.7em;
+  color: rgb(var(--cyan));
+}
+.slide-body li li {
+  font-size: 0.85em;
+  margin-top: 0.25em;
+}
+.slide-body li ul > li::before {
+  background: rgb(var(--ink-faint));
+}
 .slide-body strong {
+  font-weight: 600;
+  color: rgb(var(--ink));
+}
+.slide-body em {
   color: rgb(var(--ink));
 }
 .slide-body code {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.85em;
+  font-size: 0.82em;
   color: rgb(var(--cyan-ice));
+}
+.slide-body blockquote {
+  border-left: 2px solid rgb(var(--cyan) / 0.6);
+  padding-left: 0.9em;
+  color: rgb(var(--ink));
 }
 .slide-body table {
   border-collapse: collapse;
@@ -303,9 +269,5 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
-  }
-  .border-beam::before {
-    animation: none;
-    background: linear-gradient(rgb(var(--cyan) / 0.4), rgb(var(--cyan) / 0.4));
   }
 }
