@@ -13,3 +13,6 @@ eda/out/h300_work/
 eda/out/synth_work/
 eda/out/*_smoke.*
 .claude/worktrees/
+eda/h300/out/cache/
+**/__pycache__/
+*.pkl
