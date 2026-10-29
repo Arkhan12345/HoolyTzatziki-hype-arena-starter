@@ -11,6 +11,8 @@ import { ConfidenceHistogram, VerdictDistribution } from '@/components/data/Dist
 import { TerminalLog } from '@/components/data/TerminalLog'
 import { VerdictBadge } from '@/components/data/VerdictBadge'
 import { GoldCheck } from '@/components/data/GoldCheck'
+import { LabelsTable } from '@/components/data/LabelsTable'
+import { StageStrip } from '@/components/data/StageStrip'
 import { FactChip, TypeBadge } from '@/components/FactChip'
 import { PipelineFlow, usePipelineStatus } from '@/components/PipelineFlow'
 import { ErrorState, HealthPill, NotComputed, PartialWarning } from '@/components/States'
@@ -120,6 +122,7 @@ export default function Dashboard() {
           <div className="h-[260px]">
             <PipelineFlow architecture={architecture.data} status={pipe.status} edges={pipe.edges} activeMs={pipe.activeMs} timings={pipe.timings} compact />
           </div>
+          {result && <StageStrip result={result} cursor={pipe.cursor} replaying={pipe.replaying} className="border-t border-line px-6 py-4" />}
         </Panel>
       </motion.div>
 
@@ -143,7 +146,8 @@ export default function Dashboard() {
             <p className="text-xs text-verdict-unsure">Classifier not merged yet: labels are the all-true baseline, a prior rather than evidence.</p>
           )}
 
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+          {/* full width for the labels table; the debug view keeps the side-by-side list */}
+          <div className={cn('grid gap-5', debug && 'xl:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]')}>
             {/* labels */}
             <Panel>
               <PanelHeader
@@ -161,7 +165,8 @@ export default function Dashboard() {
                   <VerdictDistribution counts={cls.predicted} />
                 </div>
               )}
-              <ul className="mt-3 divide-y divide-line">
+              {result && !debug && <LabelsTable predictions={predictions} />}
+              <ul className={cn('mt-3 divide-y divide-line', result && !debug && 'hidden')}>
                 {result
                   ? predictions.slice(0, 8).map((p, i) => (
                       <motion.li
