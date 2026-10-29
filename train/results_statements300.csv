@@ -1,0 +1,5 @@
+model,split,n,acc,f1_true,f1_false,f1_unsure,macro_f1_3,macro_f1_tf,ece_tf,excluded_overlap
+closed-world (practice only),dev,98,0.8776,0.9394,0.8571,0.8358,0.8775,0.8983,0.0845,3
+closed-world (practice only),locked,199,0.8744,0.9037,0.8777,0.8387,0.8734,0.8907,0.1216,3
+gold facts + closed-world rule (ceiling),dev,98,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,0.0000,3
+gold facts + closed-world rule (ceiling),locked,199,1.0000,1.0000,1.0000,1.0000,1.0000,1.0000,0.0000,3
